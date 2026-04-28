@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="../TrucoRPG.Tests/TrucoRPG.Tests.csproj" />
+  <Project Path="TrucoRPG.back.csproj" />
+</Solution>
