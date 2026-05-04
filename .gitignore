@@ -22,7 +22,9 @@ publish/
 *.dll
 *.exe
 
-# --- Carpetas de otros lenguajes/frameworks ---
-node_modules/
-dist/
-.angular/
+# --- Angular (Frontend) ---
+frontend/node_modules/
+frontend/.angular/
+frontend/dist/
+frontend/bin/
+frontend/obj/
