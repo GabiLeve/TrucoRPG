@@ -29,9 +29,9 @@ public class EnvidoServicioTests
     }
 
     [Fact]
-    public void CalcularTanto_MazoConFigurasDelMismoPalo_FigurasValen0()
+    public void CalcularTanto_TresFigurasDelMismoPalo_FigurasValen0()
     {
-        var mano = new List<Carta> { C(10, "Basto"), C(11, "Basto"), C(3, "Basto") };
+        var mano = new List<Carta> { C(10, "Basto"), C(11, "Basto"), C(12, "Basto") };
 
         int tanto = EnvidoServicio.CalcularTanto(mano);
 
