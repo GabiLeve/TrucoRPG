@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\TrucoRPG.Entidades\TrucoRPG.Entidades.csproj" />
+  </ItemGroup>
+
 </Project>

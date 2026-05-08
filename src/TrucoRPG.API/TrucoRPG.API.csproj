@@ -8,6 +8,12 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.15" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.9.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TrucoRPG.Entidades\TrucoRPG.Entidades.csproj" />
+    <ProjectReference Include="..\TrucoRPG.Logica\TrucoRPG.Logica.csproj" />
   </ItemGroup>
 
 </Project>
