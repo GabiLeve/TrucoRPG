@@ -1,0 +1,807 @@
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+    background:
+        radial-gradient(ellipse 80% 50% at 50% 0%, #2b0f09 0%, transparent 70%),
+        radial-gradient(ellipse 100% 80% at 50% 100%, #110808 0%, transparent 80%),
+        #0d0806;
+    color: #f3e8d8;
+}
+
+body.game-layout { overflow: hidden; }
+
+.d-none { display: none !important; }
+
+.truco-page {
+    min-height: 100vh;
+    padding: 10px;
+}
+
+.game-shell {
+    height: calc(100vh - 20px);
+    display: flex;
+}
+
+.mesa {
+    flex: 1;
+    border-radius: 24px;
+    background: rgba(14, 8, 5, 0.92);
+    border: 1px solid rgba(255, 190, 110, 0.18);
+    box-shadow:
+        0 0 0 1px rgba(0,0,0,0.6),
+        0 30px 80px rgba(0,0,0,0.7),
+        inset 0 1px 0 rgba(255,220,160,0.07);
+    overflow: hidden;
+}
+
+.tapete {
+    height: 100%;
+    display: grid;
+    grid-template-columns: 230px 1fr 310px;
+    gap: 0;
+}
+
+.panel-acciones {
+    padding: 16px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    background: rgba(10, 6, 4, 0.7);
+    border-right: 1px solid rgba(255, 190, 110, 0.1);
+    overflow-y: auto;
+}
+
+.slider-wrap {
+    background: rgba(255, 200, 140, 0.05);
+    border: 1px solid rgba(255, 190, 110, 0.15);
+    border-radius: 12px;
+    padding: 10px;
+}
+
+.switch-label, .panel-titulo {
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: #ffd090;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.slider-mentira {
+    width: 100%;
+    accent-color: #c87a30;
+}
+
+.slider-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.7rem;
+    color: #c8a070;
+    margin-top: 2px;
+}
+
+.btn-canto,
+.btn-nueva-mano,
+.btn-nueva-partida,
+.btn-respuesta,
+.btn-mazo {
+    width: 100%;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-weight: 800;
+    font-size: 0.88rem;
+    border: 1px solid rgba(255, 200, 140, 0.2);
+    cursor: pointer;
+    transition: transform 0.13s ease, box-shadow 0.13s ease, opacity 0.13s;
+    letter-spacing: 0.3px;
+}
+
+.btn-canto {
+    background: linear-gradient(160deg, #1e1208, #33200e);
+    color: #ffe0b0;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+}
+
+.btn-truco {
+    background: linear-gradient(160deg, #3a0e0e, #6b1e1e);
+    color: #ffd8d8;
+    border-color: rgba(255, 140, 140, 0.25);
+}
+
+.btn-respuesta {
+    background: linear-gradient(160deg, #1a3b10, #3a6b22);
+    color: #d8ffcc;
+    border-color: rgba(160, 255, 140, 0.2);
+}
+
+.btn-no-quiero {
+    background: linear-gradient(160deg, #3e1010, #6e2020);
+    color: #ffd0d0;
+}
+
+.btn-nueva-mano {
+    background: linear-gradient(160deg, #5a3c0a, #9a6a18);
+    color: #fff0cc;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+}
+
+.btn-nueva-partida {
+    background: linear-gradient(160deg, #0e3820, #1e6a40);
+    color: #d0ffea;
+}
+
+.btn-mazo {
+    background: linear-gradient(160deg, #1a1a2e, #2e2e50);
+    color: #c0c0e8;
+    border-color: rgba(180, 180, 255, 0.2);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+}
+
+.btn-mazo:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.btn-canto:hover:not(:disabled),
+.btn-respuesta:hover:not(:disabled),
+.btn-nueva-mano:hover:not(:disabled),
+.btn-nueva-partida:hover:not(:disabled),
+.btn-mazo:hover:not(:disabled) {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 10px 22px rgba(0,0,0,0.5);
+}
+
+.btn-canto:disabled, .btn-truco:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.respuesta-usuario {
+    background: rgba(255, 200, 140, 0.06);
+    border: 1px solid rgba(255, 190, 110, 0.18);
+    border-radius: 12px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.mesa-principal {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+
+    perspective: 1100px;
+    perspective-origin: 50% -5%;
+}
+
+.mesa-principal::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(ellipse 70% 45% at 50% 5%,  rgba(180, 100, 30, 0.10) 0%, transparent 65%),
+        radial-gradient(ellipse 90% 60% at 50% 100%, rgba(10, 4, 2, 0.6) 0%, transparent 80%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.tapete-3d {
+    position: absolute;
+    left: -4%;
+    right: -4%;
+    top: 28%;
+    bottom: -8%;
+    border-radius: 50% 50% 8px 8px / 20px 20px 8px 8px;
+
+    background:
+        radial-gradient(ellipse 80% 50% at 50% 40%, #1c6038 0%, #0d3d22 45%, #071d10 100%),
+        #0a2e18;
+
+    transform: rotateX(32deg);
+    transform-origin: top center;
+    transform-style: preserve-3d;
+
+    box-shadow:
+        inset 0 0 80px rgba(0,0,0,0.55),
+        inset 0 -30px 50px rgba(0,0,0,0.4),
+        0 -4px 20px rgba(0,0,0,0.5);
+
+    background-image:
+        repeating-linear-gradient(
+            45deg,
+            rgba(255,255,255,0.007) 0px,
+            rgba(255,255,255,0.007) 1px,
+            transparent 1px,
+            transparent 8px
+        ),
+        repeating-linear-gradient(
+            -45deg,
+            rgba(255,255,255,0.007) 0px,
+            rgba(255,255,255,0.007) 1px,
+            transparent 1px,
+            transparent 8px
+        ),
+        radial-gradient(ellipse 80% 50% at 50% 40%, #1e6840 0%, #0d3d22 45%, #071d10 100%);
+
+    pointer-events: none;
+    z-index: 0;
+}
+
+.tapete-3d::after {
+    content: "";
+    position: absolute;
+    top: 0; left: 5%; right: 5%;
+    height: 3px;
+    border-radius: 2px;
+    background: linear-gradient(90deg,
+        transparent,
+        rgba(160, 255, 160, 0.15) 30%,
+        rgba(180, 255, 180, 0.22) 50%,
+        rgba(160, 255, 160, 0.15) 70%,
+        transparent
+    );
+}
+
+.zona-oponente,
+.zona-cartas-jugadas,
+.zona-jugador-3d,
+.cartel-decision {
+    position: relative;
+    z-index: 2;
+}
+
+.cartel-decision {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 10;
+    padding: 7px 22px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 232, 204, 0.35);
+    font-weight: 900;
+    letter-spacing: 2px;
+    font-size: 0.9rem;
+    backdrop-filter: blur(4px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+}
+
+.decision-quiero {
+    background: rgba(20, 100, 45, 0.92);
+    color: #b8ffce;
+    border-color: rgba(100, 255, 130, 0.3);
+    text-shadow: 0 0 12px rgba(100,255,130,0.4);
+}
+
+.decision-no-quiero {
+    background: rgba(120, 20, 20, 0.92);
+    color: #ffc8c8;
+    border-color: rgba(255, 120, 120, 0.3);
+    text-shadow: 0 0 12px rgba(255,100,100,0.4);
+}
+
+.zona-oponente {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 14px;
+    gap: 8px;
+
+    transform: scale(0.88) translateY(-4px);
+    transform-origin: center top;
+}
+
+.oponente-retrato {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    position: relative;
+}
+
+.gaucho-fondo {
+    width: 120px;
+    height: 120px;
+    background-image: url("/Imagenes/gaucho.png");
+    background-position: center top;
+    background-repeat: no-repeat;
+    background-size: contain;
+    filter: drop-shadow(0 0 18px rgba(255, 160, 60, 0.3))
+            drop-shadow(0 8px 24px rgba(0,0,0,0.7))
+            sepia(0.2) brightness(0.9);
+    position: relative;
+}
+
+.gaucho-fondo::after {
+    content: "";
+    position: absolute;
+    bottom: -8px;
+    left: 10%;
+    right: 10%;
+    height: 16px;
+    background: radial-gradient(ellipse, rgba(255,160,60,0.18), transparent 70%);
+    border-radius: 50%;
+    filter: blur(4px);
+}
+
+.badge-estado {
+    border-radius: 999px;
+    border: 1px solid rgba(255, 200, 130, 0.2);
+    background: rgba(255, 220, 170, 0.07);
+    color: #ffdaa0;
+    padding: 4px 10px;
+    font-size: 0.74rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.maquina-cartas {
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: nowrap;
+}
+
+.carta-boca-abajo {
+    width: 68px;
+    height: 96px;
+    border-radius: 10px;
+    background:
+        linear-gradient(135deg, #320e10 0%, #5a1e22 40%, #3a1012 60%, #280a0e 100%);
+    border: 1px solid rgba(255, 200, 160, 0.18);
+    position: relative;
+    overflow: hidden;
+    box-shadow:
+        0 8px 20px rgba(0,0,0,0.6),
+        inset 0 1px 0 rgba(255,200,160,0.1);
+}
+
+.carta-boca-abajo::before {
+    content: "";
+    position: absolute;
+    inset: 5px;
+    border: 1px solid rgba(255, 200, 160, 0.12);
+    border-radius: 6px;
+    background:
+        repeating-linear-gradient(
+            45deg,
+            rgba(255,180,100,0.04) 0px, rgba(255,180,100,0.04) 1px,
+            transparent 1px, transparent 5px
+        );
+}
+
+.carta-boca-abajo::after {
+    content: "🂠";
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font-size: 2rem;
+    opacity: 0.25;
+    color: #ffddbb;
+}
+
+.maquina-cartas .carta-boca-abajo:nth-child(1) {
+    transform: rotate(-8deg) translateY(4px);
+}
+.maquina-cartas .carta-boca-abajo:nth-child(2) {
+    transform: rotate(-3deg) translateY(1px);
+    z-index: 1;
+}
+.maquina-cartas .carta-boca-abajo:nth-child(3) {
+    transform: rotate(3deg) translateY(1px);
+    z-index: 1;
+}
+.maquina-cartas .carta-boca-abajo:nth-child(4) {
+    transform: rotate(8deg) translateY(4px);
+}
+
+.zona-cartas-jugadas {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.zona-cartas-jugadas.panel-info {
+    text-align: center;
+    color: rgba(255, 220, 160, 0.4);
+    font-size: 0.9rem;
+    font-style: italic;
+}
+
+.jugadas-en-mesa {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: center;
+    gap: 16px;
+}
+
+.jugada-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 0 0 auto;
+}
+
+.jugada-titulo {
+    font-size: 0.7rem;
+    color: rgba(255, 210, 140, 0.65);
+    font-weight: 700;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.mesa-superpuesta {
+    position: relative;
+    width: 130px;
+    height: 140px;
+}
+
+.carta-jugada {
+    position: absolute;
+    width: 80px;
+    height: 112px;
+    border-radius: 9px;
+    padding: 6px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+    background: linear-gradient(160deg, #faf6ea, #f0e8d4);
+    color: #1a100a;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border: 1px solid rgba(0,0,0,0.1);
+}
+
+.carta-fondo {
+    left: 0;
+    top: 6px;
+    opacity: 0.82;
+    transform: rotate(-4deg);
+}
+
+.carta-frente {
+    left: 44px;
+    top: 0;
+    z-index: 2;
+    transform: rotate(3deg);
+}
+
+.carta-jugada-empate .carta-fondo,
+.carta-jugada-empate .carta-frente {
+    opacity: 1;
+    transform: rotate(0deg);
+}
+
+.zona-jugador-3d {
+    padding: 10px 0 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.zona-jugador-3d h3 {
+    margin: 0;
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: rgba(255, 210, 150, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.mano-jugador {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 0;
+    flex-wrap: nowrap;
+    padding: 0 10px;
+    min-height: 170px;
+    position: relative;
+}
+
+.mano-jugador .carta-jugable:nth-child(1) {
+    transform: rotate(-14deg) translateX(16px) translateY(16px);
+    transform-origin: bottom center;
+    z-index: 1;
+}
+.mano-jugador .carta-jugable:nth-child(2) {
+    transform: rotate(-5deg) translateX(6px) translateY(4px);
+    transform-origin: bottom center;
+    z-index: 2;
+}
+.mano-jugador .carta-jugable:nth-child(3) {
+    transform: rotate(0deg) translateY(0px);
+    transform-origin: bottom center;
+    z-index: 3;
+}
+.mano-jugador .carta-jugable:nth-child(4) {
+    transform: rotate(5deg) translateX(-6px) translateY(4px);
+    transform-origin: bottom center;
+    z-index: 2;
+}
+.mano-jugador .carta-jugable:nth-child(5) {
+    transform: rotate(14deg) translateX(-16px) translateY(16px);
+    transform-origin: bottom center;
+    z-index: 1;
+}
+
+.carta.carta-jugable {
+    width: 100px;
+    height: 148px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background: linear-gradient(160deg, #fdf8ee, #f2e9d4);
+    color: #1a100a;
+    box-shadow:
+        0 16px 40px rgba(0,0,0,0.65),
+        0 4px 10px rgba(0,0,0,0.4),
+        inset 0 1px 0 rgba(255,255,255,0.8);
+    transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.18s ease,
+                z-index 0s;
+    position: relative;
+}
+
+.carta.carta-jugable::before {
+    content: "";
+    position: absolute;
+    inset: 5px;
+    border: 1px solid rgba(150, 100, 40, 0.18);
+    border-radius: 7px;
+    pointer-events: none;
+}
+
+.carta-numero {
+    font-size: 1.4rem;
+    font-weight: 900;
+    line-height: 1;
+    padding: 8px 9px 4px;
+    position: relative;
+    z-index: 1;
+}
+
+.carta-palo {
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 0 9px;
+    color: #5a3a18;
+    text-transform: capitalize;
+}
+
+.carta-centro {
+    text-align: center;
+    font-size: 2rem;
+    opacity: 0.12;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+
+.carta-valor {
+    font-size: 0.68rem;
+    color: #8a6030;
+    padding: 4px 9px 8px;
+    font-weight: 600;
+    position: relative;
+    z-index: 1;
+}
+
+.carta-jugable[data-palo="Espada"] .carta-numero,
+.carta-jugable[data-palo="espada"] .carta-numero { color: #1a1a3a; }
+
+.carta-jugable[data-palo="Basto"] .carta-numero,
+.carta-jugable[data-palo="basto"] .carta-numero { color: #1a2a10; }
+
+.carta-jugable[data-palo="Oro"] .carta-numero,
+.carta-jugable[data-palo="oro"] .carta-numero { color: #7a5500; }
+
+.carta-jugable[data-palo="Copa"] .carta-numero,
+.carta-jugable[data-palo="copa"] .carta-numero { color: #5a0a0a; }
+
+.mano-jugador .carta-jugable:hover:not(:disabled) {
+    transform: rotate(0deg) translateY(-28px) scale(1.06) !important;
+    z-index: 10 !important;
+    box-shadow:
+        0 28px 55px rgba(0,0,0,0.8),
+        0 8px 18px rgba(0,0,0,0.5),
+        0 0 0 2px rgba(255, 200, 100, 0.4),
+        inset 0 1px 0 rgba(255,255,255,0.9);
+}
+
+.carta-jugable:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.carta-numero { font-size: 1rem; }
+.carta-jugada .carta-numero { font-size: 1rem; }
+.carta-jugada .carta-palo   { font-size: 0.72rem; color: #5a3a18; }
+.carta-jugada .carta-centro { font-size: 1.2rem; }
+.carta-jugada .carta-valor  { font-size: 0.64rem; }
+
+.panel-info-juego {
+    padding: 16px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: rgba(10, 6, 4, 0.7);
+    border-left: 1px solid rgba(255, 190, 110, 0.1);
+    overflow-y: auto;
+}
+
+.historial-wrap {
+    background: rgba(255, 200, 140, 0.05);
+    border: 1px solid rgba(255, 190, 110, 0.14);
+    border-radius: 12px;
+    padding: 12px;
+}
+
+.marcador-rpg {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    border-color: rgba(255, 170, 80, 0.22);
+    background: rgba(255, 170, 50, 0.04);
+    min-height: 0;
+}
+
+.panel-info {
+    color: #f0dfc0;
+    line-height: 1.5;
+    font-size: 0.84rem;
+}
+
+.separador-panel {
+    border-color: rgba(255, 210, 160, 0.12);
+    margin: 8px 0;
+}
+
+.envido-ok   { color: #7dff9e; font-weight: 700; }
+.envido-mentira { color: #ffd080; font-weight: 700; }
+.truco-ok    { color: #ff9e9e; font-weight: 700; }
+
+.tanteador-palitos {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding-top: 8px;
+    min-height: 0;
+}
+
+.tanteador-columnas {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    align-items: start;
+}
+
+.jugador-tanteador {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-left: 2px solid rgba(255, 220, 160, 0.25);
+    padding-left: 6px;
+}
+
+.jugador-nombre {
+    text-align: center;
+    font-weight: 700;
+    font-size: 0.78rem;
+    margin-bottom: 6px;
+    color: #ffd090;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.palitos-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: center;
+    width: 100%;
+}
+
+.grupo-palitos {
+    position: relative;
+    width: 46px;
+    height: 44px;
+    flex-shrink: 0;
+}
+
+.palito {
+    position: absolute;
+    width: 3px;
+    height: 30px;
+    border-radius: 10px;
+    background: rgba(240, 220, 180, 0.18);
+    transition: background 0.25s ease;
+}
+
+.palito.activo { background: #f5e4c0; }
+
+.palito.p1 { top: 5px; left: 4px;  transform: rotate(0deg); }
+.palito.p2 { top: -7px; left: 21px; transform: rotate(90deg); }
+.palito.p3 { top: 5px; left: 36px; transform: rotate(0deg); }
+.palito.p4 { top: 20px; left: 21px; transform: rotate(90deg); }
+.palito.p5 { top: 5px; left: 21px; height: 30px; transform: rotate(45deg); }
+
+.jugador-puntos {
+    text-align: center;
+    font-size: 0.76rem;
+    margin-top: 6px;
+    color: #c89050;
+    font-weight: 700;
+}
+
+.carta-maquina-en-mesa {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.carta-maquina-mesa-card {
+    position: static;
+    transform: none;
+    opacity: 1;
+    border: 2px solid rgba(255, 140, 140, 0.4);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,160,160,0.2);
+}
+
+.estado-partida-final {
+    margin-top: 10px;
+    text-align: center;
+    color: #ffd090;
+    font-weight: 800;
+    font-size: 0.9rem;
+    text-shadow: 0 0 16px rgba(255, 200, 80, 0.4);
+}
+
+@media (max-width: 1200px) {
+    .tapete {
+        grid-template-columns: 210px 1fr 280px;
+    }
+}
+
+@media (max-width: 960px) {
+    .tapete {
+        grid-template-columns: 190px 1fr;
+        grid-template-rows: 1fr auto;
+    }
+    .panel-info-juego {
+        grid-column: 1 / -1;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        border-left: none;
+        border-top: 1px solid rgba(255, 190, 110, 0.1);
+    }
+}
+
+@media (max-width: 700px) {
+    body.game-layout { overflow: auto; }
+    .game-shell { height: auto; }
+    .tapete { grid-template-columns: 1fr; }
+    .panel-info-juego { grid-template-columns: 1fr; }
+    .mano-jugador .carta-jugable:nth-child(n) {
+        transform: none !important;
+    }
+}
