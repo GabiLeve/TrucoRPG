@@ -1,10 +1,2 @@
-﻿namespace TrucoRPG.Tests.API;
-
-public class UnitTest1
-{
-    [Fact]
-    public void Test1()
-    {
-
-    }
-}
+// Archivo de plantilla — los tests reales están en los archivos *Tests.cs
+namespace TrucoRPG.Tests.API;

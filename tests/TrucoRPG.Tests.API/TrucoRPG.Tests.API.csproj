@@ -18,4 +18,10 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\TrucoRPG.API\TrucoRPG.API.csproj" />
+    <ProjectReference Include="..\..\src\TrucoRPG.Entidades\TrucoRPG.Entidades.csproj" />
+    <ProjectReference Include="..\..\src\TrucoRPG.Logica\TrucoRPG.Logica.csproj" />
+  </ItemGroup>
+
 </Project>
