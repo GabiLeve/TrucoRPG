@@ -1,10 +1,12 @@
 using Microsoft.Extensions.FileProviders;
+using TrucoRPG.API.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddSignalR();
 
 // CORS: permite que el front (Phaser) pueda hablarle al backend
 builder.Services.AddCors(options =>
@@ -14,10 +16,12 @@ builder.Services.AddCors(options =>
                 "http://localhost:5500",   // VS Code Live Server
                 "http://127.0.0.1:5500",  // VS Code Live Server (alternativo)
                 "http://localhost:3000",   // npx serve
-                "http://localhost:8080"    // python http.server
+                "http://localhost:8080",   // python http.server
+                "http://localhost:4200"    // Angular dev server
               )
               .AllowAnyMethod()
-              .AllowAnyHeader());
+              .AllowAnyHeader()
+              .AllowCredentials()); // Necesario para SignalR cross-origin
 });
 
 var app = builder.Build();
@@ -35,24 +39,22 @@ else
 
 app.UseCors("FrontPolicy");
 
-// Solo redirigir a HTTPS en producción; en desarrollo el front llama directo por HTTP
+// Solo redirigir a HTTPS en producciÃ³n; en desarrollo el front llama directo por HTTP
 if (!app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
 }
 
+// UseDefaultFiles hace que "/" sirva "index.html" del wwwroot (el juego Phaser)
+app.UseDefaultFiles();
 app.UseStaticFiles();
-app.UseStaticFiles(new StaticFileOptions
-{
-    FileProvider = new PhysicalFileProvider(Path.Combine(app.Environment.ContentRootPath, "Imagenes")),
-    RequestPath = "/Imagenes"
-});
 
 app.UseRouting();
 
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<GameHub>("/gamehub"); // Endpoint WebSocket del juego
 
 app.MapControllerRoute(
     name: "default",

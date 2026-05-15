@@ -37,13 +37,8 @@ namespace TrucoDemo.Servicios
             {
                 if (ganadorSegunda is "Humano" or "Maquina")
                 {
-                    if (ganadorTercera == null)
-                        return null;
-
-                    if (ganadorTercera == "Parda" || ganadorTercera == ganadorSegunda)
-                        return ganadorSegunda;
-
-                    return ganadorTercera;
+                    // Primera parda → quien gana la segunda gana la mano, sin importar la tercera
+                    return ganadorSegunda;
                 }
 
                 if (ganadorSegunda == "Parda")
