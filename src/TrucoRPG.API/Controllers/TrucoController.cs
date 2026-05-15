@@ -237,7 +237,6 @@ namespace TrucoDemo.Controllers
 
             if (escalaARetruco)
             {
-
                 mano.NivelTruco = 2;
                 mano.PuntosTrucoMano = 3;
                 mano.CantorTruco = "Maquina";
@@ -246,9 +245,11 @@ namespace TrucoDemo.Controllers
             }
             else
             {
-
                 mano.PuntosTrucoMano = 2;
+                mano.TrucoResuelto = true; // negociación cerrada: máquina aceptó sin escalar
                 mano.EstadoTruco = "La máquina quiso el truco. Esta mano vale 2 puntos.";
+                if (!mano.TrucoPendienteRespuestaHumano)
+                    AvanzarTurnoMaquina(mano);
             }
 
             PartidaMemoriaServicio.Actualizar(mano);
@@ -318,6 +319,7 @@ namespace TrucoDemo.Controllers
                         }
                         else
                         {
+                            mano.TrucoResuelto = true; // negociación cerrada
                             mano.EstadoTruco = "La máquina quiso el retruco. Esta mano vale 3 puntos.";
                         }
                     }
@@ -340,6 +342,7 @@ namespace TrucoDemo.Controllers
                     }
                     else
                     {
+                        mano.TrucoResuelto = true; // negociación cerrada
                         mano.EstadoTruco = "La máquina quiso el vale cuatro. Esta mano vale 4 puntos.";
                     }
                 }
@@ -351,7 +354,7 @@ namespace TrucoDemo.Controllers
             }
             else
             {
-
+                mano.TrucoResuelto = true; // negociación cerrada: humano aceptó sin escalar
                 mano.EstadoTruco = $"Quisiste. Esta mano vale {mano.PuntosTrucoMano} punto(s).";
             }
 
@@ -403,6 +406,7 @@ namespace TrucoDemo.Controllers
             }
             else
             {
+                mano.TrucoResuelto = true; // negociación cerrada: máquina aceptó sin escalar
                 mano.EstadoTruco = $"La máquina quiso el {nombreNivel}. Esta mano vale {mano.PuntosTrucoMano} punto(s).";
             }
 
@@ -424,7 +428,8 @@ namespace TrucoDemo.Controllers
             if (mano.EnvidoPendienteRespuestaHumano || mano.TrucoPendienteRespuestaHumano)
                 return BadRequest("Respondé el canto pendiente antes de irte al mazo.");
 
-            int puntosParaMaquina = mano.TrucoCantado && !mano.TrucoResuelto
+            // Dar los puntos del nivel negociado (si hubo truco) o 1 punto base
+            int puntosParaMaquina = mano.TrucoCantado && mano.PuntosTrucoMano > 0
                 ? mano.PuntosTrucoMano
                 : 1;
 

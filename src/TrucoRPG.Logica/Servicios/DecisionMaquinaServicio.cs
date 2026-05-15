@@ -49,7 +49,7 @@ namespace TrucoDemo.Servicios
         public static bool AceptarTruco(List<Carta> manoMaquina, int nivelMentira)
         {
             nivelMentira = Math.Clamp(nivelMentira, 0, 100);
-            int cartaMasFuerte = manoMaquina.Max(c => c.ValorTruco);
+            int cartaMasFuerte = manoMaquina.Any() ? manoMaquina.Max(c => c.ValorTruco) : 0;
 
             int probabilidadAceptar = cartaMasFuerte switch
             {
@@ -75,7 +75,7 @@ namespace TrucoDemo.Servicios
             if (nivelActual >= 3) return false;
 
             nivelMentira = Math.Clamp(nivelMentira, 0, 100);
-            int cartaMasFuerte = manoMaquina.Max(c => c.ValorTruco);
+            int cartaMasFuerte = manoMaquina.Any() ? manoMaquina.Max(c => c.ValorTruco) : 0;
 
             int probabilidad = cartaMasFuerte switch
             {
