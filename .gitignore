@@ -6,7 +6,7 @@
 *.sln.docstates
 *.db
 
-# --- Carpetas de compilación (Binarios) ---
+# --- Carpetas de compilaciï¿½n (Binarios) ---
 [Bb]in/
 [Oo]bj/
 publish/
@@ -28,3 +28,4 @@ frontend/.angular/
 frontend/dist/
 frontend/bin/
 frontend/obj/
+src/TrucoRPG.API/Program.cs
