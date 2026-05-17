@@ -132,7 +132,7 @@ public class GameHub : Hub
         var mano = state!.Mano;
 
         if (mano.EnvidoCantado || mano.EnvidoResuelto) return;
-        if (mano.Bazas.Count > 0) return;
+        if (mano.Bazas.Count > 0) return; // El envido solo se canta antes de la primera baza
         if (mano.PartidaTerminada || mano.GanadorMano != null) return;
 
         bool esJ1 = Context.ConnectionId == state.Jugador1Id;
@@ -288,6 +288,11 @@ public class GameHub : Hub
         if (mano.TrucoPendienteRespuestaHumano || state.TrucoPendienteRespuestaJ2) return;
 
         bool esJ1 = Context.ConnectionId == state.Jugador1Id;
+        string rolActual = esJ1 ? "Humano" : "Maquina";
+
+        // El que cantó el nivel actual NO puede escalar (solo puede hacerlo el rival)
+        if (mano.CantorTruco == rolActual) return;
+
         mano.NivelTruco++;
         mano.CantorTruco = esJ1 ? "Humano" : "Maquina";
         mano.PuntosTrucoMano = mano.NivelTruco == 2 ? 3 : 4;

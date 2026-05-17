@@ -376,6 +376,7 @@ namespace TrucoDemo.Controllers
             if (!mano.TrucoCantado || mano.TrucoResuelto) return BadRequest("No hay truco activo para escalar.");
             if (mano.TrucoPendienteRespuestaHumano || mano.EnvidoPendienteRespuestaHumano) return BadRequest("Hay un canto pendiente de respuesta.");
             if (mano.NivelTruco >= 3) return BadRequest("El truco ya está en su nivel máximo.");
+            if (mano.CantorTruco == "Humano") return BadRequest("No podés escalar tu propio canto. Solo puede escalar quien respondió.");
 
             mano.NivelTruco++;
             mano.CantorTruco = "Humano";
