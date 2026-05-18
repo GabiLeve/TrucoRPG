@@ -93,30 +93,26 @@ public class GameHub : Hub
         {
             if (mano.CartaMaquinaEnMesa != null)
             {
-                // J2 ya jugó antes → resolver baza
                 var cartaJ2 = mano.CartaMaquinaEnMesa;
                 mano.CartaMaquinaEnMesa = null;
                 ResolverBazaMulti(mano, carta, cartaJ2);
             }
             else
             {
-                // J1 va primero → esperar a J2
                 state.CartaPendienteJ1 = carta;
                 mano.TurnoActual = "Maquina";
             }
         }
-        else // J2
+        else
         {
             if (state.CartaPendienteJ1 != null)
             {
-                // J1 ya jugó → resolver baza
                 var cartaJ1 = state.CartaPendienteJ1;
                 state.CartaPendienteJ1 = null;
                 ResolverBazaMulti(mano, cartaJ1, carta);
             }
             else
             {
-                // J2 va primero → esperar a J1
                 mano.CartaMaquinaEnMesa = carta;
                 mano.TurnoActual = "Humano";
             }
