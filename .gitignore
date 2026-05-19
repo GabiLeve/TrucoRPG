@@ -28,5 +28,5 @@ frontend/.angular/
 frontend/dist/
 frontend/bin/
 frontend/obj/
-src/TrucoRPG.API/Program.cs
+
 appsettings.Development.json
