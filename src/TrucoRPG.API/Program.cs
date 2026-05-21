@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +12,11 @@ using TrucoRPG.Logica.Servicios;
 using TrucoRPG.Logica.UseCases;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Configuration.AddJsonFile(
+    "appsettings.Local.json",
+    optional: true,
+    reloadOnChange: true);
 
 // ── Base de datos (MySQL via Pomelo) ──────────────────────────────
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
