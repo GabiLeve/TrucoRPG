@@ -11,6 +11,8 @@ public class JuegoServicioTests
     private static Baza Baza(string ganador) =>
         new() { Ganador = ganador };
 
+    // ─── ResolverBaza ────────────────────────────────────────────────
+
     [Fact]
     public void ResolverBaza_HumanoTieneMayorValor_GanaHumano()
     {
@@ -33,6 +35,31 @@ public class JuegoServicioTests
     }
 
     [Fact]
+    public void ResolverBaza_AsDeEspada_GanaAAsDeBastoMasAlto()
+    {
+        // As de Espada (14) > As de Basto (13)
+        var resultado = JuegoServicio.ResolverBaza(Carta(14), Carta(13));
+        Assert.Equal("Humano", resultado);
+    }
+
+    // ─── ResolverGanadorMano: casos base ─────────────────────────────
+
+    [Fact]
+    public void ResolverGanadorMano_SinBasas_RetornaNull()
+    {
+        var ganador = JuegoServicio.ResolverGanadorMano(new List<Baza>(), "Humano");
+        Assert.Null(ganador);
+    }
+
+    [Fact]
+    public void ResolverGanadorMano_SoloUnaBaza_RetornaNull()
+    {
+        var bazas = new List<Baza> { Baza("Humano") };
+        var ganador = JuegoServicio.ResolverGanadorMano(bazas, "Humano");
+        Assert.Null(ganador);
+    }
+
+    [Fact]
     public void ResolverGanadorMano_HumanoGanaDosBasasConsecutivas_GanaHumano()
     {
         var bazas = new List<Baza> { Baza("Humano"), Baza("Humano") };
@@ -49,43 +76,11 @@ public class JuegoServicioTests
     }
 
     [Fact]
-    public void ResolverGanadorMano_PardaLuegoHumano_SinTercera_RetornaNull()
+    public void ResolverGanadorMano_UnoUnoSinTercera_RetornaNull()
     {
-        var bazas = new List<Baza> { Baza("Parda"), Baza("Humano") };
+        var bazas = new List<Baza> { Baza("Humano"), Baza("Maquina") };
         var ganador = JuegoServicio.ResolverGanadorMano(bazas, "Humano");
         Assert.Null(ganador);
-    }
-
-    [Fact]
-    public void ResolverGanadorMano_PardaLuegoHumanoConTerceraParda_GanaHumano()
-    {
-        var bazas = new List<Baza> { Baza("Parda"), Baza("Humano"), Baza("Parda") };
-        var ganador = JuegoServicio.ResolverGanadorMano(bazas, "Humano");
-        Assert.Equal("Humano", ganador);
-    }
-
-    [Fact]
-    public void ResolverGanadorMano_PardaLuegoMaquina_SinTercera_RetornaNull()
-    {
-        var bazas = new List<Baza> { Baza("Parda"), Baza("Maquina") };
-        var ganador = JuegoServicio.ResolverGanadorMano(bazas, "Humano");
-        Assert.Null(ganador);
-    }
-
-    [Fact]
-    public void ResolverGanadorMano_PardaLuegoMaquinaConTerceraParda_GanaMaquina()
-    {
-        var bazas = new List<Baza> { Baza("Parda"), Baza("Maquina"), Baza("Parda") };
-        var ganador = JuegoServicio.ResolverGanadorMano(bazas, "Humano");
-        Assert.Equal("Maquina", ganador);
-    }
-
-    [Fact]
-    public void ResolverGanadorMano_PardaPardaParda_GanaJugadorDeMano()
-    {
-        var bazas = new List<Baza> { Baza("Parda"), Baza("Parda"), Baza("Parda") };
-        var ganador = JuegoServicio.ResolverGanadorMano(bazas, "Maquina");
-        Assert.Equal("Maquina", ganador);
     }
 
     [Fact]
@@ -104,18 +99,120 @@ public class JuegoServicioTests
         Assert.Equal("Maquina", ganador);
     }
 
+    // ─── Parda en SEGUNDA baza ───────────────────────────────────────
+    // Regla: parda en 2da baza → gana quien ganó la 1ra.
+
     [Fact]
-    public void ResolverGanadorMano_SinBasas_RetornaNull()
+    public void ResolverGanadorMano_HumanoGanaPrimera_PardaSegunda_GanaHumano()
     {
-        var ganador = JuegoServicio.ResolverGanadorMano(new List<Baza>(), "Humano");
+        var bazas = new List<Baza> { Baza("Humano"), Baza("Parda") };
+        var ganador = JuegoServicio.ResolverGanadorMano(bazas, "Humano");
+        Assert.Equal("Humano", ganador);
+    }
+
+    [Fact]
+    public void ResolverGanadorMano_MaquinaGanaPrimera_PardaSegunda_GanaMaquina()
+    {
+        var bazas = new List<Baza> { Baza("Maquina"), Baza("Parda") };
+        var ganador = JuegoServicio.ResolverGanadorMano(bazas, "Humano");
+        Assert.Equal("Maquina", ganador);
+    }
+
+    // ─── Parda en TERCERA baza ───────────────────────────────────────
+    // Regla: 1ra y 2da distintas, 3ra parda → gana quien ganó la 1ra.
+
+    [Fact]
+    public void ResolverGanadorMano_HumanoGanaPrimera_MaquinaGanaSegunda_PardaTercera_GanaHumano()
+    {
+        var bazas = new List<Baza> { Baza("Humano"), Baza("Maquina"), Baza("Parda") };
+        var ganador = JuegoServicio.ResolverGanadorMano(bazas, "Humano");
+        Assert.Equal("Humano", ganador);
+    }
+
+    [Fact]
+    public void ResolverGanadorMano_MaquinaGanaPrimera_HumanoGanaSegunda_PardaTercera_GanaMaquina()
+    {
+        var bazas = new List<Baza> { Baza("Maquina"), Baza("Humano"), Baza("Parda") };
+        var ganador = JuegoServicio.ResolverGanadorMano(bazas, "Humano");
+        Assert.Equal("Maquina", ganador);
+    }
+
+    // ─── Parda en PRIMERA baza ───────────────────────────────────────
+    // Regla: parda en 1ra → la carta más alta de la 2da decide (gana quien gana la 2da).
+
+    [Fact]
+    public void ResolverGanadorMano_PardaPrimera_HumanoGanaSegunda_GanaHumano()
+    {
+        var bazas = new List<Baza> { Baza("Parda"), Baza("Humano") };
+        var ganador = JuegoServicio.ResolverGanadorMano(bazas, "Humano");
+        Assert.Equal("Humano", ganador);
+    }
+
+    [Fact]
+    public void ResolverGanadorMano_PardaPrimera_MaquinaGanaSegunda_GanaMaquina()
+    {
+        var bazas = new List<Baza> { Baza("Parda"), Baza("Maquina") };
+        var ganador = JuegoServicio.ResolverGanadorMano(bazas, "Humano");
+        Assert.Equal("Maquina", ganador);
+    }
+
+    [Fact]
+    public void ResolverGanadorMano_PardaPrimera_HumanoGanaSegunda_ConTerceraParda_SigueGanandoHumano()
+    {
+        // La 3ra baza no cambia el resultado: la 2da ya decidió.
+        var bazas = new List<Baza> { Baza("Parda"), Baza("Humano"), Baza("Parda") };
+        var ganador = JuegoServicio.ResolverGanadorMano(bazas, "Humano");
+        Assert.Equal("Humano", ganador);
+    }
+
+    [Fact]
+    public void ResolverGanadorMano_PardaPrimera_MaquinaGanaSegunda_ConTerceraParda_SigueGanandoMaquina()
+    {
+        var bazas = new List<Baza> { Baza("Parda"), Baza("Maquina"), Baza("Parda") };
+        var ganador = JuegoServicio.ResolverGanadorMano(bazas, "Humano");
+        Assert.Equal("Maquina", ganador);
+    }
+
+    // ─── Parda en PRIMERA y SEGUNDA ──────────────────────────────────
+    // Regla: parda+parda → va a la 3ra. Si 3ra también parda → gana el jugador "mano".
+
+    [Fact]
+    public void ResolverGanadorMano_PardaPrimera_PardaSegunda_SinTercera_RetornaNull()
+    {
+        var bazas = new List<Baza> { Baza("Parda"), Baza("Parda") };
+        var ganador = JuegoServicio.ResolverGanadorMano(bazas, "Humano");
         Assert.Null(ganador);
     }
 
     [Fact]
-    public void ResolverGanadorMano_SoloUnaBaza_RetornaNull()
+    public void ResolverGanadorMano_PardaPrimera_PardaSegunda_HumanoGanaTercera_GanaHumano()
     {
-        var bazas = new List<Baza> { Baza("Humano") };
+        var bazas = new List<Baza> { Baza("Parda"), Baza("Parda"), Baza("Humano") };
         var ganador = JuegoServicio.ResolverGanadorMano(bazas, "Humano");
-        Assert.Null(ganador);
+        Assert.Equal("Humano", ganador);
+    }
+
+    [Fact]
+    public void ResolverGanadorMano_PardaPrimera_PardaSegunda_MaquinaGanaTercera_GanaMaquina()
+    {
+        var bazas = new List<Baza> { Baza("Parda"), Baza("Parda"), Baza("Maquina") };
+        var ganador = JuegoServicio.ResolverGanadorMano(bazas, "Humano");
+        Assert.Equal("Maquina", ganador);
+    }
+
+    [Fact]
+    public void ResolverGanadorMano_PardaPardaParda_JugadorManoEsMaquina_GanaMaquina()
+    {
+        var bazas = new List<Baza> { Baza("Parda"), Baza("Parda"), Baza("Parda") };
+        var ganador = JuegoServicio.ResolverGanadorMano(bazas, "Maquina");
+        Assert.Equal("Maquina", ganador);
+    }
+
+    [Fact]
+    public void ResolverGanadorMano_PardaPardaParda_JugadorManoEsHumano_GanaHumano()
+    {
+        var bazas = new List<Baza> { Baza("Parda"), Baza("Parda"), Baza("Parda") };
+        var ganador = JuegoServicio.ResolverGanadorMano(bazas, "Humano");
+        Assert.Equal("Humano", ganador);
     }
 }

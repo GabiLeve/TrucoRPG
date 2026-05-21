@@ -1,20 +1,93 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using TrucoRPG.API.Hubs;
+using TrucoRPG.Infraestructura.Data;
+using TrucoRPG.Infraestructura.Entities;
+using TrucoRPG.Infraestructura.Repositorios;
+using TrucoRPG.Logica.Repositorios;
+using TrucoRPG.Logica.Servicios;
+using TrucoRPG.Logica.UseCases;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// ── Base de datos (MySQL via Pomelo) ──────────────────────────────
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' no encontrada.");
+
+builder.Services.AddDbContext<AppDbContext>(opt =>
+    opt.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+
+// ── Identity ──────────────────────────────────────────────────────
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>(opt =>
+{
+    opt.Password.RequireDigit           = true;
+    opt.Password.RequiredLength         = 6;
+    opt.Password.RequireNonAlphanumeric = false;
+    opt.Password.RequireUppercase       = false;
+})
+.AddEntityFrameworkStores<AppDbContext>()
+.AddDefaultTokenProviders();
+
+// ── JWT ───────────────────────────────────────────────────────────
+builder.Services.AddAuthentication(opt =>
+{
+    opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    opt.DefaultChallengeScheme    = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(opt =>
+{
+    opt.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer           = true,
+        ValidateAudience         = true,
+        ValidateLifetime         = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer              = builder.Configuration["Jwt:Issuer"],
+        ValidAudience            = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey         = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+    };
+
+    // SignalR necesita leer el token desde el query string (?access_token=...)
+    opt.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var token = context.Request.Query["access_token"];
+            var path  = context.HttpContext.Request.Path;
+            if (!string.IsNullOrEmpty(token) && path.StartsWithSegments("/gamehub"))
+                context.Token = token;
+            return Task.CompletedTask;
+        }
+    };
+});
+
+// ── Inyección de dependencias (Infrastructure → Domain) ───────────
+builder.Services.AddScoped<IUsuarioRepositorio, UsuarioRepositorio>();
+builder.Services.AddScoped<TokenService>();
+builder.Services.AddScoped<RegisterUseCase>();
+builder.Services.AddScoped<LoginUseCase>();
+
+// ── API ───────────────────────────────────────────────────────────
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSignalR();
 
-// CORS: permite que el front Angular (localhost:4200) pueda hablarle al backend
+// ── CORS ──────────────────────────────────────────────────────────
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("FrontPolicy", policy =>
-        policy.WithOrigins("http://localhost:4200")
+        policy.WithOrigins(
+                "http://localhost:4200",
+                "http://192.168.1.45:4200"
+              )
               .AllowAnyMethod()
               .AllowAnyHeader()
-              .AllowCredentials()); // Necesario para SignalR cross-origin
+              .AllowCredentials());
 });
 
 var app = builder.Build();
@@ -31,12 +104,11 @@ else
 }
 
 app.UseCors("FrontPolicy");
-
 app.UseRouting();
-
-app.UseAuthorization();
+app.UseAuthentication(); // Primero Authentication
+app.UseAuthorization();  // Después Authorization
 
 app.MapControllers();
-app.MapHub<GameHub>("/gamehub"); // Endpoint WebSocket del juego
+app.MapHub<GameHub>("/gamehub");
 
 app.Run();
