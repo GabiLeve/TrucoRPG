@@ -37,23 +37,18 @@ namespace TrucoDemo.Servicios
             {
                 if (ganadorSegunda is "Humano" or "Maquina")
                 {
-                    // Primera parda → se necesita la tercera baza para definir el ganador
-                    if (ganadorTercera == null)
-                        return null;
-
-                    if (ganadorTercera == "Parda")
-                        return ganadorSegunda;
-
-                    return ganadorTercera;
+                    // Parda en primera → gana quien gana la segunda (la carta más alta decide)
+                    return ganadorSegunda;
                 }
 
                 if (ganadorSegunda == "Parda")
                 {
+                    // Parda en primera y segunda → va a la tercera
                     if (ganadorTercera == null)
                         return null;
 
                     if (ganadorTercera == "Parda")
-                        return jugadorMano;
+                        return jugadorMano; // Todas pardas → gana el jugador "mano"
 
                     return ganadorTercera;
                 }
