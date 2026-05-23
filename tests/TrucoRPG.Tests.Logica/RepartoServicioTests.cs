@@ -1,5 +1,5 @@
-using TrucoDemo.Clases;
-using TrucoDemo.Servicios;
+using TrucoRPG.Dominio.Entities;
+using TrucoRPG.Dominio.Servicios;
 
 namespace TrucoRPG.Tests.Logica;
 

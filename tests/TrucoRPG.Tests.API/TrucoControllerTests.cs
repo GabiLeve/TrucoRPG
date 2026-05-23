@@ -1,14 +1,26 @@
 using Microsoft.AspNetCore.Mvc;
-using TrucoDemo.Controllers;
-using TrucoDemo.Clases;
-using TrucoDemo.Models;
-using TrucoDemo.Servicios;
+using TrucoRPG.API.Controllers;
+using TrucoRPG.Dominio.Entities;
+using TrucoRPG.API.Models;
+using TrucoRPG.Dominio.Servicios;
+using TrucoRPG.Dominio.UseCases;
 
 namespace TrucoRPG.Tests.API;
 
 public class TrucoControllerTests
 {
-    private readonly TrucoController _controller = new();
+    private static TrucoController CrearController() => new(
+        new NuevaManoUseCase(),
+        new ConfigurarNivelMentiraUseCase(),
+        new CantarEnvidoUseCase(),
+        new ResponderEnvidoUseCase(),
+        new CantarTrucoUseCase(),
+        new ResponderTrucoUseCase(),
+        new EscalarTrucoUseCase(),
+        new IrseAlMazoUseCase(),
+        new JugarCartaUseCase());
+
+    private readonly TrucoController _controller = CrearController();
 
     // ─── Helper ──────────────────────────────────────────────────────
 

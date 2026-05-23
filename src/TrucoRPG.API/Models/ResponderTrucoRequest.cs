@@ -1,4 +1,4 @@
-namespace TrucoDemo.Models
+namespace TrucoRPG.API.Models
 {
     public class ResponderTrucoRequest
     {
