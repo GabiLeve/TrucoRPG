@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using TrucoRPG.Entidades;
 using System;
+using TrucoRPG.Dominio.Entities;
 
 namespace TrucoRPG.Infraestructura.Entities
 {
@@ -10,10 +10,8 @@ namespace TrucoRPG.Infraestructura.Entities
     /// </summary>
     public class ApplicationUser : IdentityUser
     {
-        // FK al héroe seleccionado por el usuario (nullable: puede no tener héroe seleccionado)
         public Guid? HeroeSeleccionadoId { get; set; }
 
-        // Navegación al héroe seleccionado (opcional)
         public Heroe? HeroeSeleccionado { get; set; }
     }
 }

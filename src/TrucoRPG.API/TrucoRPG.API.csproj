@@ -25,7 +25,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TrucoRPG.Logica\TrucoRPG.Domain.csproj" />
+    <ProjectReference Include="..\TrucoRPG.Dominio\TrucoRPG.Dominio.csproj" />
+    <ProjectReference Include="..\TrucoRPG.Infraestructura\TrucoRPG.Infraestructura.csproj" />
   </ItemGroup>
 
 </Project>

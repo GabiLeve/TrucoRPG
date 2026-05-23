@@ -1,15 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using TrucoRPG.Entidades;
-
 using System;
+using TrucoRPG.Dominio.Entities;
 using TrucoRPG.Infraestructura.Entities;
 
 namespace TrucoRPG.Infraestructura.Data.Configurations
 {
-    public class HeroeConfiguration : IEntityTypeConfiguration<Entidades.Heroe>
+    public class HeroeConfiguration : IEntityTypeConfiguration<Heroe>
     {
-        public void Configure(EntityTypeBuilder<Entidades.Heroe> builder)
+        public void Configure(EntityTypeBuilder<Heroe> builder)
         {
             builder.ToTable("Heroes");
 
@@ -32,7 +31,7 @@ namespace TrucoRPG.Infraestructura.Data.Configurations
 
             // Seed inicial: 4 héroes (IDs fijos para referencia)
             _ = builder.HasData(
-                new Entidades.Heroe
+                new Heroe
                 {
                     Id = Guid.Parse("11111111-1111-1111-1111-111111111111"),
                     Nombre = "Manipulador",
@@ -40,7 +39,7 @@ namespace TrucoRPG.Infraestructura.Data.Configurations
                     DescripcionHabilidadActiva = "Cada 3 manos, puede reemplazar una carta a eleccion de su mano por otra aleatoria del mazo. La nueva carta nunca puede ser de menor valor que la descartada.",
                     TipoHeroe = ClaseHeroe.Manipulador
                 },
-                new Entidades.Heroe
+                new Heroe
                 {
                     Id = Guid.Parse("22222222-2222-2222-2222-222222222222"),
                     Nombre = "Timbero",
@@ -48,7 +47,7 @@ namespace TrucoRPG.Infraestructura.Data.Configurations
                     DescripcionHabilidadActiva = "Debe activarse antes de comenzar la ronda. Si gana el truco, duplica los puntos de la ronda. Si pierde, el rival gana +2 puntos extra.",
                     TipoHeroe = ClaseHeroe.Timbero
                 },
-                new Entidades.Heroe
+                new Heroe
                 {
                     Id = Guid.Parse("33333333-3333-3333-3333-333333333333"),
                     Nombre = "Fanfarron",
@@ -56,7 +55,7 @@ namespace TrucoRPG.Infraestructura.Data.Configurations
                     DescripcionHabilidadActiva = "El próximo Truco / Retruco / Vale 4 o Envido cantado por el Fanfarrón vale +1 punto adicional si es aceptado.",
                     TipoHeroe = ClaseHeroe.Fanfarron
                 },
-                new Entidades.Heroe
+                new Heroe
                 {
                     Id = Guid.Parse("44444444-4444-4444-4444-444444444444"),
                     Nombre = "Mentiroso",

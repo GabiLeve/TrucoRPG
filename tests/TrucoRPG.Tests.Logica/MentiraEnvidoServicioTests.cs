@@ -1,4 +1,4 @@
-using TrucoDemo.Servicios;
+using TrucoRPG.Dominio.Servicios;
 
 namespace TrucoRPG.Tests.Logica;
 

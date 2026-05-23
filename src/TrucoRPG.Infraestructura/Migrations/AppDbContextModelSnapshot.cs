@@ -154,7 +154,7 @@ namespace TrucoRPG.Infraestructura.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("TrucoRPG.Entidades.Heroe", b =>
+            modelBuilder.Entity("TrucoRPG.Dominio.Entities.Heroe", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -339,7 +339,7 @@ namespace TrucoRPG.Infraestructura.Migrations
 
             modelBuilder.Entity("TrucoRPG.Infraestructura.Entities.ApplicationUser", b =>
                 {
-                    b.HasOne("TrucoRPG.Entidades.Heroe", "HeroeSeleccionado")
+                    b.HasOne("TrucoRPG.Dominio.Entities.Heroe", "HeroeSeleccionado")
                         .WithMany()
                         .HasForeignKey("HeroeSeleccionadoId")
                         .OnDelete(DeleteBehavior.SetNull);

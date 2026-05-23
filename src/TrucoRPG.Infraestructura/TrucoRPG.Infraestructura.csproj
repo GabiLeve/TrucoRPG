@@ -9,11 +9,13 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.0" />
     <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="9.0.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.4.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TrucoRPG.Logica\TrucoRPG.Domain.csproj" />
+    <ProjectReference Include="..\TrucoRPG.Dominio\TrucoRPG.Dominio.csproj" />
   </ItemGroup>
 
 </Project>
