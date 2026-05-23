@@ -7,11 +7,16 @@ using TrucoRPG.API.Hubs;
 using TrucoRPG.Infraestructura.Data;
 using TrucoRPG.Infraestructura.Entities;
 using TrucoRPG.Infraestructura.Repositorios;
-using TrucoRPG.Logica.Repositorios;
-using TrucoRPG.Logica.Servicios;
-using TrucoRPG.Logica.UseCases;
+using TrucoRPG.Dominio.Repositorios;
+using TrucoRPG.Infraestructura.Provider;
+using TrucoRPG.Dominio.UseCases;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Configuration.AddJsonFile(
+    "appsettings.Local.json",
+    optional: true,
+    reloadOnChange: true);
 
 // ── Base de datos (MySQL via Pomelo) ──────────────────────────────
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
@@ -67,9 +72,20 @@ builder.Services.AddAuthentication(opt =>
 
 // ── Inyección de dependencias (Infrastructure → Domain) ───────────
 builder.Services.AddScoped<IUsuarioRepositorio, UsuarioRepositorio>();
-builder.Services.AddScoped<TokenService>();
+builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<RegisterUseCase>();
 builder.Services.AddScoped<LoginUseCase>();
+
+// ── Use Cases de Truco (vs. Máquina) ─────────────────────────────
+builder.Services.AddScoped<NuevaManoUseCase>();
+builder.Services.AddScoped<ConfigurarNivelMentiraUseCase>();
+builder.Services.AddScoped<CantarEnvidoUseCase>();
+builder.Services.AddScoped<ResponderEnvidoUseCase>();
+builder.Services.AddScoped<CantarTrucoUseCase>();
+builder.Services.AddScoped<ResponderTrucoUseCase>();
+builder.Services.AddScoped<EscalarTrucoUseCase>();
+builder.Services.AddScoped<IrseAlMazoUseCase>();
+builder.Services.AddScoped<JugarCartaUseCase>();
 
 // ── API ───────────────────────────────────────────────────────────
 builder.Services.AddControllers();
@@ -79,7 +95,6 @@ builder.Services.AddSignalR();
 
 // ── CORS ──────────────────────────────────────────────────────────
 builder.Services.AddCors(options =>
-{
     options.AddPolicy("FrontPolicy", policy =>
         policy.WithOrigins(
                 "http://localhost:4200",
@@ -87,8 +102,7 @@ builder.Services.AddCors(options =>
               )
               .AllowAnyMethod()
               .AllowAnyHeader()
-              .AllowCredentials());
-});
+              .AllowCredentials()));
 
 var app = builder.Build();
 
@@ -103,11 +117,10 @@ else
     app.UseHttpsRedirection();
 }
 
-app.UseCors("FrontPolicy");
 app.UseRouting();
-app.UseAuthentication(); // Primero Authentication
-app.UseAuthorization();  // Después Authorization
-
+app.UseCors("FrontPolicy");
+app.UseAuthentication();
+app.UseAuthorization();
 app.MapControllers();
 app.MapHub<GameHub>("/gamehub");
 

@@ -1,4 +1,4 @@
-using TrucoDemo.Clases;
+using TrucoRPG.Dominio.Entities;
 
 namespace TrucoRPG.API.Hubs;
 

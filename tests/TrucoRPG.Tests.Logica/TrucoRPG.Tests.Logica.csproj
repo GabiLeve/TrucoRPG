@@ -15,12 +15,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Using Include="Xunit" />
+    <ProjectReference Include="..\..\src\TrucoRPG.Dominio\TrucoRPG.Dominio.csproj" />
+    <ProjectReference Include="..\..\src\TrucoRPG.Infraestructura\TrucoRPG.Infraestructura.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\TrucoRPG.Logica\TrucoRPG.Logica.csproj" />
-    <ProjectReference Include="..\..\src\TrucoRPG.Entidades\TrucoRPG.Entidades.csproj" />
+    <Using Include="Xunit" />
   </ItemGroup>
 
 </Project>

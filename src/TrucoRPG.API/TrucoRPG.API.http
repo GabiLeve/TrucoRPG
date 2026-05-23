@@ -1,6 +1,46 @@
 @TrucoRPG.API_HostAddress = http://localhost:5068
 
-GET {{TrucoRPG.API_HostAddress}}/weatherforecast/
-Accept: application/json
+### Registrar usuario
+POST {{TrucoRPG.API_HostAddress}}/api/auth/register
+Content-Type: application/json
+
+{
+  "userName": "jugador1",
+  "email": "jugador1@example.com",
+  "password": "Password123!"
+}
+
+###
+
+### Login
+POST {{TrucoRPG.API_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "jugador1@example.com",
+  "password": "Password123!"
+}
+
+###
+
+### Nueva mano
+POST {{TrucoRPG.API_HostAddress}}/api/truco/nueva-mano
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "jugador": "jugador1"
+}
+
+###
+
+### Jugar carta
+POST {{TrucoRPG.API_HostAddress}}/api/truco/jugar-carta
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "carta": 0
+}
 
 ###

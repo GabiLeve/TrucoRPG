@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using TrucoRPG.API.Models;
-using TrucoRPG.Logica.UseCases;
+using TrucoRPG.Dominio.UseCases;
 
 namespace TrucoRPG.API.Controllers
 {
