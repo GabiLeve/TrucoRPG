@@ -157,7 +157,7 @@ namespace TrucoRPG.Infraestructura.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("TrucoRPG.Infraestructura.Entities.ApplicationUser", b =>
+            modelBuilder.Entity("TrucoRPG.Dominio.Entities.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("varchar(255)");
@@ -232,7 +232,7 @@ namespace TrucoRPG.Infraestructura.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
-                    b.HasOne("TrucoRPG.Infraestructura.Entities.ApplicationUser", null)
+                    b.HasOne("TrucoRPG.Dominio.Entities.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -241,7 +241,7 @@ namespace TrucoRPG.Infraestructura.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
-                    b.HasOne("TrucoRPG.Infraestructura.Entities.ApplicationUser", null)
+                    b.HasOne("TrucoRPG.Dominio.Entities.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -256,7 +256,7 @@ namespace TrucoRPG.Infraestructura.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("TrucoRPG.Infraestructura.Entities.ApplicationUser", null)
+                    b.HasOne("TrucoRPG.Dominio.Entities.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -265,7 +265,7 @@ namespace TrucoRPG.Infraestructura.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
-                    b.HasOne("TrucoRPG.Infraestructura.Entities.ApplicationUser", null)
+                    b.HasOne("TrucoRPG.Dominio.Entities.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)

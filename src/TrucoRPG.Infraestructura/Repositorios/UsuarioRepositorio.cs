@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using TrucoRPG.Dominio.Entities;
-using TrucoRPG.Infraestructura.Entities;
+using TrucoRPG.Dominio.Entities;
 using TrucoRPG.Dominio.Repositorios;
 
 namespace TrucoRPG.Infraestructura.Repositorios

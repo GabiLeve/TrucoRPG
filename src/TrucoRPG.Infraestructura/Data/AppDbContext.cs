@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using TrucoRPG.Infraestructura.Entities;
+using TrucoRPG.Dominio.Entities;
 using TrucoRPG.Dominio.Entities;
 
 namespace TrucoRPG.Infraestructura.Data

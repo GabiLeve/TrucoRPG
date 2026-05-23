@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
 using TrucoRPG.Dominio.Entities;
-using TrucoRPG.Infraestructura.Entities;
+using TrucoRPG.Dominio.Entities;
 
 namespace TrucoRPG.Infraestructura.Data.Configurations
 {
