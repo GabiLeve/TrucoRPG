@@ -19,8 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\TrucoRPG.Logica\TrucoRPG.Logica.csproj" />
-    <ProjectReference Include="..\..\src\TrucoRPG.Entidades\TrucoRPG.Entidades.csproj" />
+    <ProjectReference Include="..\..\src\TrucoRPG.Logica\TrucoRPG.Domain.csproj" />
   </ItemGroup>
 
 </Project>

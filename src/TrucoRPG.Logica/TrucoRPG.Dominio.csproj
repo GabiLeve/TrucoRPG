@@ -11,8 +11,4 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\TrucoRPG.Entidades\TrucoRPG.Entidades.csproj" />
-  </ItemGroup>
-
 </Project>
