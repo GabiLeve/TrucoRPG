@@ -108,10 +108,10 @@ else
     app.UseHttpsRedirection();
 }
 
-app.UseCors("FrontPolicy");
 app.UseRouting();
-app.UseAuthentication(); // Primero Authentication
-app.UseAuthorization();  // Después Authorization
+app.UseCors("FrontPolicy");
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 app.MapHub<GameHub>("/gamehub");
