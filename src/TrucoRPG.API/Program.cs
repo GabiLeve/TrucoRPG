@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using TrucoRPG.API.Hubs;
 using TrucoRPG.Infraestructura.Data;
-using TrucoRPG.Infraestructura.Entities;
+using TrucoRPG.Dominio.Entities;
 using TrucoRPG.Infraestructura.Repositorios;
 using TrucoRPG.Dominio.Repositorios;
 using TrucoRPG.Infraestructura.Provider;

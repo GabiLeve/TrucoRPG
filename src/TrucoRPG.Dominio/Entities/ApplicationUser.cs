@@ -1,11 +1,9 @@
-﻿using Microsoft.AspNetCore.Identity;
-using System;
-using TrucoRPG.Dominio.Entities;
+using Microsoft.AspNetCore.Identity;
 
-namespace TrucoRPG.Infraestructura.Entities
+namespace TrucoRPG.Dominio.Entities
 {
     /// <summary>
-    /// Usuario de Identity. Extendible con campos RPG.
+    /// Usuario de Identity. Extiende IdentityUser con campos RPG.
     /// Se añade la referencia al héroe seleccionado (opcional).
     /// </summary>
     public class ApplicationUser : IdentityUser
