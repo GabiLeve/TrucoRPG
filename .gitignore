@@ -29,4 +29,5 @@ frontend/dist/
 frontend/bin/
 frontend/obj/
 
-appsettings.Development.json
+src/TrucoRPG.API/appsettings.Local.json
+src/TrucoRPG.API/.Development.json
