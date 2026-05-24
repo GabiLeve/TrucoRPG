@@ -1,4 +1,5 @@
 using TrucoRPG.Dominio.Entities;
+using TrucoRPG.Dominio.Habilidades;
 using TrucoRPG.Dominio.Servicios;
 
 namespace TrucoRPG.Dominio.UseCases
@@ -32,7 +33,8 @@ namespace TrucoRPG.Dominio.UseCases
                 mano.GanadorMano     = "Humano";
                 mano.PuntosTrucoMano = 1;
                 mano.EstadoTruco     = "La máquina no quiso el truco. Ganaste 1 punto.";
-                JuegoServicio.SumarPuntos(mano, mano.GanadorMano, mano.PuntosTrucoMano);
+                JuegoServicio.SumarPuntos(
+                    mano, mano.GanadorMano, mano.PuntosTrucoMano, OrigenPuntos.TrucoRechazo, mano.CantorTruco);
                 PartidaMemoriaServicio.Actualizar(mano);
                 return mano;
             }
@@ -51,6 +53,7 @@ namespace TrucoRPG.Dominio.UseCases
                 mano.PuntosTrucoMano = 2;
                 // No marcamos TrucoResuelto: el respondedor (humano) aún puede escalar a Retruco.
                 mano.EstadoTruco = "La máquina quiso el truco. Esta mano vale 2 puntos.";
+                HabilidadesTrucoServicio.NotificarTrucoAceptado(mano, IdJugador.Humano);
                 if (!mano.TrucoPendienteRespuestaHumano)
                     MaquinaServicio.AvanzarTurno(mano);
             }

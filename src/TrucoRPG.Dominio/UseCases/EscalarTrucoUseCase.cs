@@ -1,4 +1,5 @@
 using TrucoRPG.Dominio.Entities;
+using TrucoRPG.Dominio.Habilidades;
 using TrucoRPG.Dominio.Servicios;
 
 namespace TrucoRPG.Dominio.UseCases
@@ -59,6 +60,7 @@ namespace TrucoRPG.Dominio.UseCases
                 // En niveles menores, el respondedor aún puede escalar.
                 mano.TrucoResuelto = (mano.NivelTruco >= 3);
                 mano.EstadoTruco   = $"La máquina quiso el {nombreNivel}. Esta mano vale {mano.PuntosTrucoMano} punto(s).";
+                HabilidadesTrucoServicio.NotificarTrucoAceptado(mano, IdJugador.Humano);
             }
 
             if (!mano.TrucoPendienteRespuestaHumano)

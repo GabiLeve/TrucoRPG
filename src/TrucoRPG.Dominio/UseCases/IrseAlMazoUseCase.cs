@@ -1,4 +1,5 @@
 using TrucoRPG.Dominio.Entities;
+using TrucoRPG.Dominio.Habilidades;
 using TrucoRPG.Dominio.Servicios;
 
 namespace TrucoRPG.Dominio.UseCases
@@ -25,7 +26,8 @@ namespace TrucoRPG.Dominio.UseCases
             mano.TrucoResuelto      = true;
             mano.CartaMaquinaEnMesa = null;
             mano.EstadoTruco        = $"Te fuiste al mazo. La máquina gana {puntosParaMaquina} punto(s).";
-            JuegoServicio.SumarPuntos(mano, "Maquina", puntosParaMaquina);
+            JuegoServicio.SumarPuntos(
+                mano, IdJugador.Maquina, puntosParaMaquina, OrigenPuntos.TrucoMano, mano.CantorTruco);
 
             PartidaMemoriaServicio.Actualizar(mano);
             return mano;
