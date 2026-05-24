@@ -1,4 +1,5 @@
 ﻿using TrucoRPG.Dominio.Entities;
+using TrucoRPG.Dominio.Habilidades;
 
 namespace TrucoRPG.Dominio.Servicios
 {
@@ -72,24 +73,58 @@ namespace TrucoRPG.Dominio.Servicios
         }
 
         /// <summary>
-        /// Suma los puntos al jugador ganador y detecta si la partida llegó a 30.
+        /// Suma puntos al ganador, aplicando modificadores de habilidades antes de persistir.
         /// </summary>
-        public static void SumarPuntos(ManoTruco mano, string? ganador, int puntos)
+        public static void SumarPuntos(
+            ManoTruco mano,
+            string? ganador,
+            int puntos,
+            string? origen = null,
+            string? cantorId = null)
         {
-            if (ganador == "Humano")
+            if (ganador is not (IdJugador.Humano or IdJugador.Maquina))
+                return;
+
+            var modificador = new ModificadorPuntos();
+            modificador.AplicarBase(puntos, ganador, origen, cantorId);
+
+            if (mano.Configuracion.HabilidadesActivas)
+                HabilidadesOrquestador.Disparar(mano, EventoPartida.AntesDeSumarPuntos, modificador);
+
+            AplicarPuntos(mano, ganador, modificador.PuntosParaGanador());
+
+            if (modificador.BonusAlRival > 0)
+            {
+                var rival = modificador.RivalDe(ganador);
+                if (rival != null)
+                    AplicarPuntos(mano, rival, modificador.BonusAlRival);
+            }
+        }
+
+        private static void AplicarPuntos(ManoTruco mano, string ganador, int puntos)
+        {
+            if (puntos <= 0)
+                return;
+
+            if (ganador == IdJugador.Humano)
                 mano.PuntosHumano += puntos;
-            else if (ganador == "Maquina")
+            else if (ganador == IdJugador.Maquina)
                 mano.PuntosMaquina += puntos;
 
+            EvaluarFinPartida(mano);
+        }
+
+        private static void EvaluarFinPartida(ManoTruco mano)
+        {
             if (mano.PuntosHumano >= 30)
             {
                 mano.PartidaTerminada = true;
-                mano.GanadorPartida   = "Humano";
+                mano.GanadorPartida   = IdJugador.Humano;
             }
             else if (mano.PuntosMaquina >= 30)
             {
                 mano.PartidaTerminada = true;
-                mano.GanadorPartida   = "Maquina";
+                mano.GanadorPartida   = IdJugador.Maquina;
             }
         }
 

@@ -76,7 +76,8 @@ namespace TrucoRPG.Dominio.Servicios
                 $"La máquina cantó: {mano.TantoCantadoMaquina} (real: {mano.TantoMaquina}). " +
                 $"Ganador del envido: {mano.GanadorEnvido} ({mano.PuntosEnvido} pto/s).";
 
-            JuegoServicio.SumarPuntos(mano, mano.GanadorEnvido, mano.PuntosEnvido);
+            JuegoServicio.SumarPuntos(
+                mano, mano.GanadorEnvido, mano.PuntosEnvido, OrigenPuntos.Envido, mano.CantorEnvido);
         }
 
         public static void LimpiarDatosDeEnvido(ManoTruco mano)

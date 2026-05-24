@@ -28,7 +28,7 @@ namespace TrucoRPG.Dominio.Habilidades
             vista.UltimoMensajeHabilidad = mano.UltimoMensajeHabilidad ?? estado.ClaseHeroe switch
             {
                 ClaseHeroe.Manipulador => "Pasiva: 10% de chance de mejorar cada carta al repartir.",
-                ClaseHeroe.Timbero     => "Pasiva: moneda al inicio de partida (próxima fase).",
+                ClaseHeroe.Timbero     => "Pasiva: 20% cara (+1 pt) al inicio de cada mano.",
                 ClaseHeroe.Fanfarron   => "Pasiva: ganás empates de envido.",
                 ClaseHeroe.Mentiroso   => "Pasiva: el rival no ve cuándo podés activar.",
                 _ => null
@@ -40,6 +40,7 @@ namespace TrucoRPG.Dominio.Habilidades
             vista.SumaValorTrucoMano = mano.Humano.Mano.Count > 0
                 ? mano.Humano.Mano.Sum(c => c.ValorTruco)
                 : null;
+            vista.CartaReveladaRival = estado.CartaReveladaRival;
 
             return vista;
         }

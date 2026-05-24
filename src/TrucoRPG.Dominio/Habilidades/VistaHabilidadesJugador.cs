@@ -16,5 +16,6 @@ namespace TrucoRPG.Dominio.Habilidades
         public int? SumaValorTrucoMano { get; set; }
         public string? NombreHeroe { get; set; }
         public ModoJuego? ModoPartida { get; set; }
+        public Entities.Carta? CartaReveladaRival { get; set; }
     }
 }

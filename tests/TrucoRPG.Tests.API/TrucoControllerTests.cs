@@ -18,7 +18,8 @@ public class TrucoControllerTests
         new ResponderTrucoUseCase(),
         new EscalarTrucoUseCase(),
         new IrseAlMazoUseCase(),
-        new JugarCartaUseCase());
+        new JugarCartaUseCase(),
+        new ActivarHabilidadUseCase());
 
     private readonly TrucoController _controller = CrearController();
 

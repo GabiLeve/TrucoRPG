@@ -18,6 +18,7 @@ namespace TrucoRPG.API.Controllers
         private readonly EscalarTrucoUseCase           _escalarTruco;
         private readonly IrseAlMazoUseCase             _irseAlMazo;
         private readonly JugarCartaUseCase             _jugarCarta;
+        private readonly ActivarHabilidadUseCase       _activarHabilidad;
 
         public TrucoController(
             NuevaManoUseCase              nuevaMano,
@@ -28,7 +29,8 @@ namespace TrucoRPG.API.Controllers
             ResponderTrucoUseCase         responderTruco,
             EscalarTrucoUseCase           escalarTruco,
             IrseAlMazoUseCase             irseAlMazo,
-            JugarCartaUseCase             jugarCarta)
+            JugarCartaUseCase             jugarCarta,
+            ActivarHabilidadUseCase       activarHabilidad)
         {
             _nuevaMano         = nuevaMano;
             _configurarMentira = configurarMentira;
@@ -39,6 +41,7 @@ namespace TrucoRPG.API.Controllers
             _escalarTruco      = escalarTruco;
             _irseAlMazo        = irseAlMazo;
             _jugarCarta        = jugarCarta;
+            _activarHabilidad  = activarHabilidad;
         }
 
         // ── Partida / Mano ────────────────────────────────────────────
@@ -180,6 +183,18 @@ namespace TrucoRPG.API.Controllers
             try
             {
                 return Ok(_jugarCarta.Ejecutar(request.ManoId, request.Numero, request.Palo));
+            }
+            catch (KeyNotFoundException ex)      { return NotFound(ex.Message); }
+            catch (InvalidOperationException ex) { return BadRequest(ex.Message); }
+        }
+
+        [HttpPost("activar-habilidad")]
+        public ActionResult<ManoTruco> ActivarHabilidad([FromBody] ActivarHabilidadRequest request)
+        {
+            try
+            {
+                return Ok(_activarHabilidad.Ejecutar(
+                    request.ManoId, request.NumeroCarta, request.PaloCarta));
             }
             catch (KeyNotFoundException ex)      { return NotFound(ex.Message); }
             catch (InvalidOperationException ex) { return BadRequest(ex.Message); }

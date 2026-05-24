@@ -16,5 +16,7 @@ namespace TrucoRPG.Dominio.Habilidades
 
         public bool TimberoApuestaActiva { get; set; }
         public bool FanfarronBonusPendiente { get; set; }
+
+        public Entities.Carta? CartaReveladaRival { get; set; }
     }
 }

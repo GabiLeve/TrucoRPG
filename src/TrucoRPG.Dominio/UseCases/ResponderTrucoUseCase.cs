@@ -1,4 +1,5 @@
 using TrucoRPG.Dominio.Entities;
+using TrucoRPG.Dominio.Habilidades;
 using TrucoRPG.Dominio.Servicios;
 
 namespace TrucoRPG.Dominio.UseCases
@@ -69,6 +70,7 @@ namespace TrucoRPG.Dominio.UseCases
                             // Solo cerramos en nivel máximo.
                             mano.TrucoResuelto = (mano.NivelTruco >= 3);
                             mano.EstadoTruco   = "La máquina quiso el retruco. Esta mano vale 3 puntos.";
+                            HabilidadesTrucoServicio.NotificarTrucoAceptado(mano, IdJugador.Humano);
                         }
                     }
                 }
@@ -91,6 +93,7 @@ namespace TrucoRPG.Dominio.UseCases
                     {
                         mano.TrucoResuelto = true;
                         mano.EstadoTruco   = "La máquina quiso el vale cuatro. Esta mano vale 4 puntos.";
+                        HabilidadesTrucoServicio.NotificarTrucoAceptado(mano, IdJugador.Humano);
                     }
                 }
                 else
@@ -106,6 +109,8 @@ namespace TrucoRPG.Dominio.UseCases
                 // En niveles menores el respondedor aún puede escalar.
                 mano.TrucoResuelto = (mano.NivelTruco >= 3);
                 mano.EstadoTruco   = $"Quisiste. Esta mano vale {mano.PuntosTrucoMano} punto(s).";
+                if (mano.TrucoResuelto || mano.NivelTruco >= 1)
+                    HabilidadesTrucoServicio.NotificarTrucoAceptado(mano, mano.CantorTruco ?? IdJugador.Maquina);
             }
 
             if (!mano.TrucoPendienteRespuestaHumano)
