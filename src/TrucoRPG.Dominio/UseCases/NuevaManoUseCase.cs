@@ -1,4 +1,5 @@
 using TrucoRPG.Dominio.Entities;
+using TrucoRPG.Dominio.Habilidades;
 using TrucoRPG.Dominio.Servicios;
 
 namespace TrucoRPG.Dominio.UseCases
@@ -12,6 +13,7 @@ namespace TrucoRPG.Dominio.UseCases
         {
             int numeroDeMano = 1, puntosHumano = 0, puntosMaquina = 0;
             int nivelMentiraEnvido = 0, nivelMentiraTruco = 0;
+            ConfiguracionPartida configuracion = new();
 
             if (manoAnteriorId.HasValue)
             {
@@ -27,24 +29,44 @@ namespace TrucoRPG.Dominio.UseCases
                 puntosMaquina      = anterior.PuntosMaquina;
                 nivelMentiraEnvido = anterior.NivelMentiraEnvidoMaquina;
                 nivelMentiraTruco  = anterior.NivelMentiraTrucoMaquina;
+                configuracion      = ClonarConfiguracion(anterior.Configuracion);
             }
 
-            var mano = PartidaServicio.CrearManoNueva(numeroDeMano, puntosHumano, puntosMaquina);
+            var mano = PartidaServicio.CrearManoNueva(
+                numeroDeMano, puntosHumano, puntosMaquina, configuracion);
+
             mano.NivelMentiraEnvidoMaquina = nivelMentiraEnvido;
             mano.NivelMentiraTrucoMaquina  = nivelMentiraTruco;
 
-            if (mano.ManoIniciadaPor == "Maquina")
+            HabilidadesOrquestador.Disparar(mano, EventoPartida.ManoIniciada);
+
+            if (mano.ManoIniciadaPor == IdJugador.Maquina)
                 MaquinaServicio.ProcesarIniciativa(mano);
 
             PartidaMemoriaServicio.Guardar(mano);
             return mano;
         }
 
-        public ManoTruco EjecutarNuevaPartida()
+        public ManoTruco EjecutarNuevaPartida(ConfiguracionPartida? configuracion = null)
         {
-            var mano = PartidaServicio.CrearManoNueva();
+            var config = configuracion ?? new ConfiguracionPartida();
+            var mano = PartidaServicio.CrearManoNueva(configuracion: config);
+
+            HabilidadesOrquestador.Disparar(mano, EventoPartida.PartidaIniciada);
+            HabilidadesOrquestador.Disparar(mano, EventoPartida.ManoIniciada);
+
+            if (mano.ManoIniciadaPor == IdJugador.Maquina)
+                MaquinaServicio.ProcesarIniciativa(mano);
+
             PartidaMemoriaServicio.Guardar(mano);
             return mano;
         }
+
+        private static ConfiguracionPartida ClonarConfiguracion(ConfiguracionPartida origen) =>
+            new()
+            {
+                Modo = origen.Modo,
+                HeroeDelHumano = origen.HeroeDelHumano
+            };
     }
 }
