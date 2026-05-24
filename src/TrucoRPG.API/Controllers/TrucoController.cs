@@ -54,9 +54,17 @@ namespace TrucoRPG.API.Controllers
         }
 
         [HttpPost("nueva-partida")]
-        public ActionResult<ManoTruco> NuevaPartida()
+        public ActionResult<ManoTruco> NuevaPartida([FromBody] NuevaPartidaRequest? request)
         {
-            return Ok(_nuevaMano.EjecutarNuevaPartida());
+            var configuracion = request == null
+                ? new ConfiguracionPartida()
+                : new ConfiguracionPartida
+                {
+                    Modo = request.Modo,
+                    HeroeDelHumano = request.ClaseHeroe
+                };
+
+            return Ok(_nuevaMano.EjecutarNuevaPartida(configuracion));
         }
 
         // ── Configuración ─────────────────────────────────────────────
