@@ -1,8 +1,22 @@
-﻿namespace TrucoRPG.Dominio.Entities
+﻿using TrucoRPG.Dominio.Habilidades;
+
+namespace TrucoRPG.Dominio.Entities
 {
     public class ManoTruco
     {
         public Guid Id { get; set; } = Guid.NewGuid();
+
+        public ConfiguracionPartida Configuracion { get; set; } = new();
+        public EstadoHabilidadesPartida EstadoHabilidades { get; set; } = new();
+        public VistaHabilidadesJugador? VistaHabilidadesHumano { get; set; }
+        public string? UltimoMensajeHabilidad { get; set; }
+
+        /// <summary>Cartas no repartidas; usadas por la activa del Manipulador (fase posterior).</summary>
+        public List<Carta> CartasRestantesMazo { get; set; } = new();
+
+        /// <summary>Configuración temporal de reparto; se limpia al terminar Repartir.</summary>
+        public RepartoContext? RepartoContext { get; set; }
+
         public Jugador Humano { get; set; } = new();
         public Jugador Maquina { get; set; } = new();
         public List<Baza> Bazas { get; set; } = new();

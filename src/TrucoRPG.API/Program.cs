@@ -86,6 +86,7 @@ builder.Services.AddScoped<ResponderTrucoUseCase>();
 builder.Services.AddScoped<EscalarTrucoUseCase>();
 builder.Services.AddScoped<IrseAlMazoUseCase>();
 builder.Services.AddScoped<JugarCartaUseCase>();
+builder.Services.AddScoped<ActivarHabilidadUseCase>();
 
 // ── API ───────────────────────────────────────────────────────────
 builder.Services.AddControllers();

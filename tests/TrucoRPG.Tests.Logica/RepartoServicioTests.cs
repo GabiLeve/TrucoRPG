@@ -40,6 +40,15 @@ public class RepartoServicioTests
         Assert.Equal(6, mano.Humano.Mano.Count + mano.Maquina.Mano.Count);
     }
 
+    [Fact]
+    public void Repartir_GuardaCartasRestantesEnMazo()
+    {
+        var mano = ManoConJugadores();
+        RepartoServicio.Repartir(mano);
+        Assert.Equal(34, mano.CartasRestantesMazo.Count);
+        Assert.Equal(40, mano.Humano.Mano.Count + mano.Maquina.Mano.Count + mano.CartasRestantesMazo.Count);
+    }
+
     // ─── Sin duplicados ──────────────────────────────────────────────
 
     [Fact]

@@ -18,7 +18,8 @@ public class TrucoControllerTests
         new ResponderTrucoUseCase(),
         new EscalarTrucoUseCase(),
         new IrseAlMazoUseCase(),
-        new JugarCartaUseCase());
+        new JugarCartaUseCase(),
+        new ActivarHabilidadUseCase());
 
     private readonly TrucoController _controller = CrearController();
 
@@ -26,7 +27,7 @@ public class TrucoControllerTests
 
     private ManoTruco ObtenerManoNueva()
     {
-        var result = _controller.NuevaPartida();
+        var result = _controller.NuevaPartida(null);
         var ok = (OkObjectResult)result.Result!;
         return (ManoTruco)ok.Value!;
     }
@@ -36,7 +37,7 @@ public class TrucoControllerTests
     [Fact]
     public void NuevaPartida_DevuelveOk_ConManoValida()
     {
-        var result = _controller.NuevaPartida();
+        var result = _controller.NuevaPartida(null);
         var ok = Assert.IsType<OkObjectResult>(result.Result);
         var mano = Assert.IsType<ManoTruco>(ok.Value);
         Assert.NotEqual(Guid.Empty, mano.Id);

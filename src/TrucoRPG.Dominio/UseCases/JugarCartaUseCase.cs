@@ -1,4 +1,5 @@
 using TrucoRPG.Dominio.Entities;
+using TrucoRPG.Dominio.Habilidades;
 using TrucoRPG.Dominio.Servicios;
 
 namespace TrucoRPG.Dominio.UseCases
@@ -59,7 +60,8 @@ namespace TrucoRPG.Dominio.UseCases
                     mano.EstadoTruco = "No se cantó truco. La mano vale 1 punto.";
 
                 int puntosMano = mano.PuntosTrucoMano > 0 ? mano.PuntosTrucoMano : 1;
-                JuegoServicio.SumarPuntos(mano, mano.GanadorMano, puntosMano);
+                JuegoServicio.SumarPuntos(
+                    mano, mano.GanadorMano, puntosMano, OrigenPuntos.TrucoMano, mano.CantorTruco);
                 mano.TrucoResuelto = true;
             }
             else

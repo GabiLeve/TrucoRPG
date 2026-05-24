@@ -1,4 +1,5 @@
 using TrucoRPG.Dominio.Entities;
+using TrucoRPG.Dominio.Habilidades;
 
 namespace TrucoRPG.Dominio.Servicios
 {
@@ -58,7 +59,8 @@ namespace TrucoRPG.Dominio.Servicios
             else if (mano.TantoMaquina > mano.TantoHumano)
                 mano.GanadorEnvido = "Maquina";
             else
-                mano.GanadorEnvido = mano.ManoIniciadaPor;
+                mano.GanadorEnvido = HabilidadesOrquestador.ResolverGanadorEmpateEnvido(
+                    mano, mano.ManoIniciadaPor);
 
             if (mano.TipoEnvidoCantado == "FaltaEnvido")
             {
@@ -74,7 +76,8 @@ namespace TrucoRPG.Dominio.Servicios
                 $"La máquina cantó: {mano.TantoCantadoMaquina} (real: {mano.TantoMaquina}). " +
                 $"Ganador del envido: {mano.GanadorEnvido} ({mano.PuntosEnvido} pto/s).";
 
-            JuegoServicio.SumarPuntos(mano, mano.GanadorEnvido, mano.PuntosEnvido);
+            JuegoServicio.SumarPuntos(
+                mano, mano.GanadorEnvido, mano.PuntosEnvido, OrigenPuntos.Envido, mano.CantorEnvido);
         }
 
         public static void LimpiarDatosDeEnvido(ManoTruco mano)
