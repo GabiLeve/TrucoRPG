@@ -15,7 +15,6 @@ namespace TrucoRPG.Infraestructura.Migrations
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
-#pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "9.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
@@ -346,7 +345,6 @@ namespace TrucoRPG.Infraestructura.Migrations
 
                     b.Navigation("HeroeSeleccionado");
                 });
-#pragma warning restore 612, 618
         }
     }
 }
