@@ -50,8 +50,8 @@ namespace TrucoRPG.Dominio.UseCases
             }
             else
             {
+                mano.TrucoResuelto   = true;
                 mano.PuntosTrucoMano = 2;
-                // No marcamos TrucoResuelto: el respondedor (humano) aún puede escalar a Retruco.
                 mano.EstadoTruco = "La máquina quiso el truco. Esta mano vale 2 puntos.";
                 HabilidadesTrucoServicio.NotificarTrucoAceptado(mano, IdJugador.Humano);
                 if (!mano.TrucoPendienteRespuestaHumano)
