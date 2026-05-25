@@ -4,9 +4,6 @@ using TrucoRPG.Dominio.Servicios;
 
 namespace TrucoRPG.Dominio.UseCases
 {
-    /// <summary>
-    /// Crea una nueva mano, conservando los puntos y configuración de la mano anterior.
-    /// </summary>
     public class NuevaManoUseCase
     {
         public ManoTruco Ejecutar(Guid? manoAnteriorId)

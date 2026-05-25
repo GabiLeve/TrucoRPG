@@ -1,8 +1,5 @@
 namespace TrucoRPG.Dominio.Habilidades
 {
-    /// <summary>
-    /// Payload mutable para el evento AntesDeSumarPuntos (fases posteriores).
-    /// </summary>
     public class ModificadorPuntos
     {
         public string? GanadorId { get; set; }

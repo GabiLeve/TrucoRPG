@@ -29,7 +29,6 @@ namespace TrucoRPG.Infraestructura.Data.Configurations
             builder.Property(h => h.TipoHeroe)
                    .IsRequired();
 
-            // Seed inicial: 4 héroes (IDs fijos para referencia)
             _ = builder.HasData(
                 new Heroe
                 {

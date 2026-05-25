@@ -2,9 +2,6 @@ using TrucoRPG.Dominio.Entities;
 
 namespace TrucoRPG.Dominio.Habilidades
 {
-    /// <summary>
-    /// Lectura del estado de habilidades para mostrar en UI (sin lógica de juego de truco).
-    /// </summary>
     public static class HabilidadesConsultaServicio
     {
         public static VistaHabilidadesJugador ObtenerVista(ManoTruco mano, string idJugador)

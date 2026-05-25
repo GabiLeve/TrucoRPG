@@ -2,10 +2,6 @@ using TrucoRPG.Dominio.Entities;
 
 namespace TrucoRPG.Dominio.Repositorios
 {
-    /// <summary>
-    /// Contrato de dominio para persistencia de usuarios.
-    /// La implementación concreta vive en Infraestructura.
-    /// </summary>
     public interface IUsuarioRepositorio
     {
         Task<Usuario?> ObtenerPorEmailAsync(string email);

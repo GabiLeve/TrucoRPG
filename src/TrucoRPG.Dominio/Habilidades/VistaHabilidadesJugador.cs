@@ -2,9 +2,6 @@ using TrucoRPG.Dominio.Entities;
 
 namespace TrucoRPG.Dominio.Habilidades
 {
-    /// <summary>
-    /// Resumen para UI: qué héroe tiene el jugador y si puede usar la activa.
-    /// </summary>
     public class VistaHabilidadesJugador
     {
         public bool HabilidadesActivasEnPartida { get; set; }

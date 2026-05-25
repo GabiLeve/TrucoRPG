@@ -4,9 +4,6 @@ using TrucoRPG.Dominio.Servicios;
 
 namespace TrucoRPG.Dominio.UseCases
 {
-    /// <summary>
-    /// El humano canta Truco. La máquina decide si acepta, rechaza o escala a Retruco.
-    /// </summary>
     public class CantarTrucoUseCase
     {
         public ManoTruco Ejecutar(Guid manoId)

@@ -1,4 +1,4 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.Extensions.Configuration;
@@ -8,9 +8,6 @@ using TrucoRPG.Dominio.Repositorios;
 
 namespace TrucoRPG.Infraestructura.Provider
 {
-    /// <summary>
-    /// Genera tokens JWT a partir de un Usuario de dominio.
-    /// </summary>
     public class TokenService : ITokenService
     {
         private readonly IConfiguration _config;
