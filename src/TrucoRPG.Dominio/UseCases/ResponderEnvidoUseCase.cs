@@ -3,9 +3,6 @@ using TrucoRPG.Dominio.Servicios;
 
 namespace TrucoRPG.Dominio.UseCases
 {
-    /// <summary>
-    /// El humano responde al envido de la máquina: acepta, rechaza o escala (Real/Falta Envido).
-    /// </summary>
     public class ResponderEnvidoUseCase
     {
         public ManoTruco Ejecutar(Guid manoId, bool aceptar, string? escalarA)

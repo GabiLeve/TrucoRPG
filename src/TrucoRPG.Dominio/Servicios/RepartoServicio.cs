@@ -49,9 +49,6 @@ namespace TrucoRPG.Dominio.Servicios
             return mano;
         }
 
-        /// <summary>
-        /// Busca en el mazo restante una carta de mayor valor de truco y la intercambia.
-        /// </summary>
         private static Carta IntentarMejorarCarta(Carta cartaActual, List<Carta> resto, Random random)
         {
             var mejores = resto

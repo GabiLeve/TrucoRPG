@@ -3,15 +3,8 @@ using TrucoRPG.Dominio.Habilidades;
 
 namespace TrucoRPG.Dominio.Servicios
 {
-    /// <summary>
-    /// Lógica de negocio para iniciar y gestionar partidas (single-player y multi).
-    /// </summary>
     public static class PartidaServicio
     {
-        /// <summary>
-        /// Crea una mano nueva con mazo repartido.
-        /// Acepta parámetros opcionales para continuidad de partida.
-        /// </summary>
         public static ManoTruco CrearManoNueva(
             int numeroDeMano  = 1,
             int puntosHumano  = 0,

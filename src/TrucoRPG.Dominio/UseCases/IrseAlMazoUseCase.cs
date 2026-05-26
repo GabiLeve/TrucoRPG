@@ -4,9 +4,6 @@ using TrucoRPG.Dominio.Servicios;
 
 namespace TrucoRPG.Dominio.UseCases
 {
-    /// <summary>
-    /// El humano se va al mazo (abandona la mano). La máquina cobra los puntos de truco.
-    /// </summary>
     public class IrseAlMazoUseCase
     {
         public ManoTruco Ejecutar(Guid manoId)

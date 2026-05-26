@@ -1,12 +1,6 @@
 using TrucoRPG.Dominio.Entities;
 
 namespace TrucoRPG.API.Hubs;
-
-/// <summary>
-/// Estado de una partida de Truco multijugador por sala.
-/// Internamente usa los mismos strings "Humano"/"Maquina" que los servicios existentes,
-/// pero Humano = Jugador1 (host) y Maquina = Jugador2 (guest).
-/// </summary>
 public class TrucoMultiState
 {
     public string Jugador1Id { get; set; } = ""; // Host  → rol "Humano"

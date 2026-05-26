@@ -2,9 +2,6 @@ using TrucoRPG.Dominio.Entities;
 
 namespace TrucoRPG.Dominio.Habilidades
 {
-    /// <summary>
-    /// Punto único de entrada: los use cases disparan eventos aquí en lugar de llamar héroes directamente.
-    /// </summary>
     public static class HabilidadesOrquestador
     {
         public static void Disparar(ManoTruco mano, EventoPartida evento, object? datos = null)
@@ -41,9 +38,6 @@ namespace TrucoRPG.Dominio.Habilidades
             return resultado;
         }
 
-        /// <summary>
-        /// Resolución de empate de envido; Fanfarrón puede cambiar el ganador.
-        /// </summary>
         public static string ResolverGanadorEmpateEnvido(ManoTruco mano, string ganadorPorMano)
         {
             var resolucion = new ResolucionEmpateEnvido

@@ -11,10 +11,8 @@ namespace TrucoRPG.Dominio.Entities
         public VistaHabilidadesJugador? VistaHabilidadesHumano { get; set; }
         public string? UltimoMensajeHabilidad { get; set; }
 
-        /// <summary>Cartas no repartidas; usadas por la activa del Manipulador (fase posterior).</summary>
         public List<Carta> CartasRestantesMazo { get; set; } = new();
 
-        /// <summary>Configuración temporal de reparto; se limpia al terminar Repartir.</summary>
         public RepartoContext? RepartoContext { get; set; }
 
         public Jugador Humano { get; set; } = new();

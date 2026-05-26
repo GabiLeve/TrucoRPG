@@ -2,9 +2,6 @@ using TrucoRPG.Dominio.Entities;
 
 namespace TrucoRPG.Dominio.Habilidades
 {
-    /// <summary>
-    /// Estado runtime de habilidades de un jugador (cooldowns, buffs, etc.).
-    /// </summary>
     public class EstadoHabilidadesJugador
     {
         public string IdJugador { get; set; } = "";

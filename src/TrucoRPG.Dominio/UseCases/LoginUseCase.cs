@@ -1,10 +1,7 @@
-﻿using TrucoRPG.Dominio.Repositorios;
+using TrucoRPG.Dominio.Repositorios;
 
 namespace TrucoRPG.Dominio.UseCases
 {
-    /// <summary>
-    /// Caso de uso: autenticar un usuario existente y devolver un JWT.
-    /// </summary>
     public class LoginUseCase
     {
         private readonly IUsuarioRepositorio _usuarioRepo;
