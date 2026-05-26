@@ -11,7 +11,7 @@ namespace TrucoRPG.Dominio.Servicios
             int tanto = EnvidoServicio.CalcularTanto(manoMaquina);
             nivelMentira = Math.Clamp(nivelMentira, 0, 100);
 
-            if (tanto >= 30)
+            if (tanto >= 30 || nivelMentira >= 100)
                 return true;
 
             int probabilidad = tanto switch
