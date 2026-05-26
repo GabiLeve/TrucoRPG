@@ -1,4 +1,4 @@
-using TrucoRPG.Dominio.Entities;
+﻿using TrucoRPG.Dominio.Entities;
 using TrucoRPG.Dominio.Servicios;
 
 namespace TrucoRPG.Dominio.Habilidades.Heroes
@@ -40,7 +40,7 @@ namespace TrucoRPG.Dominio.Habilidades.Heroes
                 if (mod.GanadorId == IdJugador.Humano)
                     mod.DuplicarPuntosGanador = true;
                 else if (mod.GanadorId == IdJugador.Maquina)
-                    mod.BonusAlRival = 2;
+                    mod.PuntosFinales += 2;
 
                 estado.TimberoApuestaActiva = false;
                 contexto.Mano.UltimoMensajeHabilidad = mod.GanadorId == IdJugador.Humano
