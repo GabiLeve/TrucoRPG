@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using TrucoRPG.API.Models;
 using TrucoRPG.Dominio.Entities;
 using TrucoRPG.Logica.UseCases;
 
@@ -22,6 +23,32 @@ namespace TrucoRPG.API.Controllers
             {
                 var cartas = await _reglasUseCase.GetCartas();
                 return Ok(cartas);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error: {ex.Message}");
+            }
+        }
+
+        [HttpGet("generales")]
+        public async Task<ActionResult<IEnumerable<CategoriaReglasDto>>> MostrarReglasGenerales()
+        {
+            try
+            {
+                var reglasInternas = await _reglasUseCase.GetReglasGenerales();
+
+                var reglasDto = reglasInternas.Select(c => new CategoriaReglasDto
+                {
+                    Categoria = c.Categoria,
+                    Detalle = c.Detalle.Select(d => new ReglasDetalleDto
+                    {
+                        Titulo = d.Titulo,
+                        Descripcion = d.Descripcion,
+                        Puntos = d.Puntos
+                    }).ToList()
+                }).ToList();
+
+                return Ok(reglasDto);
             }
             catch (Exception ex)
             {

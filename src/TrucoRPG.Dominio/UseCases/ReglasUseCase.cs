@@ -12,5 +12,12 @@ namespace TrucoRPG.Logica.UseCases
             return await Task.FromResult(mazo.OrderByDescending(c => c.ValorTruco));
         }
 
+        public async Task<IEnumerable<CategoriaRegla>> GetReglasGenerales()
+        {
+            var reglas = ReglasServicio.ObtenerReglasGenerales();
+
+            return await Task.FromResult(reglas);
+        }
+
     }
 }
