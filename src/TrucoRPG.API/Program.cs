@@ -13,6 +13,9 @@ using TrucoRPG.Dominio.UseCases;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Escuchar en todas las interfaces de red (permite acceso desde la red local)
+builder.WebHost.UseUrls("http://0.0.0.0:5001");
+
 builder.Configuration.AddJsonFile(
     "appsettings.Local.json",
     optional: true,
