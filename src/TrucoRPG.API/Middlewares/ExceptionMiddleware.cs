@@ -26,7 +26,8 @@ namespace TrucoRPG.API.Middlewares
                 await context.Response.WriteAsync(
                     JsonSerializer.Serialize(new
                     {
-                        error = ex.Message
+                        error = ex.Message,
+                        tipo = ex.GetType().Name
                     }));
             }
             catch (InvalidOperationException ex)
@@ -37,7 +38,20 @@ namespace TrucoRPG.API.Middlewares
                 await context.Response.WriteAsync(
                     JsonSerializer.Serialize(new
                     {
-                        error = ex.Message
+                        error = ex.Message,
+                        tipo = ex.GetType().Name
+                    }));
+            }
+            catch (KeyNotFoundException ex)
+            {
+                context.Response.StatusCode = 404;
+                context.Response.ContentType = "application/json";
+
+                await context.Response.WriteAsync(
+                    JsonSerializer.Serialize(new
+                    {
+                        error = ex.Message,
+                        tipo = ex.GetType().Name
                     }));
             }
             catch (Exception ex)
