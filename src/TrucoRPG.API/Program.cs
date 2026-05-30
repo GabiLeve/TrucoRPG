@@ -1,15 +1,16 @@
-using System.Text;
+﻿using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using TrucoRPG.API.Hubs;
-using TrucoRPG.Infraestructura.Data;
+using TrucoRPG.API.Middlewares;
 using TrucoRPG.Dominio.Entities;
-using TrucoRPG.Infraestructura.Repositorios;
 using TrucoRPG.Dominio.Repositorios;
-using TrucoRPG.Infraestructura.Provider;
 using TrucoRPG.Dominio.UseCases;
+using TrucoRPG.Infraestructura.Data;
+using TrucoRPG.Infraestructura.Provider;
+using TrucoRPG.Infraestructura.Repositorios;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -122,6 +123,9 @@ app.UseRouting();
 app.UseCors("FrontPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseMiddleware<ExceptionMiddleware>();
+
 app.MapControllers();
 app.MapHub<GameHub>("/gamehub");
 
