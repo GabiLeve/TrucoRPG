@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using TrucoRPG.API.Controllers;
 using TrucoRPG.Dominio.Entities;
 using TrucoRPG.API.Models;
@@ -86,27 +86,46 @@ public class TrucoControllerTests
     [Fact]
     public void CantarEnvido_ManoIdInexistente_DevuelveNotFound()
     {
-        var result = _controller.CantarEnvido(new CantarEnvidoRequest { ManoId = Guid.NewGuid() });
-        Assert.IsType<NotFoundObjectResult>(result.Result);
+        // Given
+        var request = new CantarEnvidoRequest
+        {
+            ManoId = Guid.NewGuid()
+        };
+
+        // When
+        Action act = () => _controller.CantarEnvido(request);
+
+        // Then
+        Assert.Throws<KeyNotFoundException>(act);
     }
 
     [Fact]
     public void CantarEnvido_EnvidoYaCantado_DevuelveBadRequest()
     {
         // Cantamos el envido una vez; la segunda llamada debe fallar
+        //Given
         var partida = ObtenerManoNueva();
         if (partida.TurnoActual != "Humano" || partida.Bazas.Count > 0) return;
 
         _controller.CantarEnvido(new CantarEnvidoRequest { ManoId = partida.Id });
 
-        var result = _controller.CantarEnvido(new CantarEnvidoRequest { ManoId = partida.Id });
-        Assert.IsType<BadRequestObjectResult>(result.Result);
+        var result = new CantarEnvidoRequest
+        {
+            ManoId = partida.Id
+        };
+
+        //When
+        Action act = () => _controller.CantarEnvido(result);
+
+        //Then
+        Assert.Throws<InvalidOperationException>(act);
     }
 
     [Fact]
     public void CantarEnvido_DespuesDeJugarBaza_DevuelveBadRequest()
     {
         // El envido solo puede cantarse antes de la primera baza
+        //Given
         var partida = ObtenerManoNueva();
         if (partida.TurnoActual != "Humano") return;
 
@@ -117,9 +136,16 @@ public class TrucoControllerTests
             Numero = carta.Numero,
             Palo   = carta.Palo
         });
+        var result = new CantarEnvidoRequest
+        {
+            ManoId = partida.Id 
+        };
 
-        var result = _controller.CantarEnvido(new CantarEnvidoRequest { ManoId = partida.Id });
-        Assert.IsType<BadRequestObjectResult>(result.Result);
+        //When
+        Action act = () => _controller.CantarEnvido(result);
+
+        //Then
+        Assert.Throws<InvalidOperationException>(act);
     }
 
     [Fact]
@@ -139,32 +165,56 @@ public class TrucoControllerTests
     [Fact]
     public void CantarTruco_ManoIdInexistente_DevuelveNotFound()
     {
-        var result = _controller.CantarTruco(new CantarEnvidoRequest { ManoId = Guid.NewGuid() });
-        Assert.IsType<NotFoundObjectResult>(result.Result);
+        //Given
+        var result = new CantarEnvidoRequest
+        {
+            ManoId = Guid.NewGuid()
+        };
+
+        //When 
+        Action act =()=> _controller.CantarTruco(result);
+
+        //Then
+        Assert.Throws<KeyNotFoundException>(act);
     }
 
     [Fact]
     public void CantarTruco_TrucoYaCantado_DevuelveBadRequest()
     {
+        // Given
         var partida = ObtenerManoNueva();
+
+        partida.TrucoCantado = true;
+
         if (partida.TurnoActual != "Humano") return;
         if (partida.TrucoCantado || partida.TrucoPendienteRespuestaHumano) return;
 
-        _controller.CantarTruco(new CantarEnvidoRequest { ManoId = partida.Id });
+        var request = new CantarEnvidoRequest
+        {
+            ManoId = partida.Id
+        };
 
-        var result = _controller.CantarTruco(new CantarEnvidoRequest { ManoId = partida.Id });
-        Assert.IsType<BadRequestObjectResult>(result.Result);
+        // When
+        Action act = () => _controller.CantarTruco(request);
+
+        // Then
+        Assert.Throws<InvalidOperationException>(act);
     }
 
     [Fact]
     public void CantarTruco_ManoTerminada_DevuelveBadRequest()
     {
         // Configuramos una mano terminada directamente en memoria
+        //Given
         var mano = new ManoTruco { GanadorMano = "Humano" };
         PartidaMemoriaServicio.Guardar(mano);
+        var result = new CantarEnvidoRequest { ManoId = mano.Id };
 
-        var result = _controller.CantarTruco(new CantarEnvidoRequest { ManoId = mano.Id });
-        Assert.IsType<BadRequestObjectResult>(result.Result);
+        //When
+        Action act =()=> _controller.CantarTruco(result);
+
+        //Then
+        Assert.Throws<InvalidOperationException>(act);
     }
 
     // ─── EscalarTruco ────────────────────────────────────────────────
@@ -172,23 +222,43 @@ public class TrucoControllerTests
     [Fact]
     public void EscalarTruco_ManoIdInexistente_DevuelveNotFound()
     {
-        var result = _controller.EscalarTruco(new CantarEnvidoRequest { ManoId = Guid.NewGuid() });
-        Assert.IsType<NotFoundObjectResult>(result.Result);
+        var request = new CantarEnvidoRequest
+        {
+            ManoId = Guid.NewGuid()
+        };
+
+        // When
+        Action act = () => _controller.EscalarTruco(request);
+
+        // Then
+        Assert.Throws<KeyNotFoundException>(act);
+        
     }
 
     [Fact]
     public void EscalarTruco_SinTrucoActivo_DevuelveBadRequest()
     {
+        // Given
         var mano = new ManoTruco { TrucoCantado = false };
         PartidaMemoriaServicio.Guardar(mano);
 
-        var result = _controller.EscalarTruco(new CantarEnvidoRequest { ManoId = mano.Id });
-        Assert.IsType<BadRequestObjectResult>(result.Result);
+        var request = new CantarEnvidoRequest
+        {
+            ManoId = mano.Id
+        };
+
+        // When
+        Action act = () => _controller.EscalarTruco(request);
+
+        // Then
+        Assert.Throws<InvalidOperationException>(act);
+
     }
 
     [Fact]
     public void EscalarTruco_NivelMaximo_DevuelveBadRequest()
     {
+        //Given
         var mano = new ManoTruco
         {
             TrucoCantado = true,
@@ -197,15 +267,20 @@ public class TrucoControllerTests
             CantorTruco = "Maquina"
         };
         PartidaMemoriaServicio.Guardar(mano);
+        var result = new CantarEnvidoRequest { ManoId = mano.Id };
 
-        var result = _controller.EscalarTruco(new CantarEnvidoRequest { ManoId = mano.Id });
-        Assert.IsType<BadRequestObjectResult>(result.Result);
+        //When
+        Action act =()=> _controller.EscalarTruco(result);
+
+        //Then
+        Assert.Throws<InvalidOperationException>(act);
     }
 
     [Fact]
     public void EscalarTruco_CantorEsHumano_DevuelveBadRequest()
     {
         // El que cantó el nivel actual no puede escalar su propio canto
+        //Given
         var mano = new ManoTruco
         {
             TrucoCantado = true,
@@ -216,8 +291,17 @@ public class TrucoControllerTests
         };
         PartidaMemoriaServicio.Guardar(mano);
 
-        var result = _controller.EscalarTruco(new CantarEnvidoRequest { ManoId = mano.Id });
-        Assert.IsType<BadRequestObjectResult>(result.Result);
+        var result = new CantarEnvidoRequest
+        {
+            ManoId = mano.Id
+
+        };
+
+        //When
+        Action act =()=> _controller.EscalarTruco(result);
+
+        //Then 
+        Assert.Throws<InvalidOperationException>(act);
     }
 
     [Fact]
@@ -249,24 +333,37 @@ public class TrucoControllerTests
     [Fact]
     public void ResponderTruco_SinTrucoPendiente_DevuelveBadRequest()
     {
+        //Given
         var partida = ObtenerManoNueva();
-        var result = _controller.ResponderTruco(new ResponderTrucoRequest
+        var result = new ResponderTrucoRequest
         {
             ManoId = partida.Id,
             Aceptar = true
-        });
-        Assert.IsType<BadRequestObjectResult>(result.Result);
+
+        };
+
+        //When
+        Action act =()=> _controller.ResponderTruco(result);
+
+        //Then
+        Assert.Throws<InvalidOperationException>(act);
     }
 
     [Fact]
-    public void ResponderTruco_ManoIdInexistente_DevuelveBadRequest()
+    public void ResponderTruco_ManoIdInexistente_DevuelveKeyNotFountException()
     {
-        var result = _controller.ResponderTruco(new ResponderTrucoRequest
+        // Given
+        var request = new ResponderTrucoRequest
         {
             ManoId = Guid.NewGuid(),
             Aceptar = false
-        });
-        Assert.IsType<NotFoundObjectResult>(result.Result);
+        };
+
+        // When
+        Action act = () => _controller.ResponderTruco(request);
+
+        // Then
+        Assert.Throws<KeyNotFoundException>(act);
     }
 
     [Fact]
@@ -303,24 +400,36 @@ public class TrucoControllerTests
     [Fact]
     public void ResponderEnvido_SinEnvidoPendiente_DevuelveBadRequest()
     {
+        //Given
         var partida = ObtenerManoNueva();
-        var result = _controller.ResponderEnvido(new ResponderEnvidoRequest
+        var result = new ResponderEnvidoRequest
         {
             ManoId = partida.Id,
             Aceptar = true
-        });
-        Assert.IsType<BadRequestObjectResult>(result.Result);
+        };
+
+        //When
+        Action act = () => _controller.ResponderEnvido(result);
+
+        //Then
+        Assert.Throws<InvalidOperationException>(act);
     }
 
     [Fact]
-    public void ResponderEnvido_ManoIdInexistente_DevuelveNotFound()
+    public void ResponderEnvido_ManoIdInexistente_DevuelveKeyNotFoundException()
     {
-        var result = _controller.ResponderEnvido(new ResponderEnvidoRequest
+        //Given
+        var result = new ResponderEnvidoRequest
         {
             ManoId = Guid.NewGuid(),
             Aceptar = false
-        });
-        Assert.IsType<NotFoundObjectResult>(result.Result);
+        };
+
+        //When
+        Action act = () => _controller.ResponderEnvido(result);
+
+        //Then
+        Assert.Throws<KeyNotFoundException>(act);
     }
 
     [Fact]
@@ -370,6 +479,7 @@ public class TrucoControllerTests
     [Fact]
     public void IrseAlMazo_ConTrucoPendienteDeRespuesta_DevuelveBadRequest()
     {
+        //Given
         var mano = new ManoTruco
         {
             TrucoCantado = true,
@@ -381,18 +491,36 @@ public class TrucoControllerTests
         };
         PartidaMemoriaServicio.Guardar(mano);
 
-        var result = _controller.IrseAlMazo(new CantarEnvidoRequest { ManoId = mano.Id });
-        Assert.IsType<BadRequestObjectResult>(result.Result);
+        //When
+        var result = new CantarEnvidoRequest
+        {
+            ManoId = mano.Id
+        };
+
+        //When
+        Action act =()=> _controller.IrseAlMazo(result);
+
+        //Then
+        Assert.Throws<InvalidOperationException>(act);
     }
 
     [Fact]
     public void IrseAlMazo_ManoYaTerminada_DevuelveBadRequest()
     {
+        // Given
         var mano = new ManoTruco { GanadorMano = "Humano" };
         PartidaMemoriaServicio.Guardar(mano);
 
-        var result = _controller.IrseAlMazo(new CantarEnvidoRequest { ManoId = mano.Id });
-        Assert.IsType<BadRequestObjectResult>(result.Result);
+        var request = new CantarEnvidoRequest
+        {
+            ManoId = mano.Id
+        };
+
+        // When
+        Action act = () => _controller.IrseAlMazo(request);
+
+        // Then
+        Assert.Throws<InvalidOperationException>(act);
     }
 
     [Fact]
@@ -420,16 +548,23 @@ public class TrucoControllerTests
     // ─── JugarCarta ──────────────────────────────────────────────────
 
     [Fact]
-    public void JugarCarta_CartaInexistente_DevuelveBadRequest()
+    public void JugarCarta_CartaInexistente_DevuelveInvalidOperationException()
     {
+        // Given
         var partida = ObtenerManoNueva();
-        var result = _controller.JugarCarta(new JugarCartaRequest
+
+        var request = new JugarCartaRequest
         {
             ManoId = partida.Id,
             Numero = 99,
             Palo = "Espada"
-        });
-        Assert.IsType<BadRequestObjectResult>(result.Result);
+        };
+
+        // When
+        Action act = () => _controller.JugarCarta(request);
+
+        // Then
+        Assert.Throws<InvalidOperationException>(act);
     }
 
     [Fact]
@@ -452,13 +587,20 @@ public class TrucoControllerTests
     [Fact]
     public void JugarCarta_ManoIdInexistente_DevuelveNotFound()
     {
-        var result = _controller.JugarCarta(new JugarCartaRequest
+        //Given
+        var result = new JugarCartaRequest
         {
             ManoId = Guid.NewGuid(),
             Numero = 1,
             Palo = "Espada"
-        });
-        Assert.IsType<NotFoundObjectResult>(result.Result);
+
+        };
+
+        //When
+        Action act = () =>_controller.JugarCarta(result);
+
+        //Then
+        Assert.Throws<KeyNotFoundException>(act);
     }
 
     // ─── ConfigurarNivelMentira ───────────────────────────────────────
