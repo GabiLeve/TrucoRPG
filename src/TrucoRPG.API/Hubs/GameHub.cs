@@ -335,14 +335,16 @@ public class GameHub : Hub
     {
         if (!ObtenerSalaYEstado(out var sala, out var state)) return;
         var mano = state!.Mano;
-        if (!mano.TrucoCantado || mano.TrucoResuelto || mano.NivelTruco >= 3) return;
+        if (!mano.TrucoCantado || mano.NivelTruco >= 3) return;
         if (mano.TrucoPendienteRespuestaHumano || state.TrucoPendienteRespuestaJ2) return;
+        if (mano.GanadorMano != null || mano.PartidaTerminada) return;
 
         bool esJ1        = Context.ConnectionId == state.Jugador1Id;
         string rolActual = esJ1 ? "Humano" : "Maquina";
         if (mano.CantorTruco == rolActual) return;
 
         mano.NivelTruco++;
+        mano.TrucoResuelto   = false;  // reabre la apuesta
         mano.CantorTruco     = rolActual;
         mano.PuntosTrucoMano = mano.NivelTruco == 2 ? 3 : 4;
         string nombre        = mano.NivelTruco == 2 ? "Retruco" : "Vale Cuatro";
