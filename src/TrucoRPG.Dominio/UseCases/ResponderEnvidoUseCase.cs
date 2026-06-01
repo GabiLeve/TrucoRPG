@@ -17,11 +17,10 @@ namespace TrucoRPG.Dominio.UseCases
             if (!mano.EnvidoPendienteRespuestaHumano)
                 throw new InvalidOperationException("No hay respuesta pendiente del humano.");
 
-            mano.EnvidoPendienteRespuestaHumano = false;
-
             // ── NO QUIERO ─────────────────────────────────────────────
             if (!aceptar)
             {
+                mano.EnvidoPendienteRespuestaHumano = false;
                 mano.EnvidoResuelto = true;
                 mano.GanadorEnvido  = "Maquina";
                 mano.PuntosEnvido   = 1;
@@ -33,20 +32,25 @@ namespace TrucoRPG.Dominio.UseCases
                 return mano;
             }
 
-            // ── ESCALAR (Humano contra-canta Real Envido o Falta Envido) ──
+            // ── ESCALAR (Humano contra-canta Envido/Real/Falta) ──
             var escalacion = escalarA?.Trim().ToLowerInvariant();
             if (!string.IsNullOrEmpty(escalacion))
             {
                 var tipoActual = (mano.TipoEnvidoCantado ?? "Envido").ToLowerInvariant();
                 bool valida = escalacion switch
                 {
-                    "real envido"  => tipoActual is "envido",
-                    "falta envido" => tipoActual is "envido" or "realenvido" or "real envido",
+                    "envido" or "envido envido" or "envidoenvido"
+                                   => tipoActual == "envido",
+                    "real envido"  => tipoActual is "envido" or "envidoenvido" or "envido envido",
+                    "falta envido" => tipoActual is "envido" or "envidoenvido" or "envido envido" or "realenvido" or "real envido",
                     _              => false
                 };
                 if (!valida)
                     throw new InvalidOperationException(
                         $"No podés escalar a '{escalarA}' desde '{mano.TipoEnvidoCantado}'.");
+
+                // Validación OK → recién ahora limpiamos el flag
+                mano.EnvidoPendienteRespuestaHumano = false;
 
                 int puntosAntes        = EnvidoServicio.ObtenerPuntosSegunTipo(mano.TipoEnvidoCantado);
                 mano.TipoEnvidoCantado = EnvidoServicio.NormalizarTipo(escalarA);
@@ -76,6 +80,7 @@ namespace TrucoRPG.Dominio.UseCases
             }
 
             // ── QUIERO (sin escalar) ──────────────────────────────────
+            mano.EnvidoPendienteRespuestaHumano = false;
             int puntosEnJuego = EnvidoServicio.ObtenerPuntosSegunTipo(mano.TipoEnvidoCantado ?? "Envido");
             EnvidoServicio.ResolverEnvido(mano, puntosEnJuego, "Aceptaste el envido de la máquina");
             MaquinaServicio.AvanzarTurno(mano);
