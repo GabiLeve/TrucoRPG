@@ -1,4 +1,4 @@
-using TrucoRPG.Dominio.Entities;
+﻿using TrucoRPG.Dominio.Entities;
 using TrucoRPG.Dominio.Habilidades;
 using TrucoRPG.Dominio.Servicios;
 
@@ -22,10 +22,12 @@ public class ManipuladorHabilidadTests
     [Fact]
     public void CrearManoNueva_Manipulador_SumaValorTrucoHumanoMayorEnPromedio()
     {
+        //Given
         const int repeticiones = 400;
         long sumaConManipulador = 0;
         long sumaTradicional = 0;
 
+        //When
         for (int i = 0; i < repeticiones; i++)
         {
             var conHeroe = PartidaServicio.CrearManoNueva(configuracion: new ConfiguracionPartida
@@ -39,16 +41,19 @@ public class ManipuladorHabilidadTests
             sumaTradicional += tradicional.Humano.Mano.Sum(c => c.ValorTruco);
         }
 
+        //Then
         Assert.True(sumaConManipulador > sumaTradicional);
     }
 
     [Fact]
     public void Repartir_ProbabilidadTotalMejora_AumentaValorRespectoAlRepartoNeutral()
     {
+        //Given
         const int repeticiones = 200;
         long sumaConMejora = 0;
         long sumaNeutral = 0;
 
+        //When
         for (int i = 0; i < repeticiones; i++)
         {
             var conMejora = new ManoTruco
@@ -74,6 +79,7 @@ public class ManipuladorHabilidadTests
             sumaNeutral += neutral.Humano.Mano.Sum(c => c.ValorTruco);
         }
 
+        //When
         Assert.True(sumaConMejora > sumaNeutral);
     }
 }

@@ -1,4 +1,4 @@
-using TrucoRPG.Dominio.Entities;
+﻿using TrucoRPG.Dominio.Entities;
 using TrucoRPG.Dominio.Servicios;
 
 namespace TrucoRPG.Tests.Logica;
@@ -14,7 +14,8 @@ public class EnvidoServicioTests
     public void CalcularTanto_DosCartasMismoPalo_RetornaSumaMas20()
     {
         var mano = new List<Carta> { C(5, "Espada"), C(6, "Espada"), C(3, "Oro") };
-        Assert.Equal(31, EnvidoServicio.CalcularTanto(mano));
+        var calcularTantos = EnvidoServicio.CalcularTanto(mano);
+        Assert.Equal(31,calcularTantos );
     }
 
     [Fact]
@@ -22,14 +23,16 @@ public class EnvidoServicioTests
     {
         // 7 + 6 + 20 = 33
         var mano = new List<Carta> { C(7, "Copa"), C(6, "Copa"), C(5, "Copa") };
-        Assert.Equal(33, EnvidoServicio.CalcularTanto(mano));
+        var tantos = EnvidoServicio.CalcularTanto(mano);
+        Assert.Equal(33, tantos);
     }
 
     [Fact]
     public void CalcularTanto_MaximoAlcanzable_Es33_ConSieteYSeis()
     {
         var mano = new List<Carta> { C(7, "Basto"), C(6, "Basto"), C(1, "Espada") };
-        Assert.Equal(33, EnvidoServicio.CalcularTanto(mano));
+        var tantos = EnvidoServicio.CalcularTanto(mano);
+        Assert.Equal(33,tantos );
     }
 
     [Fact]
@@ -37,7 +40,8 @@ public class EnvidoServicioTests
     {
         // 1 + 2 + 20 = 23
         var mano = new List<Carta> { C(1, "Copa"), C(2, "Copa"), C(7, "Espada") };
-        Assert.Equal(23, EnvidoServicio.CalcularTanto(mano));
+        var tantos = EnvidoServicio.CalcularTanto(mano);
+        Assert.Equal(23, tantos);
     }
 
     [Fact]
@@ -45,7 +49,8 @@ public class EnvidoServicioTests
     {
         // 7 + 1 + 20 = 28
         var mano = new List<Carta> { C(7, "Basto"), C(1, "Basto"), C(6, "Oro") };
-        Assert.Equal(28, EnvidoServicio.CalcularTanto(mano));
+        var tantos = EnvidoServicio.CalcularTanto(mano);
+        Assert.Equal(28,tantos );
     }
 
     [Fact]
@@ -53,7 +58,8 @@ public class EnvidoServicioTests
     {
         // Espada: 7+3+20=30 | Oro: 4+20... no hay par → elige Espada(30)
         var mano = new List<Carta> { C(7, "Espada"), C(3, "Espada"), C(4, "Oro") };
-        Assert.Equal(30, EnvidoServicio.CalcularTanto(mano));
+        var tantos = EnvidoServicio.CalcularTanto(mano);
+        Assert.Equal(30,tantos );
     }
 
     [Fact]
@@ -61,7 +67,8 @@ public class EnvidoServicioTests
     {
         // Espada: 7+3+20=30; Oro: solo uno → elige Espada
         var mano = new List<Carta> { C(7, "Espada"), C(3, "Espada"), C(6, "Oro") };
-        Assert.Equal(30, EnvidoServicio.CalcularTanto(mano));
+        var tantos = EnvidoServicio.CalcularTanto(mano);
+        Assert.Equal(30,tantos );
     }
 
     // ─── Figuras (10, 11, 12) valen 0 ────────────────────────────────
@@ -71,14 +78,16 @@ public class EnvidoServicioTests
     {
         // Figura + figura + 20 = 0 + 0 + 20 = 20
         var mano = new List<Carta> { C(10, "Basto"), C(11, "Basto"), C(12, "Basto") };
-        Assert.Equal(20, EnvidoServicio.CalcularTanto(mano));
+        var tantos = EnvidoServicio.CalcularTanto(mano);
+        Assert.Equal(20, tantos);
     }
 
     [Fact]
     public void CalcularTanto_DosFigurasDelMismoPalo_SinNumerosDelPalo_Retorna20()
     {
         var mano = new List<Carta> { C(10, "Copa"), C(11, "Copa"), C(5, "Espada") };
-        Assert.Equal(20, EnvidoServicio.CalcularTanto(mano));
+        var tantos = EnvidoServicio.CalcularTanto(mano);
+        Assert.Equal(20,tantos );
     }
 
     [Fact]
@@ -86,7 +95,8 @@ public class EnvidoServicioTests
     {
         // Sin par del mismo palo → valor máximo individual; figuras valen 0
         var mano = new List<Carta> { C(10, "Espada"), C(11, "Oro"), C(12, "Copa") };
-        Assert.Equal(0, EnvidoServicio.CalcularTanto(mano));
+        var tantos = EnvidoServicio.CalcularTanto(mano);
+        Assert.Equal(0, tantos);
     }
 
     // ─── Sin par del mismo palo ───────────────────────────────────────
@@ -95,14 +105,16 @@ public class EnvidoServicioTests
     public void CalcularTanto_SinDosMismoPalo_RetornaMaximoValorIndividual()
     {
         var mano = new List<Carta> { C(5, "Espada"), C(6, "Oro"), C(3, "Copa") };
-        Assert.Equal(6, EnvidoServicio.CalcularTanto(mano));
+        var tantos = EnvidoServicio.CalcularTanto(mano);
+        Assert.Equal(6, tantos);
     }
 
     [Fact]
     public void CalcularTanto_TresCartasTresPalosDistintos_RetornaElMayor()
     {
         var mano = new List<Carta> { C(1, "Espada"), C(7, "Oro"), C(3, "Copa") };
-        Assert.Equal(7, EnvidoServicio.CalcularTanto(mano));
+        var tantos = EnvidoServicio.CalcularTanto(mano);
+        Assert.Equal(7, tantos);
     }
 
     [Fact]
@@ -110,6 +122,7 @@ public class EnvidoServicioTests
     {
         // As vale 1 para envido; sin par → máximo individual = 3
         var mano = new List<Carta> { C(1, "Espada"), C(2, "Oro"), C(3, "Copa") };
-        Assert.Equal(3, EnvidoServicio.CalcularTanto(mano));
+        var tantos = EnvidoServicio.CalcularTanto(mano);
+        Assert.Equal(3, tantos);
     }
 }

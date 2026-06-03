@@ -46,29 +46,42 @@ public class TrucoControllerTests
     [Fact]
     public void NuevaPartida_HumanoRecibeTresCartas()
     {
+        //Then
         var mano = ObtenerManoNueva();
+
+        //When
         Assert.Equal(3, mano.Humano.Mano.Count);
     }
 
     [Fact]
     public void NuevaPartida_MaquinaRecibeTresCartas()
     {
+        //When
         var mano = ObtenerManoNueva();
+
+        //Then
         Assert.Equal(3, mano.Maquina.Mano.Count);
     }
 
     [Fact]
     public void NuevaPartida_CartasDelHumanoYMaquinaSonDistintas()
     {
+        //When
         var mano = ObtenerManoNueva();
         var todas = mano.Humano.Mano.Concat(mano.Maquina.Mano);
-        Assert.Equal(6, todas.Select(c => (c.Numero, c.Palo)).Distinct().Count());
+
+        //Then
+        var cantCartasDistintas = todas.Select(c => (c.Numero, c.Palo)).Distinct().Count();
+        Assert.Equal(6,cantCartasDistintas);
     }
 
     [Fact]
     public void NuevaPartida_PuntosInicianEnCero()
     {
+        //When
         var mano = ObtenerManoNueva();
+
+        //Then
         Assert.Equal(0, mano.PuntosHumano);
         Assert.Equal(0, mano.PuntosMaquina);
     }
@@ -76,7 +89,10 @@ public class TrucoControllerTests
     [Fact]
     public void NuevaPartida_EnvidoYTrucoNoEstanCantados()
     {
+        //When
         var mano = ObtenerManoNueva();
+
+        //Then
         Assert.False(mano.EnvidoCantado);
         Assert.False(mano.TrucoCantado);
     }
@@ -152,10 +168,14 @@ public class TrucoControllerTests
     public void CantarEnvido_AntesDeJugarCualquierCarta_Permitido()
     {
         // Sin bazas jugadas, el envido debe poder cantarse
+        //Given
         var partida = ObtenerManoNueva();
         if (partida.TurnoActual != "Humano" || partida.EnvidoPendienteRespuestaHumano) return;
 
+        //When
         var result = _controller.CantarEnvido(new CantarEnvidoRequest { ManoId = partida.Id });
+
+        //Then
         // Puede ser Ok (se resolvió) o BadRequest solo si ya había algo
         Assert.IsNotType<NotFoundObjectResult>(result.Result);
     }
@@ -222,6 +242,7 @@ public class TrucoControllerTests
     [Fact]
     public void EscalarTruco_ManoIdInexistente_DevuelveNotFound()
     {
+        //Given
         var request = new CantarEnvidoRequest
         {
             ManoId = Guid.NewGuid()
@@ -321,9 +342,12 @@ public class TrucoControllerTests
         };
         PartidaMemoriaServicio.Guardar(mano);
 
-        var result = _controller.EscalarTruco(new CantarEnvidoRequest { ManoId = mano.Id });
+        var request = new CantarEnvidoRequest { ManoId = mano.Id };
+
+        //When
+        var result = _controller.EscalarTruco(request);
         // No debe ser BadRequest por la restricción de cantor
-        Assert.IsNotType<NotFoundObjectResult>(result.Result);
+        Assert.IsNotType<NotFoundObjectResult>(result);
         // El resultado es Ok (máquina responde) o BadRequest por otra razón (p.ej. cartas vacías)
         // Lo importante es que NO falla con "No podés escalar tu propio canto"
     }
@@ -370,6 +394,7 @@ public class TrucoControllerTests
     public void ResponderTruco_NoQuiero_CantorGanaUnPunto()
     {
         // Preparamos una mano con truco pendiente de respuesta del humano
+        //Given
         var mano = new ManoTruco
         {
             TrucoCantado = true,
@@ -383,16 +408,20 @@ public class TrucoControllerTests
         };
         PartidaMemoriaServicio.Guardar(mano);
 
-        var result = _controller.ResponderTruco(new ResponderTrucoRequest
-        {
+        var request = new ResponderTrucoRequest {
             ManoId = mano.Id,
             Aceptar = false
-        });
+        };
 
+        //When
+        var result = _controller.ResponderTruco(request);
+
+        //Then
         var ok = Assert.IsType<OkObjectResult>(result.Result);
-        var updated = Assert.IsType<ManoTruco>(ok.Value);
-        Assert.Equal("Maquina", updated.GanadorMano);
-        Assert.Equal(1, updated.PuntosMaquina); // nivel 1 → 1 punto al rechazar
+        var manoActualizada = Assert.IsType<ManoTruco>(ok.Value);
+
+        Assert.Equal("Maquina", manoActualizada.GanadorMano);
+        Assert.Equal(1, manoActualizada.PuntosMaquina); // nivel 1 → 1 punto al rechazar
     }
 
     // ─── ResponderEnvido ─────────────────────────────────────────────
@@ -435,6 +464,7 @@ public class TrucoControllerTests
     [Fact]
     public void ResponderEnvido_NoQuiero_CantorGana1Punto()
     {
+        //Given
         var mano = new ManoTruco
         {
             EnvidoCantado = true,
@@ -447,14 +477,19 @@ public class TrucoControllerTests
         };
         PartidaMemoriaServicio.Guardar(mano);
 
-        var result = _controller.ResponderEnvido(new ResponderEnvidoRequest
+        var request = new ResponderEnvidoRequest
         {
             ManoId = mano.Id,
             Aceptar = false
-        });
+        };
 
+        //When
+        var result = _controller.ResponderEnvido(request);
+
+        //Then
         var ok = Assert.IsType<OkObjectResult>(result.Result);
         var updated = Assert.IsType<ManoTruco>(ok.Value);
+
         Assert.Equal("Maquina", updated.GanadorEnvido);
         Assert.Equal(1, updated.PuntosMaquina);
         Assert.True(updated.EnvidoResuelto);
@@ -465,11 +500,15 @@ public class TrucoControllerTests
     [Fact]
     public void IrseAlMazo_ManoValida_MaquinaGanaLaMano()
     {
+        //Given
         var partida = ObtenerManoNueva();
         if (partida.EnvidoPendienteRespuestaHumano || partida.TrucoPendienteRespuestaHumano) return;
+        var request = new CantarEnvidoRequest { ManoId = partida.Id };
 
-        var result = _controller.IrseAlMazo(new CantarEnvidoRequest { ManoId = partida.Id });
+        //When
+        var result = _controller.IrseAlMazo(request);
 
+        //Then 
         var ok = Assert.IsType<OkObjectResult>(result.Result);
         var mano = Assert.IsType<ManoTruco>(ok.Value);
         Assert.Equal("Maquina", mano.GanadorMano);
@@ -526,6 +565,7 @@ public class TrucoControllerTests
     [Fact]
     public void IrseAlMazo_ConTrucoCantado_MaquinaGanaLosPuntosNegociados()
     {
+        //Given
         var mano = new ManoTruco
         {
             TrucoCantado = true,
@@ -537,8 +577,12 @@ public class TrucoControllerTests
             Maquina = new Jugador { Nombre = "Maquina", EsMaquina = true }
         };
         PartidaMemoriaServicio.Guardar(mano);
+        var request = new CantarEnvidoRequest { ManoId = mano.Id };
 
-        var result = _controller.IrseAlMazo(new CantarEnvidoRequest { ManoId = mano.Id });
+        //When
+        var result = _controller.IrseAlMazo(request);
+
+        //Then
         var ok = Assert.IsType<OkObjectResult>(result.Result);
         var updated = Assert.IsType<ManoTruco>(ok.Value);
         Assert.Equal("Maquina", updated.GanadorMano);
@@ -570,17 +614,22 @@ public class TrucoControllerTests
     [Fact]
     public void JugarCarta_CartaValidaDelHumano_DevuelveOk()
     {
+        //Given
         var partida = ObtenerManoNueva();
         if (partida.TurnoActual != "Humano") return;
         if (partida.EnvidoPendienteRespuestaHumano || partida.TrucoPendienteRespuestaHumano) return;
-
         var carta = partida.Humano.Mano.First();
-        var result = _controller.JugarCarta(new JugarCartaRequest
+        var request = new JugarCartaRequest
         {
             ManoId = partida.Id,
             Numero = carta.Numero,
-            Palo   = carta.Palo
-        });
+            Palo = carta.Palo
+        };
+
+        //Then
+        var result = _controller.JugarCarta(request);
+
+        //When
         Assert.IsType<OkObjectResult>(result.Result);
     }
 
@@ -608,12 +657,17 @@ public class TrucoControllerTests
     [Fact]
     public void ConfigurarNivelMentiraEnvido_NivelValido_ActualizaNivel()
     {
+        //Given
         var partida = ObtenerManoNueva();
-        var result = _controller.ConfigurarNivelMentiraEnvido(new ConfigurarNivelMentiraEnvidoRequest
+        var request = new ConfigurarNivelMentiraEnvidoRequest
         {
             ManoId = partida.Id,
             NivelMentira = 75
-        });
+        };
+        //When
+        var result = _controller.ConfigurarNivelMentiraEnvido(request);
+
+        //Then
         var ok = Assert.IsType<OkObjectResult>(result.Result);
         var mano = Assert.IsType<ManoTruco>(ok.Value);
         Assert.Equal(75, mano.NivelMentiraEnvidoMaquina);
@@ -622,12 +676,18 @@ public class TrucoControllerTests
     [Fact]
     public void ConfigurarNivelMentiraEnvido_NivelSuperior100_SeClampea()
     {
+        //Given
         var partida = ObtenerManoNueva();
-        var result = _controller.ConfigurarNivelMentiraEnvido(new ConfigurarNivelMentiraEnvidoRequest
+        var request = new ConfigurarNivelMentiraEnvidoRequest
         {
             ManoId = partida.Id,
             NivelMentira = 999
-        });
+        };
+
+        //When
+        var result = _controller.ConfigurarNivelMentiraEnvido(request);
+
+        //Then
         var ok = Assert.IsType<OkObjectResult>(result.Result);
         Assert.Equal(100, ((ManoTruco)ok.Value!).NivelMentiraEnvidoMaquina);
     }
@@ -635,12 +695,18 @@ public class TrucoControllerTests
     [Fact]
     public void ConfigurarNivelMentiraTruco_NivelNegativo_SeClampea()
     {
+        //Given
         var partida = ObtenerManoNueva();
-        var result = _controller.ConfigurarNivelMentiraTruco(new ConfigurarNivelMentiraTrucoRequest
+        var request = new ConfigurarNivelMentiraTrucoRequest
         {
             ManoId = partida.Id,
             NivelMentira = -50
-        });
+        };
+
+        //When
+        var result = _controller.ConfigurarNivelMentiraTruco(request);
+
+        //Then
         var ok = Assert.IsType<OkObjectResult>(result.Result);
         Assert.Equal(0, ((ManoTruco)ok.Value!).NivelMentiraTrucoMaquina);
     }

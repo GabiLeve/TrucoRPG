@@ -297,6 +297,8 @@ public class MazoServicioTests
         var maxResto = _mazo
             .Where(c => !(c.Numero == 1 && c.Palo == "Espada"))
             .Max(c => c.ValorTruco);
-        Assert.True(asEspada.ValorTruco > maxResto);
+
+        bool resultado = asEspada.ValorTruco > maxResto;
+        Assert.True(resultado);
     }
 }
