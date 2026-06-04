@@ -1,4 +1,4 @@
-using TrucoRPG.Dominio.Entities;
+﻿using TrucoRPG.Dominio.Entities;
 using TrucoRPG.Dominio.Servicios;
 
 namespace TrucoRPG.Tests.Logica;
@@ -16,30 +16,50 @@ public class JuegoServicioTests
     [Fact]
     public void ResolverBaza_HumanoTieneMayorValor_GanaHumano()
     {
-        var resultado = JuegoServicio.ResolverBaza(Carta(10), Carta(5));
-        Assert.Equal("Humano", resultado);
+        var cartaHumano = Carta(10);
+        var cartaMaquina = Carta(5);
+        string ganadorEsperado = "Humano";
+
+        var resultado = JuegoServicio.ResolverBaza(cartaHumano, cartaMaquina);
+
+        Assert.Equal(ganadorEsperado, resultado);
     }
 
     [Fact]
     public void ResolverBaza_MaquinaTieneMayorValor_GanaMaquina()
     {
-        var resultado = JuegoServicio.ResolverBaza(Carta(3), Carta(14));
-        Assert.Equal("Maquina", resultado);
+        var cartaHumano = Carta(3);
+        var cartaMaquina = Carta(14);
+        string ganadorEsperado = "Maquina";
+
+        var resultado = JuegoServicio.ResolverBaza(cartaHumano, cartaMaquina);
+
+        Assert.Equal(ganadorEsperado, resultado);
     }
 
     [Fact]
     public void ResolverBaza_MismoValor_EsParda()
     {
-        var resultado = JuegoServicio.ResolverBaza(Carta(9), Carta(9));
-        Assert.Equal("Parda", resultado);
+        var cartaHumano = Carta(9);
+        var cartaMaquina = Carta(9);
+        string resultadoEsperado = "Parda";
+
+        var resultado = JuegoServicio.ResolverBaza(cartaHumano, cartaMaquina);
+
+        Assert.Equal(resultadoEsperado, resultado);
     }
 
     [Fact]
     public void ResolverBaza_AsDeEspada_GanaAAsDeBastoMasAlto()
     {
         // As de Espada (14) > As de Basto (13)
-        var resultado = JuegoServicio.ResolverBaza(Carta(14), Carta(13));
-        Assert.Equal("Humano", resultado);
+        var asEspada = Carta(14);
+        var asBasto = Carta(13);
+        string ganadorEsperado = "Humano";
+
+        var resultado = JuegoServicio.ResolverBaza(asEspada, asBasto);
+
+        Assert.Equal(ganadorEsperado, resultado);
     }
 
     // ─── ResolverGanadorMano: casos base ─────────────────────────────
@@ -47,7 +67,11 @@ public class JuegoServicioTests
     [Fact]
     public void ResolverGanadorMano_SinBasas_RetornaNull()
     {
-        var ganador = JuegoServicio.ResolverGanadorMano(new List<Baza>(), "Humano");
+        var bazas = new List<Baza>();
+        string jugadorMano = "Humano";
+
+        var ganador = JuegoServicio.ResolverGanadorMano(bazas, jugadorMano);
+
         Assert.Null(ganador);
     }
 
