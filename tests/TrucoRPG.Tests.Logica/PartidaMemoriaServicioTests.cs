@@ -1,4 +1,4 @@
-using TrucoRPG.Dominio.Entities;
+﻿using TrucoRPG.Dominio.Entities;
 using TrucoRPG.Dominio.Servicios;
 
 namespace TrucoRPG.Tests.Logica;
@@ -17,6 +17,7 @@ public class PartidaMemoriaServicioTests
         PartidaMemoriaServicio.Guardar(mano);
 
         var recuperada = PartidaMemoriaServicio.Obtener(mano.Id);
+
         Assert.NotNull(recuperada);
         Assert.Equal(mano.Id, recuperada!.Id);
     }
@@ -34,12 +35,14 @@ public class PartidaMemoriaServicioTests
     {
         var mano1 = ManoNueva();
         var mano2 = ManoNueva();
-
         PartidaMemoriaServicio.Guardar(mano1);
         PartidaMemoriaServicio.Guardar(mano2);
 
-        Assert.Equal(mano1.Id, PartidaMemoriaServicio.Obtener(mano1.Id)!.Id);
-        Assert.Equal(mano2.Id, PartidaMemoriaServicio.Obtener(mano2.Id)!.Id);
+        var resultado1 = PartidaMemoriaServicio.Obtener(mano1.Id);
+        var resultado2 = PartidaMemoriaServicio.Obtener(mano2.Id);
+
+        Assert.Equal(mano1.Id, resultado1!.Id);
+        Assert.Equal(mano2.Id, resultado2!.Id);
     }
 
     // ─── Actualizar ──────────────────────────────────────────────────
@@ -49,11 +52,11 @@ public class PartidaMemoriaServicioTests
     {
         var mano = ManoNueva();
         PartidaMemoriaServicio.Guardar(mano);
-
         mano.PuntosHumano = 7;
-        PartidaMemoriaServicio.Actualizar(mano);
 
+        PartidaMemoriaServicio.Actualizar(mano);
         var recuperada = PartidaMemoriaServicio.Obtener(mano.Id);
+
         Assert.Equal(7, recuperada!.PuntosHumano);
     }
 
@@ -62,11 +65,11 @@ public class PartidaMemoriaServicioTests
     {
         var mano = ManoNueva();
         PartidaMemoriaServicio.Guardar(mano);
-
         mano.PuntosMaquina = 10;
-        PartidaMemoriaServicio.Guardar(mano); // segundo Guardar con mismo Id
 
+        PartidaMemoriaServicio.Guardar(mano); // segundo Guardar con mismo Id
         var recuperada = PartidaMemoriaServicio.Obtener(mano.Id);
+
         Assert.Equal(10, recuperada!.PuntosMaquina);
     }
 }

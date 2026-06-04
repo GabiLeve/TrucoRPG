@@ -1,0 +1,10 @@
+Para correr los test y que se vea el porcentaje de codigo testeado :
+1) installar en la raiz del proyecto :
+dotnet tool install -g dotnet-reportgenerator-globaltool
+2) generar el reporte :  reportgenerator -reports:**/coverage.cobertura.xml -targetdir:coverage-report -reporttypes:Html
+3) para verlo : start coverage-report\index.html
+
+Si hay nuevos test 
+1) dotnet test --collect:"XPlat Code Coverage"  -> (genera un archivo para mostrar)
+2) reportgenerator "-reports:tests\**\coverage.cobertura.xml" "-targetdir:coverage-report" "-reporttypes:Html" -> genera el reporte en html
+3) start coverage-report\index.html

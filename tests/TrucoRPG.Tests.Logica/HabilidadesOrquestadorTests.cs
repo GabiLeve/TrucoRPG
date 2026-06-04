@@ -1,4 +1,4 @@
-using TrucoRPG.Dominio.Entities;
+﻿using TrucoRPG.Dominio.Entities;
 using TrucoRPG.Dominio.Habilidades;
 using TrucoRPG.Dominio.Servicios;
 
@@ -45,10 +45,12 @@ public class HabilidadesOrquestadorTests
     public void Activar_ModoTradicional_DevuelveError()
     {
         var mano = PartidaServicio.CrearManoNueva();
-        var resultado = HabilidadesOrquestador.Activar(mano, new SolicitudActivarHabilidad
+        var solicitudActivada = new SolicitudActivarHabilidad
         {
             IdJugador = IdJugador.Humano
-        });
+        };
+
+        var resultado = HabilidadesOrquestador.Activar(mano,solicitudActivada);
 
         Assert.False(resultado.Exito);
     }

@@ -22,6 +22,10 @@ publish/
 *.dll
 *.exe
 
+# --- coverage test ---
+**/TestResults/
+**/coverage-report/
+
 # --- Angular (Frontend) ---
 frontend/node_modules/
 frontend/.angular/

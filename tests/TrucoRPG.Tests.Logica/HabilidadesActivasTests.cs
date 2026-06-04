@@ -1,4 +1,4 @@
-using TrucoRPG.Dominio.Entities;
+﻿using TrucoRPG.Dominio.Entities;
 using TrucoRPG.Dominio.Habilidades;
 using TrucoRPG.Dominio.UseCases;
 
@@ -31,8 +31,8 @@ public class HabilidadesActivasTests
             Modo = ModoJuego.Historia,
             HeroeDelHumano = ClaseHeroe.Fanfarron
         });
-
         var actualizada = new ActivarHabilidadUseCase().Ejecutar(mano.Id);
+
         var estado = actualizada.EstadoHabilidades.Obtener(IdJugador.Humano);
 
         Assert.True(estado!.FanfarronBonusPendiente);
@@ -79,6 +79,7 @@ public class HabilidadesActivasTests
             Modo = ModoJuego.Historia,
             HeroeDelHumano = ClaseHeroe.Manipulador
         });
+
         var segunda = useCase.Ejecutar(primera.Id);
 
         Assert.False(segunda.VistaHabilidadesHumano!.ActivaDisponible);

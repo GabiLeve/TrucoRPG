@@ -94,19 +94,31 @@ namespace TrucoRPG.Dominio.Servicios
             if (string.IsNullOrWhiteSpace(tipo)) return 2;
             return tipo.Trim().ToLowerInvariant() switch
             {
-                "envido"                        => 2,
-                "real envido" or "realenvido"   => 3,
-                "falta envido" or "faltaenvido" => 0,
-                _                               => 2
+                "envido"                              => 2,
+                "envido envido" or "envidoenvido"     => 4,
+                "real envido"   or "realenvido"       => 3,
+                "falta envido"  or "faltaenvido"      => 0,
+                _                                     => 2
             };
         }
+
+        public static int OrdinalTipo(string? tipo) =>
+            tipo switch
+            {
+                "Envido"       => 0,
+                "EnvidoEnvido" => 1,
+                "RealEnvido"   => 2,
+                "FaltaEnvido"  => 3,
+                _              => -1
+            };
 
         public static string NormalizarTipo(string? tipo) =>
             tipo?.Trim().ToLowerInvariant() switch
             {
-                "real envido"  or "realenvido"  => "RealEnvido",
-                "falta envido" or "faltaenvido" => "FaltaEnvido",
-                _                               => "Envido"
+                "envido envido" or "envidoenvido"   => "EnvidoEnvido",
+                "real envido"   or "realenvido"     => "RealEnvido",
+                "falta envido"  or "faltaenvido"    => "FaltaEnvido",
+                _                                   => "Envido"
             };
 
         public static string ClasificarActitud(int tantoReal, bool mintio)
