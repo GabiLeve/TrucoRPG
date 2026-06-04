@@ -136,7 +136,7 @@ public class MentiraEnvidoServicioTests
     
         foreach (int tanto in tantosAProbar)
         {
-            int resultado = MentiraEnvidoServicio.ObtenerTantoCantado(tanto, 0, out _);
+            int resultado = MentiraEnvidoServicio.ObtenerTantoCantado(tanto, nivelMentira, out _);
             resultadosObtenidos.Add(resultado);
         }
 

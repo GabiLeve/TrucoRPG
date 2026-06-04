@@ -89,7 +89,7 @@ public class MazoServicioTests
     {
         int valorEsperado = 12; 
         var carta = _mazo.First(c => c.Numero == 7 && c.Palo == "Espada");
-        Assert.Equal(12, carta.ValorTruco);
+        Assert.Equal(valorEsperado, carta.ValorTruco);
     }
 
     [Fact]
