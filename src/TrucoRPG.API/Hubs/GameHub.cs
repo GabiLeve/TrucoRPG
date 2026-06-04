@@ -13,16 +13,21 @@ public class GameHub : Hub
     private static readonly ConcurrentDictionary<string, List<string>> _salas = new();
     private static readonly ConcurrentDictionary<string, string> _conexionASala = new();
     private static readonly ConcurrentDictionary<string, TrucoMultiState> _trucoGames = new();
-    // Jugadores que avisaron "listo para jugar" en TrucoMultiScene
     private static readonly ConcurrentDictionary<string, ConcurrentDictionary<string, bool>> _listos = new();
+
+    // ─── 2v2 ─────────────────────────────────────────────────────
+    private static readonly ConcurrentDictionary<string, string> _salasModo = new();
+    // sala -> connectionId -> "sanMartin" | "belgrano"
+    private static readonly ConcurrentDictionary<string, ConcurrentDictionary<string, string>> _equiposJugadores = new();
 
     // ─────────────────────────────────────────────────────────────
     //  SALA — crear / unirse
     // ─────────────────────────────────────────────────────────────
-    public async Task<string> CrearSala()
+    public async Task<string> CrearSala(string modo = "1v1")
     {
         var codigo = Guid.NewGuid().ToString("N")[..6].ToUpper();
         _salas[codigo] = new List<string> { Context.ConnectionId };
+        _salasModo[codigo] = modo;
         _conexionASala[Context.ConnectionId] = codigo;
         await Groups.AddToGroupAsync(Context.ConnectionId, codigo);
         return codigo;
@@ -30,13 +35,59 @@ public class GameHub : Hub
 
     public async Task<bool> UnirseASala(string codigo)
     {
-        if (!_salas.TryGetValue(codigo, out var jugadores) || jugadores.Count >= 2)
-            return false;
+        if (!_salas.TryGetValue(codigo, out var jugadores)) return false;
+
+        var modo = _salasModo.TryGetValue(codigo, out var m) ? m : "1v1";
+        int maxJugadores = modo == "2v2" ? 4 : 2;
+
+        if (jugadores.Count >= maxJugadores) return false;
+
         jugadores.Add(Context.ConnectionId);
         _conexionASala[Context.ConnectionId] = codigo;
         await Groups.AddToGroupAsync(Context.ConnectionId, codigo);
-        await Clients.Group(codigo).SendAsync("SalaLista");
+
+        if (modo == "1v1")
+        {
+            if (jugadores.Count == 2)
+                await Clients.Group(codigo).SendAsync("SalaLista");
+        }
+        else // 2v2
+        {
+            await Clients.Group(codigo).SendAsync("LobbyActualizado", new
+            {
+                jugadoresEnSala = jugadores.Count,
+                maxJugadores = 4
+            });
+            if (jugadores.Count == 4)
+                await Clients.Group(codigo).SendAsync("SalaCompleta");
+        }
+
         return true;
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    //  EQUIPOS — selección 2v2
+    // ─────────────────────────────────────────────────────────────
+    public async Task ElegirEquipo(string equipo)
+    {
+        if (!_conexionASala.TryGetValue(Context.ConnectionId, out var sala)) return;
+        if (!_salas.TryGetValue(sala, out var jugadores)) return;
+        if (equipo != "sanMartin" && equipo != "belgrano") return;
+
+        var equiposMap = _equiposJugadores.GetOrAdd(sala, _ => new ConcurrentDictionary<string, string>());
+
+        // Verificar si el equipo destino tiene lugar
+        equiposMap.TryGetValue(Context.ConnectionId, out var equipoActual);
+        int countEnEquipo = equiposMap.Values.Count(v => v == equipo);
+
+        // Si ya está en ese equipo, no hacer nada
+        if (equipoActual == equipo) return;
+
+        // Si el equipo destino está lleno (2 jugadores), rechazar
+        if (countEnEquipo >= 2) return;
+
+        equiposMap[Context.ConnectionId] = equipo;
+        await BroadcastEstadoEquipos(sala, jugadores, equiposMap);
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -51,27 +102,37 @@ public class GameHub : Hub
     // ─────────────────────────────────────────────────────────────
     //  TRUCO MULTIJUGADOR
     // ─────────────────────────────────────────────────────────────
-    // Cada jugador llama esto al entrar a TrucoMultiScene.
-    // Cuando ambos están listos, el servidor inicia la partida.
     public async Task ListoParaJugar()
     {
         if (!_conexionASala.TryGetValue(Context.ConnectionId, out var sala)) return;
-        if (!_salas.TryGetValue(sala, out var jugadores) || jugadores.Count < 2) return;
+        if (!_salas.TryGetValue(sala, out var jugadores)) return;
+
+        var modo = _salasModo.TryGetValue(sala, out var m) ? m : "1v1";
+        int requiredPlayers = modo == "2v2" ? 4 : 2;
+
+        if (jugadores.Count < requiredPlayers) return;
 
         var readySet = _listos.GetOrAdd(sala, _ => new ConcurrentDictionary<string, bool>());
         readySet[Context.ConnectionId] = true;
 
-        if (readySet.Count >= 2)
+        // Notificar cuántos están listos
+        await Clients.Group(sala).SendAsync("LobbyListos", new
+        {
+            listos = readySet.Count,
+            requeridos = requiredPlayers
+        });
+
+        if (readySet.Count >= requiredPlayers)
         {
             _listos.TryRemove(sala, out _);
 
-            // Si ya hay partida en curso, solo re-enviar estado actual (reconexión)
             if (_trucoGames.TryGetValue(sala, out var existing))
             {
                 await BroadcastTrucoEstado(sala, existing);
                 return;
             }
 
+            // Por ahora la lógica de juego usa 2 jugadores; 2v2 se implementa en la próxima iteración
             var state = new TrucoMultiState
             {
                 Jugador1Id = jugadores[0],
@@ -237,16 +298,13 @@ public class GameHub : Hub
 
         bool esJ1        = Context.ConnectionId == state.Jugador1Id;
         string rolActual = esJ1 ? "Humano" : "Maquina";
-        // Solo puede escalar el respondedor (no el cantor original)
         if (mano.CantorEnvido == rolActual) return;
-        // El nuevo tipo debe ser estrictamente mayor al actual
         string tipoNuevo = EnvidoServicio.NormalizarTipo(tipo);
         if (EnvidoServicio.OrdinalTipo(tipoNuevo) <= EnvidoServicio.OrdinalTipo(mano.TipoEnvidoCantado)) return;
 
         mano.TipoEnvidoCantado = tipoNuevo;
         mano.CantorEnvido      = rolActual;
 
-        // Ahora el que cantó originalmente debe responder
         mano.EnvidoPendienteRespuestaHumano = !esJ1;
         state.EnvidoPendienteRespuestaJ2    = esJ1;
 
@@ -344,7 +402,7 @@ public class GameHub : Hub
         if (mano.CantorTruco == rolActual) return;
 
         mano.NivelTruco++;
-        mano.TrucoResuelto   = false;  // reabre la apuesta
+        mano.TrucoResuelto   = false;
         mano.CantorTruco     = rolActual;
         mano.PuntosTrucoMano = mano.NivelTruco == 2 ? 3 : 4;
         string nombre        = mano.NivelTruco == 2 ? "Retruco" : "Vale Cuatro";
@@ -403,11 +461,25 @@ public class GameHub : Hub
             if (_salas.TryGetValue(sala, out var jugadores))
             {
                 jugadores.Remove(Context.ConnectionId);
-                if (jugadores.Count == 0) _salas.TryRemove(sala, out _);
+                if (jugadores.Count == 0)
+                {
+                    _salas.TryRemove(sala, out _);
+                    _salasModo.TryRemove(sala, out _);
+                    _equiposJugadores.TryRemove(sala, out _);
+                }
             }
             _trucoGames.TryRemove(sala, out _);
             if (_listos.TryGetValue(sala, out var readySet))
                 readySet.TryRemove(Context.ConnectionId, out _);
+
+            // Limpiar equipo del jugador desconectado y notificar al grupo
+            if (_equiposJugadores.TryGetValue(sala, out var equiposMap))
+            {
+                equiposMap.TryRemove(Context.ConnectionId, out _);
+                if (_salas.TryGetValue(sala, out var restantes) && restantes.Count > 0)
+                    await BroadcastEstadoEquipos(sala, restantes, equiposMap);
+            }
+
             await Clients.Group(sala).SendAsync("JugadorDesconectado");
         }
         await base.OnDisconnectedAsync(exception);
@@ -454,6 +526,31 @@ public class GameHub : Hub
             int pts            = mano.PuntosTrucoMano > 0 ? mano.PuntosTrucoMano : 1;
             JuegoServicio.SumarPuntos(mano, ganadorMano, pts);
             mano.TrucoResuelto = true;
+        }
+    }
+
+    private async Task BroadcastEstadoEquipos(string sala, List<string> jugadores, ConcurrentDictionary<string, string> equiposMap)
+    {
+        int countSanMartin = equiposMap.Values.Count(v => v == "sanMartin");
+        int countBelgrano  = equiposMap.Values.Count(v => v == "belgrano");
+        bool equiposListos = countSanMartin == 2 && countBelgrano == 2;
+
+        var jugadoresDto = jugadores.Select((cId, i) => new
+        {
+            posicion = i + 1,
+            equipo   = equiposMap.TryGetValue(cId, out var eq) ? eq : (string?)null
+        }).ToList();
+
+        for (int i = 0; i < jugadores.Count; i++)
+        {
+            await Clients.Client(jugadores[i]).SendAsync("EstadoEquipos", new
+            {
+                miPosicion     = i + 1,
+                jugadores      = jugadoresDto,
+                equiposListos,
+                countSanMartin,
+                countBelgrano
+            });
         }
     }
 
