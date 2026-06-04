@@ -1,4 +1,4 @@
-using TrucoRPG.Dominio.Entities;
+﻿using TrucoRPG.Dominio.Entities;
 using TrucoRPG.Dominio.Servicios;
 
 namespace TrucoRPG.Tests.Logica;
@@ -48,8 +48,10 @@ public class DecisionMaquinaServicioTests
             new() { Numero = 3, Palo = "Copa", ValorTruco = 10 },
             new() { Numero = 1, Palo = "Espada", ValorTruco = 14 }
         };
+
         // CalcularTanto: mejor par Copa: 7+3+20 = 30 → siempre acepta
         bool resultado = DecisionMaquinaServicio.AceptarEnvido(mano, 0);
+
         Assert.True(resultado);
     }
 
@@ -64,6 +66,7 @@ public class DecisionMaquinaServicioTests
             new() { Numero = 4, Palo = "Oro", ValorTruco = 1 }
         };
         bool resultado = DecisionMaquinaServicio.AceptarEnvido(mano, 0);
+
         Assert.True(resultado);
     }
 
@@ -79,6 +82,7 @@ public class DecisionMaquinaServicioTests
         };
         // tanto = 6 ≤ 20, nivelMentira = 0 → siempre rechaza
         bool resultado = DecisionMaquinaServicio.AceptarEnvido(mano, 0);
+
         Assert.False(resultado);
     }
 
@@ -91,8 +95,10 @@ public class DecisionMaquinaServicioTests
             new() { Numero = 4, Palo = "Oro", ValorTruco = 1 },
             new() { Numero = 2, Palo = "Copa", ValorTruco = 9 }
         };
-        // nivelMentira = 999 debe ser clampeado a 100 sin excepción
-        var ex = Record.Exception(() => DecisionMaquinaServicio.AceptarEnvido(mano, 999));
+        var nivelMentiraInvalido = 999;
+
+        var ex = Record.Exception(() => DecisionMaquinaServicio.AceptarEnvido(mano, nivelMentiraInvalido));
+
         Assert.Null(ex);
     }
 
@@ -130,7 +136,8 @@ public class DecisionMaquinaServicioTests
     public void AceptarTruco_ManoVacia_NoLanzaExcepcion()
     {
         // manoMaquina.Any() == false → cartaMasFuerte = 0 → probabilidad = 20 → probabilistic
-        var ex = Record.Exception(() => DecisionMaquinaServicio.AceptarTruco(new List<Carta>(), 0));
+        var mano = new List<Carta>();
+        var ex = Record.Exception(() => DecisionMaquinaServicio.AceptarTruco(mano, 0));
         Assert.Null(ex);
     }
 
@@ -155,7 +162,10 @@ public class DecisionMaquinaServicioTests
             new() { Numero = 1, Palo = "Espada", ValorTruco = 14 },
             new() { Numero = 1, Palo = "Basto", ValorTruco = 13 }
         };
-        Assert.False(DecisionMaquinaServicio.EscalarTruco(mano, 100, 3));
+
+        bool respuesta = DecisionMaquinaServicio.EscalarTruco(mano, 100, 3);
+
+        Assert.False(respuesta);
     }
 
     [Fact]
@@ -165,7 +175,10 @@ public class DecisionMaquinaServicioTests
         {
             new() { Numero = 1, Palo = "Espada", ValorTruco = 14 }
         };
-        Assert.False(DecisionMaquinaServicio.EscalarTruco(mano, 100, 5));
+
+        bool respuesta = DecisionMaquinaServicio.EscalarTruco(mano, 100, 5) ; 
+
+        Assert.False(respuesta);
     }
 
     [Fact]
@@ -175,14 +188,19 @@ public class DecisionMaquinaServicioTests
         {
             new() { Numero = 3, Palo = "Espada", ValorTruco = 10 }
         };
+
         var ex = Record.Exception(() => DecisionMaquinaServicio.EscalarTruco(mano, 0, 1));
+
         Assert.Null(ex);
     }
 
     [Fact]
     public void EscalarTruco_ManoVacia_NivelMenorA3_NoLanzaExcepcion()
     {
-        var ex = Record.Exception(() => DecisionMaquinaServicio.EscalarTruco(new List<Carta>(), 50, 2));
+        var mano = new List<Carta>();
+        
+        var ex = Record.Exception(() => DecisionMaquinaServicio.EscalarTruco(mano, 50, 2));
+
         Assert.Null(ex);
     }
 
@@ -196,7 +214,10 @@ public class DecisionMaquinaServicioTests
             new() { Numero = 1, Palo = "Basto", ValorTruco = 13 },
             new() { Numero = 7, Palo = "Espada", ValorTruco = 12 }
         };
-        Assert.False(DecisionMaquinaServicio.EscalarTruco(manoFuerte, 100, 3));
+
+        bool respuesta = DecisionMaquinaServicio.EscalarTruco(manoFuerte, 100, 3);
+
+        Assert.False(respuesta);
     }
 }
 

@@ -1,4 +1,4 @@
-using TrucoRPG.Dominio.Entities;
+﻿using TrucoRPG.Dominio.Entities;
 using TrucoRPG.Dominio.Servicios;
 
 namespace TrucoRPG.Tests.Logica;
@@ -55,9 +55,11 @@ public class RepartoServicioTests
     public void Repartir_NoHayCartasDuplicadasEntreJugadores()
     {
         var mano = ManoConJugadores();
+
         RepartoServicio.Repartir(mano);
         var todas = mano.Humano.Mano.Concat(mano.Maquina.Mano);
         int distintas = todas.Select(c => (c.Numero, c.Palo)).Distinct().Count();
+
         Assert.Equal(6, distintas);
     }
 
@@ -65,8 +67,10 @@ public class RepartoServicioTests
     public void Repartir_NoHayCartasDuplicadasDentroDelHumano()
     {
         var mano = ManoConJugadores();
+
         RepartoServicio.Repartir(mano);
         int distintas = mano.Humano.Mano.Select(c => (c.Numero, c.Palo)).Distinct().Count();
+
         Assert.Equal(3, distintas);
     }
 
@@ -74,8 +78,10 @@ public class RepartoServicioTests
     public void Repartir_NoHayCartasDuplicadasDentroDeLaMaquina()
     {
         var mano = ManoConJugadores();
+
         RepartoServicio.Repartir(mano);
         int distintas = mano.Maquina.Mano.Select(c => (c.Numero, c.Palo)).Distinct().Count();
+
         Assert.Equal(3, distintas);
     }
 
@@ -87,11 +93,11 @@ public class RepartoServicioTests
         var mazoValido = MazoServicio.CrearMazo()
             .Select(c => (c.Numero, c.Palo))
             .ToHashSet();
-
         var mano = ManoConJugadores();
-        RepartoServicio.Repartir(mano);
 
+        RepartoServicio.Repartir(mano);
         var todas = mano.Humano.Mano.Concat(mano.Maquina.Mano);
+
         foreach (var carta in todas)
             Assert.Contains((carta.Numero, carta.Palo), mazoValido);
     }
@@ -100,8 +106,10 @@ public class RepartoServicioTests
     public void Repartir_CartasTienenValorTrucoValido()
     {
         var mano = ManoConJugadores();
+
         RepartoServicio.Repartir(mano);
         var todas = mano.Humano.Mano.Concat(mano.Maquina.Mano);
+
         foreach (var carta in todas)
         {
             Assert.InRange(carta.ValorTruco, 1, 14);
@@ -116,6 +124,7 @@ public class RepartoServicioTests
         // Con 40 cartas, la probabilidad de que dos repartos sean idénticos es ~0
         var mano1 = ManoConJugadores();
         var mano2 = ManoConJugadores();
+
         RepartoServicio.Repartir(mano1);
         RepartoServicio.Repartir(mano2);
 

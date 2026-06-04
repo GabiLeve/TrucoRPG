@@ -1,8 +1,5 @@
-﻿namespace TrucoRPG.Dominio.Entities
+namespace TrucoRPG.Dominio.Entities
 {
-    /// <summary>
-    /// Modelo de dominio del usuario (independiente de Identity).
-    /// </summary>
     public class Usuario
     {
         public string Id       { get; set; } = string.Empty;

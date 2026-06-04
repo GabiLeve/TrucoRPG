@@ -72,9 +72,6 @@ namespace TrucoRPG.Dominio.Servicios
             return null;
         }
 
-        /// <summary>
-        /// Suma puntos al ganador, aplicando modificadores de habilidades antes de persistir.
-        /// </summary>
         public static void SumarPuntos(
             ManoTruco mano,
             string? ganador,

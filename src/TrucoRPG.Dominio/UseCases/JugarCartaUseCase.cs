@@ -4,10 +4,6 @@ using TrucoRPG.Dominio.Servicios;
 
 namespace TrucoRPG.Dominio.UseCases
 {
-    /// <summary>
-    /// El humano juega una carta. La máquina responde con su propia carta y se resuelve la baza.
-    /// Si con esa baza se determina un ganador de la mano, se suman los puntos correspondientes.
-    /// </summary>
     public class JugarCartaUseCase
     {
         public ManoTruco Ejecutar(Guid manoId, int numero, string palo)

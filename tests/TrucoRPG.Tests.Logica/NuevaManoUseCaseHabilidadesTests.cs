@@ -1,4 +1,4 @@
-using TrucoRPG.Dominio.Entities;
+﻿using TrucoRPG.Dominio.Entities;
 using TrucoRPG.Dominio.UseCases;
 
 namespace TrucoRPG.Tests.Logica;
@@ -27,6 +27,7 @@ public class NuevaManoUseCaseHabilidadesTests
     public void NuevaPartida_Tradicional_SinHabilidadesAunqueHayaHeroe()
     {
         var useCase = new NuevaManoUseCase();
+
         var mano = useCase.EjecutarNuevaPartida(new ConfiguracionPartida
         {
             Modo = ModoJuego.Tradicional,

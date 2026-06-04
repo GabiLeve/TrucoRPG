@@ -4,9 +4,6 @@ using TrucoRPG.Dominio.Servicios;
 
 namespace TrucoRPG.Dominio.UseCases
 {
-    /// <summary>
-    /// El humano responde al truco de la máquina: acepta, rechaza, o escala a Retruco / Vale Cuatro.
-    /// </summary>
     public class ResponderTrucoUseCase
     {
         public ManoTruco Ejecutar(Guid manoId, bool aceptar, string? escalarA)

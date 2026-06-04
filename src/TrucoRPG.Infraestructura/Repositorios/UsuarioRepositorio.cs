@@ -4,9 +4,6 @@ using TrucoRPG.Dominio.Repositorios;
 
 namespace TrucoRPG.Infraestructura.Repositorios
 {
-    /// <summary>
-    /// Implementación concreta de IUsuarioRepositorio usando ASP.NET Core Identity.
-    /// </summary>
     public class UsuarioRepositorio : IUsuarioRepositorio
     {
         private readonly UserManager<ApplicationUser> _userManager;

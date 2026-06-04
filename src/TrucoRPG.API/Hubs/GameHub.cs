@@ -13,6 +13,8 @@ public class GameHub : Hub
     private static readonly ConcurrentDictionary<string, List<string>> _salas = new();
     private static readonly ConcurrentDictionary<string, string> _conexionASala = new();
     private static readonly ConcurrentDictionary<string, TrucoMultiState> _trucoGames = new();
+    // Jugadores que avisaron "listo para jugar" en TrucoMultiScene
+    private static readonly ConcurrentDictionary<string, ConcurrentDictionary<string, bool>> _listos = new();
 
     // ─────────────────────────────────────────────────────────────
     //  SALA — crear / unirse
@@ -49,6 +51,38 @@ public class GameHub : Hub
     // ─────────────────────────────────────────────────────────────
     //  TRUCO MULTIJUGADOR
     // ─────────────────────────────────────────────────────────────
+    // Cada jugador llama esto al entrar a TrucoMultiScene.
+    // Cuando ambos están listos, el servidor inicia la partida.
+    public async Task ListoParaJugar()
+    {
+        if (!_conexionASala.TryGetValue(Context.ConnectionId, out var sala)) return;
+        if (!_salas.TryGetValue(sala, out var jugadores) || jugadores.Count < 2) return;
+
+        var readySet = _listos.GetOrAdd(sala, _ => new ConcurrentDictionary<string, bool>());
+        readySet[Context.ConnectionId] = true;
+
+        if (readySet.Count >= 2)
+        {
+            _listos.TryRemove(sala, out _);
+
+            // Si ya hay partida en curso, solo re-enviar estado actual (reconexión)
+            if (_trucoGames.TryGetValue(sala, out var existing))
+            {
+                await BroadcastTrucoEstado(sala, existing);
+                return;
+            }
+
+            var state = new TrucoMultiState
+            {
+                Jugador1Id = jugadores[0],
+                Jugador2Id = jugadores[1],
+            };
+            IniciarNuevaMano(state, esPrimeraPartida: true);
+            _trucoGames[sala] = state;
+            await BroadcastTrucoEstado(sala, state);
+        }
+    }
+
     public async Task IniciarTruco()
     {
         if (!_conexionASala.TryGetValue(Context.ConnectionId, out var sala)) return;
@@ -195,6 +229,33 @@ public class GameHub : Hub
         await BroadcastTrucoEstado(sala!, state);
     }
 
+    public async Task EscalarEnvido(string tipo)
+    {
+        if (!ObtenerSalaYEstado(out var sala, out var state)) return;
+        var mano = state!.Mano;
+        if (!mano.EnvidoCantado || mano.EnvidoResuelto) return;
+
+        bool esJ1        = Context.ConnectionId == state.Jugador1Id;
+        string rolActual = esJ1 ? "Humano" : "Maquina";
+        // Solo puede escalar el respondedor (no el cantor original)
+        if (mano.CantorEnvido == rolActual) return;
+        // El nuevo tipo debe ser estrictamente mayor al actual
+        string tipoNuevo = EnvidoServicio.NormalizarTipo(tipo);
+        if (EnvidoServicio.OrdinalTipo(tipoNuevo) <= EnvidoServicio.OrdinalTipo(mano.TipoEnvidoCantado)) return;
+
+        mano.TipoEnvidoCantado = tipoNuevo;
+        mano.CantorEnvido      = rolActual;
+
+        // Ahora el que cantó originalmente debe responder
+        mano.EnvidoPendienteRespuestaHumano = !esJ1;
+        state.EnvidoPendienteRespuestaJ2    = esJ1;
+
+        mano.EstadoEnvido = $"{(esJ1 ? "J1" : "J2")} cantó {tipo}.";
+
+        _trucoGames[sala!] = state;
+        await BroadcastTrucoEstado(sala!, state);
+    }
+
     public async Task SolicitarTruco()
     {
         if (!ObtenerSalaYEstado(out var sala, out var state)) return;
@@ -274,14 +335,16 @@ public class GameHub : Hub
     {
         if (!ObtenerSalaYEstado(out var sala, out var state)) return;
         var mano = state!.Mano;
-        if (!mano.TrucoCantado || mano.TrucoResuelto || mano.NivelTruco >= 3) return;
+        if (!mano.TrucoCantado || mano.NivelTruco >= 3) return;
         if (mano.TrucoPendienteRespuestaHumano || state.TrucoPendienteRespuestaJ2) return;
+        if (mano.GanadorMano != null || mano.PartidaTerminada) return;
 
         bool esJ1        = Context.ConnectionId == state.Jugador1Id;
         string rolActual = esJ1 ? "Humano" : "Maquina";
         if (mano.CantorTruco == rolActual) return;
 
         mano.NivelTruco++;
+        mano.TrucoResuelto   = false;  // reabre la apuesta
         mano.CantorTruco     = rolActual;
         mano.PuntosTrucoMano = mano.NivelTruco == 2 ? 3 : 4;
         string nombre        = mano.NivelTruco == 2 ? "Retruco" : "Vale Cuatro";
@@ -343,6 +406,8 @@ public class GameHub : Hub
                 if (jugadores.Count == 0) _salas.TryRemove(sala, out _);
             }
             _trucoGames.TryRemove(sala, out _);
+            if (_listos.TryGetValue(sala, out var readySet))
+                readySet.TryRemove(Context.ConnectionId, out _);
             await Clients.Group(sala).SendAsync("JugadorDesconectado");
         }
         await base.OnDisconnectedAsync(exception);

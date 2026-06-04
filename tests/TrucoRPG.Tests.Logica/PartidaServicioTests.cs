@@ -1,4 +1,4 @@
-using TrucoRPG.Dominio.Entities;
+﻿using TrucoRPG.Dominio.Entities;
 using TrucoRPG.Dominio.Servicios;
 
 namespace TrucoRPG.Tests.Logica;
@@ -48,6 +48,7 @@ public class PartidaServicioTests
         var mano = PartidaServicio.CrearManoNueva();
         var humano = mano.Humano.Mano.Select(c => (c.Numero, c.Palo));
         var maquina = mano.Maquina.Mano.Select(c => (c.Numero, c.Palo));
+
         Assert.Empty(humano.Intersect(maquina));
     }
 
@@ -64,6 +65,7 @@ public class PartidaServicioTests
     public void CrearManoNueva_PuntosIniciales_SonCero()
     {
         var mano = PartidaServicio.CrearManoNueva();
+
         Assert.Equal(0, mano.PuntosHumano);
         Assert.Equal(0, mano.PuntosMaquina);
     }
@@ -71,7 +73,12 @@ public class PartidaServicioTests
     [Fact]
     public void CrearManoNueva_ConPuntosExistentes_LosConserva()
     {
-        var mano = PartidaServicio.CrearManoNueva(numeroDeMano: 3, puntosHumano: 8, puntosMaquina: 5);
+        int nuemerMano = 3;
+        int ptsHumano = 8;
+        int ptsMaquina = 5;
+
+        var mano = PartidaServicio.CrearManoNueva(numeroDeMano: nuemerMano, puntosHumano: ptsHumano, puntosMaquina: ptsMaquina);
+
         Assert.Equal(8, mano.PuntosHumano);
         Assert.Equal(5, mano.PuntosMaquina);
     }
@@ -79,24 +86,33 @@ public class PartidaServicioTests
     [Fact]
     public void CrearManoNueva_NumeroDeManoImpar_ManoIniciadaPorHumano()
     {
-        var mano = PartidaServicio.CrearManoNueva(numeroDeMano: 1);
+        int manoImpar = 1;
+
+        var mano = PartidaServicio.CrearManoNueva(numeroDeMano: manoImpar);
+
         Assert.Equal("Humano", mano.ManoIniciadaPor);
     }
 
     [Fact]
     public void CrearManoNueva_NumeroDeManoPar_ManoIniciadaPorMaquina()
     {
-        var mano = PartidaServicio.CrearManoNueva(numeroDeMano: 2);
+        int manoPar = 2;
+
+        var mano = PartidaServicio.CrearManoNueva(numeroDeMano: manoPar);
+
         Assert.Equal("Maquina", mano.ManoIniciadaPor);
     }
 
     [Fact]
     public void CrearManoNueva_TurnoActual_IgualAManoIniciadaPor()
     {
-        var mano1 = PartidaServicio.CrearManoNueva(numeroDeMano: 1);
-        Assert.Equal(mano1.ManoIniciadaPor, mano1.TurnoActual);
+        int numeroDeMano1 = 1;
+        int numeroDeMano2 = 2;
 
-        var mano2 = PartidaServicio.CrearManoNueva(numeroDeMano: 2);
+        var mano1 = PartidaServicio.CrearManoNueva(numeroDeMano: numeroDeMano1);
+        var mano2 = PartidaServicio.CrearManoNueva(numeroDeMano: numeroDeMano2);
+
+        Assert.Equal(mano1.ManoIniciadaPor, mano1.TurnoActual);
         Assert.Equal(mano2.ManoIniciadaPor, mano2.TurnoActual);
     }
 
@@ -105,6 +121,7 @@ public class PartidaServicioTests
     {
         var mano1 = PartidaServicio.CrearManoNueva();
         var mano2 = PartidaServicio.CrearManoNueva();
+
         Assert.NotEqual(mano1.Id, mano2.Id);
     }
 }

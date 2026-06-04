@@ -2,9 +2,6 @@ using TrucoRPG.Dominio.Repositorios;
 
 namespace TrucoRPG.Dominio.UseCases
 {
-    /// <summary>
-    /// Caso de uso: registrar un nuevo usuario y devolver un JWT.
-    /// </summary>
     public class RegisterUseCase
     {
         private readonly IUsuarioRepositorio _usuarioRepo;

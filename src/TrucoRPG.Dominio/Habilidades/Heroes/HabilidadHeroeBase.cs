@@ -2,9 +2,6 @@ using TrucoRPG.Dominio.Entities;
 
 namespace TrucoRPG.Dominio.Habilidades.Heroes
 {
-    /// <summary>
-    /// Implementación vacía; cada héroe sobreescribe solo los eventos que necesita.
-    /// </summary>
     public abstract class HabilidadHeroeBase : IHabilidadHeroe
     {
         public abstract ClaseHeroe Tipo { get; }

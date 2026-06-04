@@ -3,9 +3,6 @@ using TrucoRPG.Dominio.Servicios;
 
 namespace TrucoRPG.Dominio.UseCases
 {
-    /// <summary>
-    /// El humano canta un tipo de envido. La máquina responde automáticamente.
-    /// </summary>
     public class CantarEnvidoUseCase
     {
         public ManoTruco Ejecutar(Guid manoId, string tipo)

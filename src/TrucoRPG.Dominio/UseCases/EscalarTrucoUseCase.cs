@@ -4,10 +4,6 @@ using TrucoRPG.Dominio.Servicios;
 
 namespace TrucoRPG.Dominio.UseCases
 {
-    /// <summary>
-    /// El humano escala el truco (canta Retruco o Vale Cuatro) durante el transcurso de la mano.
-    /// La máquina responde automáticamente.
-    /// </summary>
     public class EscalarTrucoUseCase
     {
         public ManoTruco Ejecutar(Guid manoId)
