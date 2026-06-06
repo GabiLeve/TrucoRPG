@@ -89,6 +89,13 @@ namespace TrucoRPG.Dominio.Entities
         public bool PartidaTerminada { get; set; } = false;
         public string? GanadorPartida { get; set; }  // "EquipoA" o "EquipoB"
 
+        // ─── Consulta de envido del compañero (modo solo 2v2) ─────────────
+        public bool CompaConsultaEnvido { get; set; } = false;
+        public bool CompaEnvidoConsultado { get; set; } = false;
+        public bool CompaConsultaTruco { get; set; } = false;
+        public bool CompaTrucoConsultado { get; set; } = false;
+        public string? CompaPista { get; set; }  // pista de envido del compañero ("Tengo poco/algo/mucho")
+
         // ─── Helpers ─────────────────────────────────────────────────────
         public List<Jugador> OrdenJugadores => new() { Posicion1, Posicion2, Posicion3, Posicion4 };
 

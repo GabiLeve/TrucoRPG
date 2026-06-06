@@ -12,6 +12,13 @@ namespace TrucoRPG.API.Controllers
     public record Truco2v2TantoRequest(Guid ManoId, int Tanto);
     public record Truco2v2ResponderTrucoRequest(Guid ManoId, bool Aceptar, string? EscalarA = null);
     public record Truco2v2NuevaPartidaRequest(int? NumeroDeMano = null, int? PuntosA = null, int? PuntosB = null);
+    public record Truco2v2ConsultaEnvidoRequest(Guid ManoId, bool Aceptar);
+    public record Truco2v2ConsultaTrucoRequest(Guid ManoId, bool Voy);
+
+    // Evento de una acción de máquina, para mostrar diálogos en el front.
+    // Tipo: "carta" | "truco" | "envido" | "truco-resp" | "envido-resp" | "tanto"
+    public record EventoMaquina(string Jugador, string Tipo, string Texto);
+    public record Truco2v2PasoResponse(ManoTruco2v2 Mano, EventoMaquina? Evento);
 
     [ApiController]
     [Route("api/[controller]")]
@@ -22,6 +29,7 @@ namespace TrucoRPG.API.Controllers
         private const string J2 = "J2"; // rival 1
         private const string J3 = "J3"; // compañero
         private const string J4 = "J4"; // rival 2
+        private static readonly Random _rng = new Random();
 
         // ─────────────────────────────────────────────────────────
         //  Nueva partida
@@ -43,7 +51,7 @@ namespace TrucoRPG.API.Controllers
                 pos4: new Jugador { Id = J4, Nombre = "Rival 2",   EsMaquina = true  }
             );
 
-            AvanzarMaquinas(mano);
+            // Las máquinas avanzan paso a paso desde el front (endpoint avanzar-maquina).
             Truco2v2MemoriaServicio.Guardar(mano);
             return Ok(mano);
         }
@@ -64,7 +72,7 @@ namespace TrucoRPG.API.Controllers
                 ?? throw new InvalidOperationException("Carta no encontrada en tu mano.");
 
             JuegoServicio2v2.JugarCarta(mano, J1, carta);
-            AvanzarMaquinas(mano);
+            // Las máquinas avanzan paso a paso desde el front (endpoint avanzar-maquina).
             Truco2v2MemoriaServicio.Actualizar(mano);
             return Ok(mano);
         }
@@ -81,6 +89,9 @@ namespace TrucoRPG.API.Controllers
             // El envido se puede cantar durante toda la primera vuelta (aún con cartas en mesa).
             if (mano.Vueltas.Count > 0)
                 throw new InvalidOperationException("El envido solo se puede cantar en la primera vuelta.");
+            // Si el truco ya fue cantado y resuelto, la ventana del envido se cerró.
+            if (mano.TrucoCantado && mano.TrucoPendienteRespuestaDe == null)
+                throw new InvalidOperationException("El envido ya no se puede cantar: el truco fue resuelto.");
             // "El envido va primero": se permite también si te deben una respuesta de truco.
             bool esTuTurno  = mano.TurnoActual == J1;
             bool debesTruco = mano.TrucoPendienteRespuestaDe == J1;
@@ -98,7 +109,7 @@ namespace TrucoRPG.API.Controllers
             // Primer jugador del equipo contrario (EquipoB) responde
             mano.EnvidoPendienteRespuestaDe = TurnoServicio2v2.ObtenerResponsableTruco(mano, "EquipoA");
 
-            AvanzarMaquinas(mano);
+            // Las máquinas avanzan paso a paso desde el front (endpoint avanzar-maquina).
             Truco2v2MemoriaServicio.Actualizar(mano);
             return Ok(mano);
         }
@@ -137,7 +148,7 @@ namespace TrucoRPG.API.Controllers
                 mano.EstadoEnvido      = $"Cantaste {req.EscalarA}.";
                 mano.EnvidoPendienteRespuestaDe = TurnoServicio2v2.ObtenerResponsableTruco(mano, "EquipoA");
 
-                AvanzarMaquinas(mano);
+                // Las máquinas avanzan paso a paso desde el front (endpoint avanzar-maquina).
                 Truco2v2MemoriaServicio.Actualizar(mano);
                 return Ok(mano);
             }
@@ -153,7 +164,7 @@ namespace TrucoRPG.API.Controllers
                 EnvidoServicio2v2.IniciarDeclaracionTantos(mano);
             }
 
-            AvanzarMaquinas(mano);
+            // Las máquinas avanzan paso a paso desde el front (endpoint avanzar-maquina).
             Truco2v2MemoriaServicio.Actualizar(mano);
             return Ok(mano);
         }
@@ -171,7 +182,7 @@ namespace TrucoRPG.API.Controllers
                 throw new InvalidOperationException("No sos vos quien debe declarar el tanto ahora.");
 
             EnvidoServicio2v2.ProcesarDeclaracion(mano, J1, req.Tanto, sonBuenas: false);
-            AvanzarMaquinas(mano);
+            // Las máquinas avanzan paso a paso desde el front (endpoint avanzar-maquina).
             Truco2v2MemoriaServicio.Actualizar(mano);
             return Ok(mano);
         }
@@ -189,7 +200,7 @@ namespace TrucoRPG.API.Controllers
                 throw new InvalidOperationException("No sos vos quien debe declarar el tanto ahora.");
 
             EnvidoServicio2v2.ProcesarDeclaracion(mano, J1, null, sonBuenas: true);
-            AvanzarMaquinas(mano);
+            // Las máquinas avanzan paso a paso desde el front (endpoint avanzar-maquina).
             Truco2v2MemoriaServicio.Actualizar(mano);
             return Ok(mano);
         }
@@ -217,7 +228,7 @@ namespace TrucoRPG.API.Controllers
             mano.TrucoPendienteRespuestaDe = TurnoServicio2v2.ObtenerResponsableTruco(mano, "EquipoA");
             mano.PuedeEscalarTruco = TurnoServicio2v2.ObtenerUltimoDelEquipoEnTurno(mano, "EquipoA");
 
-            AvanzarMaquinas(mano);
+            // Las máquinas avanzan paso a paso desde el front (endpoint avanzar-maquina).
             Truco2v2MemoriaServicio.Actualizar(mano);
             return Ok(mano);
         }
@@ -267,7 +278,7 @@ namespace TrucoRPG.API.Controllers
                 }
             }
 
-            AvanzarMaquinas(mano);
+            // Las máquinas avanzan paso a paso desde el front (endpoint avanzar-maquina).
             Truco2v2MemoriaServicio.Actualizar(mano);
             return Ok(mano);
         }
@@ -317,9 +328,77 @@ namespace TrucoRPG.API.Controllers
                 pos4: new Jugador { Id = J4, Nombre = "Rival 2",   EsMaquina = true  }
             );
 
-            AvanzarMaquinas(nueva);
+            // Las máquinas avanzan paso a paso desde el front (endpoint avanzar-maquina).
             Truco2v2MemoriaServicio.Guardar(nueva);
             return Ok(nueva);
+        }
+
+        // ─────────────────────────────────────────────────────────
+        //  Compañero pregunta: ¿canto los tantos?
+        // ─────────────────────────────────────────────────────────
+        [HttpPost("responder-consulta-envido")]
+        public ActionResult<ManoTruco2v2> ResponderConsultaEnvido([FromBody] Truco2v2ConsultaEnvidoRequest req)
+        {
+            var mano = ObtenerMano(req.ManoId);
+            if (!mano.CompaConsultaEnvido)
+                throw new InvalidOperationException("Tu compañero no está preguntando por el envido.");
+
+            mano.CompaConsultaEnvido   = false;
+            mano.CompaEnvidoConsultado = true;
+
+            if (req.Aceptar)
+            {
+                // El compañero (J3) canta el envido.
+                mano.EnvidoCantado     = true;
+                mano.CantorEnvido      = J3;
+                mano.TipoEnvidoCantado = "Envido";
+                mano.PuntosEnvido      = EnvidoServicio2v2.ObtenerPuntosEnJuego("Envido");
+                mano.FaseEnvido        = "pendiente_respuesta";
+                mano.EstadoEnvido      = "Tu compañero cantó Envido.";
+                mano.EnvidoPendienteRespuestaDe = TurnoServicio2v2.ObtenerResponsableTruco(mano, "EquipoA");
+            }
+
+            Truco2v2MemoriaServicio.Actualizar(mano);
+            return Ok(mano);
+        }
+
+        // ─────────────────────────────────────────────────────────
+        //  Compañero pregunta: ¿voy o pongo? (truco)
+        // ─────────────────────────────────────────────────────────
+        [HttpPost("responder-consulta-truco")]
+        public ActionResult<ManoTruco2v2> ResponderConsultaTruco([FromBody] Truco2v2ConsultaTrucoRequest req)
+        {
+            var mano = ObtenerMano(req.ManoId);
+            if (!mano.CompaConsultaTruco)
+                throw new InvalidOperationException("Tu compañero no está preguntando por el truco.");
+
+            mano.CompaConsultaTruco   = false;
+            mano.CompaTrucoConsultado = true;
+
+            if (req.Voy)
+            {
+                // "Voy": el compañero (J3) canta truco.
+                mano.TrucoCantado      = true;
+                mano.CantorTruco       = J3;
+                mano.EquipoCantorTruco = mano.ObtenerEquipoDeJugador(J3);
+                mano.NivelTruco        = 1;
+                mano.PuntosTrucoMano   = 2;
+                mano.TrucoPendienteRespuestaDe = TurnoServicio2v2.ObtenerResponsableTruco(mano, mano.EquipoCantorTruco!);
+                mano.EstadoTruco       = "Tu compañero cantó Truco.";
+            }
+            else
+            {
+                // "Pongo": el compañero juega su carta más alta.
+                var jugador = mano.ObtenerJugador(J3);
+                if (jugador != null && jugador.Mano.Count > 0)
+                {
+                    var alta = jugador.Mano.OrderByDescending(c => c.ValorTruco).First();
+                    JuegoServicio2v2.JugarCarta(mano, J3, alta);
+                }
+            }
+
+            Truco2v2MemoriaServicio.Actualizar(mano);
+            return Ok(mano);
         }
 
         // ─────────────────────────────────────────────────────────
@@ -341,9 +420,118 @@ namespace TrucoRPG.API.Controllers
                 throw new InvalidOperationException("No es tu turno.");
         }
 
+        // ─────────────────────────────────────────────────────────
+        //  Avanzar UNA sola acción de máquina (para delay/diálogos en el front)
+        // ─────────────────────────────────────────────────────────
+        [HttpPost("avanzar-maquina")]
+        public ActionResult<Truco2v2PasoResponse> AvanzarMaquina([FromBody] Truco2v2Request req)
+        {
+            var mano = ObtenerMano(req.ManoId);
+            var evento = AvanzarUnPaso(mano);
+            Truco2v2MemoriaServicio.Actualizar(mano);
+            return Ok(new Truco2v2PasoResponse(mano, evento));
+        }
+
+        /// <summary>
+        /// Ejecuta exactamente UNA acción del próximo jugador máquina y devuelve
+        /// un evento describiendo qué hizo (para mostrar el diálogo). Devuelve null
+        /// si no hay máquina por actuar (turno del humano o mano/partida terminada).
+        /// </summary>
+        private static EventoMaquina? AvanzarUnPaso(ManoTruco2v2 mano)
+        {
+            if (mano.PartidaTerminada || mano.ManoTerminada || mano.GanadorMano != null) return null;
+
+            string? actor = ProximoActor(mano);
+            if (actor == null || actor == J1) return null;
+
+            var jugador = mano.ObtenerJugador(actor);
+            if (jugador == null || !jugador.EsMaquina) return null;
+
+            // ── Responder truco ───────────────────────────────────────
+            if (mano.TrucoPendienteRespuestaDe == actor)
+            {
+                MaquinaServicio2v2.ResponderTruco(mano, actor);
+                bool noQuiso = (mano.EstadoTruco ?? "").Contains("no quiso");
+                return new EventoMaquina(actor, "truco-resp", noQuiso ? "¡No quiero!" : "¡Quiero!");
+            }
+
+            // ── Responder envido ──────────────────────────────────────
+            if (mano.FaseEnvido == "pendiente_respuesta" && mano.EnvidoPendienteRespuestaDe == actor)
+            {
+                MaquinaServicio2v2.ResponderEnvido(mano, actor);
+                bool quiso = mano.FaseEnvido == "declarando_tantos" || mano.FaseEnvido == "aceptado";
+                return new EventoMaquina(actor, "envido-resp", quiso ? "¡Quiero!" : "¡No quiero!");
+            }
+
+            // ── Declarar tanto ────────────────────────────────────────
+            if (mano.FaseEnvido == "declarando_tantos" && mano.EnvidoPendienteRespuestaDe == actor)
+            {
+                MaquinaServicio2v2.DeclararTanto(mano, actor);
+                if (mano.JugadorQueDijoSonBuenas == actor)
+                    return new EventoMaquina(actor, "tanto", "¡Son buenas!");
+                string texto = mano.TantosDeclarados.TryGetValue(actor, out var t) && t.HasValue
+                    ? t.Value.ToString()
+                    : "¡Son buenas!";
+                return new EventoMaquina(actor, "tanto", texto);
+            }
+
+            // ── Turno normal: cantar o jugar carta ────────────────────
+            if (mano.TurnoActual == actor)
+            {
+                // El compañero (J3) le pregunta al humano si quiere que cante los tantos.
+                if (actor == J3
+                    && J3 == TurnoServicio2v2.ObtenerUltimoDelEquipoEnTurno(mano, "EquipoA")
+                    && !mano.CompaEnvidoConsultado
+                    && !mano.EnvidoCantado && !mano.EnvidoResuelto
+                    && mano.Vueltas.Count == 0
+                    && (!mano.TrucoCantado || mano.TrucoPendienteRespuestaDe != null)
+                    && MaquinaServicio2v2.DebeCantarEnvido(jugador.Mano))
+                {
+                    mano.CompaConsultaEnvido = true;
+                    return new EventoMaquina(actor, "consulta-envido", "¿Canto los tantos?");
+                }
+
+                // El compañero (J3) pregunta antes de cantar truco: ¿voy o pongo?
+                if (actor == J3 && !mano.CompaTrucoConsultado
+                    && !mano.TrucoCantado && !mano.TrucoResuelto
+                    && mano.TrucoPendienteRespuestaDe == null
+                    && jugador.Mano.Count > 0 && jugador.Mano.Max(c => c.ValorTruco) >= 10)
+                {
+                    mano.CompaConsultaTruco = true;
+                    return new EventoMaquina(actor, "consulta-truco", "¿Voy o pongo?");
+                }
+
+                bool envidoAntes = mano.EnvidoCantado;
+                bool trucoAntes  = mano.TrucoCantado;
+
+                MaquinaServicio2v2.ProcesarTurnoMaquina(mano, actor);
+
+                if (!envidoAntes && mano.EnvidoCantado)
+                {
+                    // A veces (no siempre) el compañero te tira una pista de su envido.
+                    if (mano.EnvidoPendienteRespuestaDe == J1 && _rng.Next(100) < 50)
+                    {
+                        var compa = mano.ObtenerJugador(J3);
+                        int tantoCompa = compa != null ? EnvidoServicio2v2.TantoOriginal(compa) : 0;
+                        mano.CompaPista = tantoCompa >= 28 ? "Tengo mucho"
+                                        : tantoCompa >= 23 ? "Tengo algo"
+                                        : "Tengo poco";
+                    }
+                    return new EventoMaquina(actor, "envido", "¡" + (mano.TipoEnvidoCantado ?? "Envido") + "!");
+                }
+                if (!trucoAntes && mano.TrucoCantado)
+                    return new EventoMaquina(actor, "truco", "¡Truco!");
+
+                return new EventoMaquina(actor, "carta", "");
+            }
+
+            return null;
+        }
+
         /// <summary>
         /// Avanza los turnos de los jugadores máquina hasta que sea el turno
         /// del humano (J1) o la partida/mano termine.
+        /// Conservado por compatibilidad; el front ahora usa avanzar-maquina.
         /// </summary>
         private static void AvanzarMaquinas(ManoTruco2v2 mano)
         {
@@ -384,6 +572,11 @@ namespace TrucoRPG.API.Controllers
 
         private static string? ProximoActor(ManoTruco2v2 mano)
         {
+            // El envido va primero: si hay un envido pendiente de resolución (respuesta o
+            // declaración de tantos), se resuelve ANTES que la respuesta al truco.
+            if (mano.EnvidoPendienteRespuestaDe != null &&
+                (mano.FaseEnvido == "pendiente_respuesta" || mano.FaseEnvido == "declarando_tantos"))
+                return mano.EnvidoPendienteRespuestaDe;
             if (mano.TrucoPendienteRespuestaDe != null)    return mano.TrucoPendienteRespuestaDe;
             if (mano.EnvidoPendienteRespuestaDe != null)   return mano.EnvidoPendienteRespuestaDe;
             if (!mano.ManoTerminada && mano.GanadorMano == null) return mano.TurnoActual;

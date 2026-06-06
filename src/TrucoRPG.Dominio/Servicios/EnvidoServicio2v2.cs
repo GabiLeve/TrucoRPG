@@ -1,3 +1,4 @@
+using System.Linq;
 using TrucoRPG.Dominio.Entities;
 
 namespace TrucoRPG.Dominio.Servicios
@@ -14,17 +15,21 @@ namespace TrucoRPG.Dominio.Servicios
         /// <summary>Calcula el tanto del equipo como el máximo entre sus dos jugadores.</summary>
         public static int CalcularTantoEquipo(Equipo2v2 equipo)
         {
-            int t1 = EnvidoServicio.CalcularTanto(equipo.Jugador1.Mano);
-            int t2 = EnvidoServicio.CalcularTanto(equipo.Jugador2.Mano);
+            int t1 = TantoOriginal(equipo.Jugador1);
+            int t2 = TantoOriginal(equipo.Jugador2);
             return Math.Max(t1, t2);
         }
+
+        /// <summary>Tanto calculado con las 3 cartas originales (mano + ya jugadas).</summary>
+        public static int TantoOriginal(Jugador jugador) =>
+            EnvidoServicio.CalcularTanto(jugador.Mano.Concat(jugador.Jugadas).ToList());
 
         /// <summary>Calcula los tantos de todos los jugadores de la mano.</summary>
         public static Dictionary<string, int> CalcularTodosLosTantos(ManoTruco2v2 mano)
         {
             var resultado = new Dictionary<string, int>();
             foreach (var jugador in mano.OrdenJugadores)
-                resultado[jugador.Id] = EnvidoServicio.CalcularTanto(jugador.Mano);
+                resultado[jugador.Id] = TantoOriginal(jugador);
             return resultado;
         }
 

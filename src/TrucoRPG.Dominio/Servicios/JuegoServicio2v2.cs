@@ -176,9 +176,9 @@ namespace TrucoRPG.Dominio.Servicios
                     return true;
                 }
 
-                // La vuelta terminó pero la mano no → quién abre la siguiente vuelta
-                var primeroSiguiente = TurnoServicio2v2.ObtenerPrimeroDeVueltaSiguiente(mano, ganadorVuelta);
-                mano.TurnoActual = primeroSiguiente;
+                // La vuelta terminó pero la mano no → abre la siguiente quien GANÓ la vuelta
+                var vueltaResuelta = mano.Vueltas[mano.Vueltas.Count - 1];
+                mano.TurnoActual = TurnoServicio2v2.ObtenerAbreSiguienteVuelta(mano, vueltaResuelta, ganadorVuelta);
             }
             else
             {

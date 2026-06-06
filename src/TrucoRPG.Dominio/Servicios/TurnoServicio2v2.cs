@@ -33,8 +33,34 @@ namespace TrucoRPG.Dominio.Servicios
         {
             var orden = ObtenerOrdenTurno(mano);
             int idx = orden.IndexOf(jugadorActualId);
-            if (idx < 0 || idx >= orden.Count - 1) return null;
-            return orden[idx + 1];
+            if (idx < 0) return null;
+            // Circular: si una vuelta la abre un jugador que no es el "mano", el orden
+            // debe envolver hasta completar los 4 jugadores (no cortar en el último).
+            return orden[(idx + 1) % orden.Count];
+        }
+
+        /// <summary>
+        /// Abre la siguiente vuelta el JUGADOR que ganó la vuelta (el que jugó la carta más
+        /// alta del equipo ganador). Si fue parda, abre el jugador mano original.
+        /// </summary>
+        public static string ObtenerAbreSiguienteVuelta(
+            ManoTruco2v2 mano, Vuelta2v2 vuelta, string? ganadorVuelta)
+        {
+            if (ganadorVuelta is null or "Parda")
+                return mano.JugadorMano;
+
+            var equipoGanador = mano.ObtenerEquipo(ganadorVuelta);
+            string? mejor = null;
+            int max = -1;
+            foreach (var j in equipoGanador.Jugadores)
+            {
+                if (vuelta.CartasJugadas.TryGetValue(j.Id, out var c) && c.ValorTruco > max)
+                {
+                    max = c.ValorTruco;
+                    mejor = j.Id;
+                }
+            }
+            return mejor ?? mano.JugadorMano;
         }
 
         /// <summary>
@@ -96,6 +122,8 @@ namespace TrucoRPG.Dominio.Servicios
         public static string ObtenerResponsableTruco(ManoTruco2v2 mano, string equipoCantorId)
         {
             var equipoContrario = mano.ObtenerEquipoContrario(equipoCantorId);
+            // El humano (J1) siempre decide quiero/no quiero por su equipo (no su compañero).
+            if (equipoContrario.ContieneJugador("J1")) return "J1";
             var orden = ObtenerOrdenTurno(mano);
             return orden.First(id => equipoContrario.ContieneJugador(id));
         }

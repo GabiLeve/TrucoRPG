@@ -132,7 +132,13 @@ namespace TrucoRPG.Dominio.Servicios
             if (jugador.Mano.Count == 0) return;
 
             // ── Cantar envido si corresponde ──────────────────────────────
-            if (!mano.EnvidoCantado && !mano.EnvidoResuelto && mano.Vueltas.Count == 0 && mano.VueltaActual == null)
+            // El compañero (J3) no canta solo (le pregunta al humano). Solo el "pie" (último
+            // del equipo en el orden) puede cantar el envido. Ventana: primera vuelta y sin
+            // truco resuelto (el envido va primero si el truco está pendiente).
+            bool esPieDeSuEquipo = jugadorId == TurnoServicio2v2.ObtenerUltimoDelEquipoEnTurno(mano, mano.ObtenerEquipoDeJugador(jugadorId));
+            bool ventanaEnvido = !mano.EnvidoCantado && !mano.EnvidoResuelto && mano.Vueltas.Count == 0
+                                 && (!mano.TrucoCantado || mano.TrucoPendienteRespuestaDe != null);
+            if (jugadorId != "J3" && esPieDeSuEquipo && ventanaEnvido)
             {
                 if (DebeCantarEnvido(jugador.Mano))
                 {
@@ -154,7 +160,8 @@ namespace TrucoRPG.Dominio.Servicios
             // La máquina NO canta truco antes de que se juegue la primera carta,
             // así el envido conserva su ventana ("el envido va primero").
             bool primeraVueltaIniciada = mano.Vueltas.Count > 0 || mano.VueltaActual != null;
-            if (!mano.TrucoCantado && !mano.TrucoResuelto && primeraVueltaIniciada)
+            // El compañero (J3) no canta truco solo: le pregunta al humano (¿voy o pongo?).
+            if (jugadorId != "J3" && !mano.TrucoCantado && !mano.TrucoResuelto && primeraVueltaIniciada)
             {
                 if (DebeCantarTruco(jugador.Mano))
                 {
