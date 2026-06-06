@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using TrucoRPG.API.Models;
 using TrucoRPG.Dominio.Entities;
 using TrucoRPG.Dominio.UseCases;
@@ -6,6 +7,7 @@ using TrucoRPG.Dominio.UseCases;
 namespace TrucoRPG.API.Controllers
 {
     [ApiController]
+    [Authorize(Roles = "Jugador")]
     [Route("api/[controller]")]
     public class TrucoController : ControllerBase
     {

@@ -122,6 +122,9 @@ else
     app.UseHttpsRedirection();
 }
 
+// ── Inicialización de Roles ──────────────────────────────────────────────────────
+await InicializadorDatosIdentity.InicializarRolesAsync(app.Services);
+
 app.UseRouting();
 app.UseCors("FrontPolicy");
 app.UseAuthentication();
