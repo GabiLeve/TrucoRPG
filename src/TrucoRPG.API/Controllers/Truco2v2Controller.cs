@@ -492,7 +492,9 @@ namespace TrucoRPG.API.Controllers
                 }
 
                 // El compañero (J3) pregunta antes de cantar truco: ¿voy o pongo?
+                // Solo aplica si el compañero juega ANTES que vos (todavía no jugaste tu carta).
                 if (actor == J3 && !mano.CompaTrucoConsultado
+                    && (mano.ObtenerJugador(J1)?.Jugadas.Count ?? 1) == 0
                     && !mano.TrucoCantado && !mano.TrucoResuelto
                     && mano.TrucoPendienteRespuestaDe == null
                     && jugador.Mano.Count > 0 && jugador.Mano.Max(c => c.ValorTruco) >= 10)
