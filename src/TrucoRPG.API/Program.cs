@@ -11,6 +11,7 @@ using TrucoRPG.Dominio.UseCases;
 using TrucoRPG.Infraestructura.Data;
 using TrucoRPG.Infraestructura.Provider;
 using TrucoRPG.Infraestructura.Repositorios;
+using TrucoRPG.Logica.UseCases;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -79,6 +80,7 @@ builder.Services.AddScoped<IUsuarioRepositorio, UsuarioRepositorio>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<RegisterUseCase>();
 builder.Services.AddScoped<LoginUseCase>();
+builder.Services.AddScoped<ReglasUseCase>();
 
 // ── Use Cases de Truco (vs. Máquina) ─────────────────────────────
 builder.Services.AddScoped<NuevaManoUseCase>();
