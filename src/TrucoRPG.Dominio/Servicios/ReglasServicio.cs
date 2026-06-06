@@ -15,7 +15,6 @@ namespace TrucoRPG.Dominio.Servicios
                     {
                         new ReglasDetalle { Titulo = "Truco", Descripcion = "El canto básico. El que gana 2 de 3 rondas se lleva los puntos.", Puntos = 2 },
                         new ReglasDetalle { Titulo = "Retruco", Descripcion = "Se puede cantar arriba del Truco. Eleva la apuesta.", Puntos = 3 },
-                        new ReglasDetalle { Titulo = "Vale Cuatro", Descripcion = "El grito máximo del juego. Solo para valientes o mentirosos.", Puntos = 4 }
                     }
                 },
                 new CategoriaRegla
