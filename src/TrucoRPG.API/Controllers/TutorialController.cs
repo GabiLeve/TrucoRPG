@@ -19,23 +19,14 @@ namespace TrucoRPG.API.Controllers
         [HttpGet("cartas")]
         public async Task<ActionResult<IEnumerable<Carta>>> MostrarCartas()
         {
-            try
-            {
                 var cartas = await _reglasUseCase.GetCartas();
-                return Ok(cartas);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Error: {ex.Message}");
-            }
+                return Ok(cartas);           
         }
 
         [HttpGet("generales")]
         public async Task<ActionResult<IEnumerable<CategoriaReglasDto>>> MostrarReglasGenerales()
         {
-            try
-            {
-                var reglasInternas = await _reglasUseCase.GetReglasGenerales();
+            var reglasInternas = await _reglasUseCase.GetReglasGenerales();
 
                 var reglasDto = reglasInternas.Select(c => new CategoriaReglasDto
                 {
@@ -49,11 +40,7 @@ namespace TrucoRPG.API.Controllers
                 }).ToList();
 
                 return Ok(reglasDto);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Error: {ex.Message}");
-            }
+            
         }
 
     }
