@@ -7,7 +7,7 @@ using TrucoRPG.Dominio.UseCases;
 namespace TrucoRPG.API.Controllers
 {
     [ApiController]
-    [Authorize(Roles = "Jugador")]
+    //[Authorize(Roles = "Jugador")]
     [Route("api/[controller]")]
     public class TrucoController : ControllerBase
     {
