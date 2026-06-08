@@ -86,10 +86,9 @@ public class EnvidoServicio2v2Tests
     }
 
     [Fact]
-    public void IniciarDeclaracionTantos_RivalDeclaraPrimero_EquipoManoUltimo()
+    public void IniciarDeclaracionTantos_EmpiezaPorElMano()
     {
-        // Do - ManoJ1 → EquipoA es mano. Rival (B) primero, Mano (A) último.
-        // Orden declaración: J2, J4, J1, J3
+        // Do - ManoJ1 → el conteo arranca por el mano (J1). Orden: J1, J2, J3, J4.
         var mano = CrearMano("J1");
         AsignarCartasBasicas(mano);
 
@@ -97,7 +96,7 @@ public class EnvidoServicio2v2Tests
         EnvidoServicio2v2.IniciarDeclaracionTantos(mano);
 
         // Where
-        Assert.Equal("J2", mano.EnvidoPendienteRespuestaDe);
+        Assert.Equal("J1", mano.EnvidoPendienteRespuestaDe);
     }
 
     // ── ProcesarDeclaracion ───────────────────────────────────────────
@@ -110,35 +109,29 @@ public class EnvidoServicio2v2Tests
         AsignarCartasBasicas(mano);
         mano.PuntosEnvido = 2;
         EnvidoServicio2v2.IniciarDeclaracionTantos(mano);
-        // Ahora J2 debe declarar
+        // El mano (J1) declara primero
 
         // To
-        var terminado = EnvidoServicio2v2.ProcesarDeclaracion(mano, "J2", 25, sonBuenas: false);
+        var terminado = EnvidoServicio2v2.ProcesarDeclaracion(mano, "J1", 25, sonBuenas: false);
 
         // Where
         Assert.False(terminado);
-        Assert.Equal("J4", mano.EnvidoPendienteRespuestaDe);
-        Assert.Equal(25, mano.TantosDeclarados["J2"]);
+        Assert.Equal("J2", mano.EnvidoPendienteRespuestaDe);
+        Assert.Equal(25, mano.TantosDeclarados["J1"]);
     }
 
     [Fact]
-    public void ProcesarDeclaracion_TodosDeclararon_ResuelvePorTantos()
+    public void ProcesarDeclaracion_GanaElEquipoConMayorTantoDeclarado()
     {
-        // Do
+        // Do - Orden: J1, J2, J3, J4. J2 (EquipoB) muestra el mejor (30) → gana B.
         var mano = CrearMano("J1");
-        // EquipoA: J1=28, J3=25 → tanto equipo = 28
-        // EquipoB: J2=30, J4=22 → tanto equipo = 30 → gana B
-        mano.EquipoA.Jugador1.Mano = new List<Carta> { C(7, "Espada"), C(1, "Espada"), C(3, "Basto") };
-        mano.EquipoA.Jugador2.Mano = new List<Carta> { C(5, "Oro"), C(1, "Oro"), C(3, "Copa") };
-        mano.EquipoB.Jugador1.Mano = new List<Carta> { C(7, "Copa"), C(3, "Copa"), C(6, "Basto") };
-        mano.EquipoB.Jugador2.Mano = new List<Carta> { C(2, "Espada"), C(1, "Basto"), C(4, "Oro") };
+        AsignarCartasBasicas(mano);
         mano.PuntosEnvido = 2;
         EnvidoServicio2v2.IniciarDeclaracionTantos(mano);
 
-        // Orden: J2, J4, J1, J3
-        EnvidoServicio2v2.ProcesarDeclaracion(mano, "J2", 30, sonBuenas: false);
-        EnvidoServicio2v2.ProcesarDeclaracion(mano, "J4", 22, sonBuenas: false);
         EnvidoServicio2v2.ProcesarDeclaracion(mano, "J1", 28, sonBuenas: false);
+        EnvidoServicio2v2.ProcesarDeclaracion(mano, "J2", 30, sonBuenas: false);
+        // J4 (EquipoB) se saltea: su equipo ya va ganando con 30.
         var terminado = EnvidoServicio2v2.ProcesarDeclaracion(mano, "J3", 25, sonBuenas: false);
 
         // Where
@@ -150,21 +143,17 @@ public class EnvidoServicio2v2Tests
     [Fact]
     public void ProcesarDeclaracion_TantosIguales_GanaEquipoMano()
     {
-        // Do - Empate → gana el equipo mano (EquipoA tiene J1 como mano)
+        // Do - Empate → gana el equipo mano (EquipoA, J1 es mano). Orden: J1, J2, J3, J4.
         var mano = CrearMano("J1");
-        // EquipoA tanto = 28, EquipoB tanto = 28 → empate → gana EquipoA (mano)
-        mano.EquipoA.Jugador1.Mano = new List<Carta> { C(7, "Espada"), C(1, "Espada"), C(3, "Oro") };
-        mano.EquipoA.Jugador2.Mano = new List<Carta> { C(3, "Copa"), C(1, "Copa"), C(5, "Basto") };
-        mano.EquipoB.Jugador1.Mano = new List<Carta> { C(7, "Basto"), C(1, "Basto"), C(4, "Espada") };
-        mano.EquipoB.Jugador2.Mano = new List<Carta> { C(5, "Basto"), C(2, "Basto"), C(4, "Copa") };
+        AsignarCartasBasicas(mano);
         mano.PuntosEnvido = 2;
         EnvidoServicio2v2.IniciarDeclaracionTantos(mano);
 
-        // Orden: J2, J4, J1, J3
-        EnvidoServicio2v2.ProcesarDeclaracion(mano, "J2", 28, sonBuenas: false);
-        EnvidoServicio2v2.ProcesarDeclaracion(mano, "J4", 22, sonBuenas: false);
+        // J1 (mano) muestra 28; J2 iguala con 28 pero no supera (el mano gana empates),
+        // así que J3 (EquipoA, ya líder) se saltea y declara J4.
         EnvidoServicio2v2.ProcesarDeclaracion(mano, "J1", 28, sonBuenas: false);
-        EnvidoServicio2v2.ProcesarDeclaracion(mano, "J3", 25, sonBuenas: false);
+        EnvidoServicio2v2.ProcesarDeclaracion(mano, "J2", 28, sonBuenas: false);
+        EnvidoServicio2v2.ProcesarDeclaracion(mano, "J4", 28, sonBuenas: false);
 
         // Where - empate a 28 → gana EquipoA (mano)
         Assert.True(mano.EnvidoResuelto);
@@ -174,61 +163,118 @@ public class EnvidoServicio2v2Tests
     // ── Son Buenas en 2v2 ─────────────────────────────────────────────
 
     [Fact]
-    public void ProcesarDeclaracion_SonBuenas_ResuelveFavor_EquipoContrario()
+    public void ProcesarDeclaracion_ManoGana_RivalesConceden_GanaElMano()
     {
-        // Do - J2 declara "son buenas" → EquipoB pierde → EquipoA gana
+        // El mano (J1) muestra 30; los rivales conceden ("son buenas"). Gana EquipoA.
         var mano = CrearMano("J1");
         AsignarCartasBasicas(mano);
         mano.PuntosEnvido = 2;
         EnvidoServicio2v2.IniciarDeclaracionTantos(mano);
-        // Ahora es turno de J2
 
-        // To
-        var terminado = EnvidoServicio2v2.ProcesarDeclaracion(mano, "J2", null, sonBuenas: true);
+        EnvidoServicio2v2.ProcesarDeclaracion(mano, "J1", 30, sonBuenas: false);
+        EnvidoServicio2v2.ProcesarDeclaracion(mano, "J2", null, sonBuenas: true);
+        // J3 (EquipoA, ya líder) se saltea → declara/concede J4.
+        var terminado = EnvidoServicio2v2.ProcesarDeclaracion(mano, "J4", null, sonBuenas: true);
 
-        // Where
         Assert.True(terminado);
         Assert.True(mano.SonBuenasDeclarado);
-        Assert.Equal("J2", mano.JugadorQueDijoSonBuenas);
         Assert.Equal("EquipoA", mano.GanadorEnvido);
-        Assert.True(mano.EnvidoResuelto);
+        Assert.Equal(2, mano.PuntosEquipoA);
     }
 
     [Fact]
-    public void ProcesarDeclaracion_SonBuenas_SumaLosPuntos()
+    public void ProcesarDeclaracion_ManoGana_SumaLosPuntos()
     {
-        // Do
         var mano = CrearMano("J1");
         AsignarCartasBasicas(mano);
         mano.PuntosEnvido = 4; // EnvidoEnvido
         EnvidoServicio2v2.IniciarDeclaracionTantos(mano);
 
-        // To
+        EnvidoServicio2v2.ProcesarDeclaracion(mano, "J1", 30, sonBuenas: false);
         EnvidoServicio2v2.ProcesarDeclaracion(mano, "J2", null, sonBuenas: true);
+        EnvidoServicio2v2.ProcesarDeclaracion(mano, "J4", null, sonBuenas: true);
 
-        // Where
         Assert.Equal(4, mano.PuntosEquipoA);
     }
 
     [Fact]
-    public void ProcesarDeclaracion_SonBuenas_J1DeEquipoA_GanaEquipoB()
+    public void ProcesarDeclaracion_ManoConcede_PuedeGanarElRival()
     {
-        // Do - J1 es del EquipoA y dice son buenas → EquipoA pierde → EquipoB gana
+        // El mano (J1) concede; un rival muestra el mejor tanto → gana EquipoB.
         var mano = CrearMano("J1");
         AsignarCartasBasicas(mano);
         mano.PuntosEnvido = 2;
         EnvidoServicio2v2.IniciarDeclaracionTantos(mano);
-        // Primero J2 declara (del rival)
+
+        EnvidoServicio2v2.ProcesarDeclaracion(mano, "J1", null, sonBuenas: true);
         EnvidoServicio2v2.ProcesarDeclaracion(mano, "J2", 30, sonBuenas: false);
-        EnvidoServicio2v2.ProcesarDeclaracion(mano, "J4", 25, sonBuenas: false);
-        // Ahora J1 declara
+        var terminado = EnvidoServicio2v2.ProcesarDeclaracion(mano, "J3", null, sonBuenas: true);
 
-        // To
-        var terminado = EnvidoServicio2v2.ProcesarDeclaracion(mano, "J1", null, sonBuenas: true);
-
-        // Where
         Assert.True(terminado);
         Assert.Equal("EquipoB", mano.GanadorEnvido);
+        Assert.Equal(2, mano.PuntosEquipoB);
+    }
+
+    [Fact]
+    public void ProcesarDeclaracion_CompaneroConcede_SinTantoGanador_GanaElRival()
+    {
+        // El mano muestra poco (20), el rival supera (31) y el compañero concede → gana B.
+        var mano = CrearMano("J1");
+        AsignarCartasBasicas(mano);
+        mano.PuntosEnvido = 2;
+        EnvidoServicio2v2.IniciarDeclaracionTantos(mano);
+
+        EnvidoServicio2v2.ProcesarDeclaracion(mano, "J1", 20, sonBuenas: false);
+        EnvidoServicio2v2.ProcesarDeclaracion(mano, "J2", 31, sonBuenas: false);
+        var terminado = EnvidoServicio2v2.ProcesarDeclaracion(mano, "J3", null, sonBuenas: true);
+
+        Assert.True(terminado);
+        Assert.Equal("EquipoB", mano.GanadorEnvido);
+        Assert.Equal(2, mano.PuntosEquipoB);
+    }
+
+    [Fact]
+    public void ProcesarDeclaracion_ManoYaGana_CompaneroNoNecesitaCantar()
+    {
+        // Pedido del usuario: si el mano (J1) ya muestra un tanto ganador, su compañero
+        // (J3) NO necesita cantar; tras J2 el pendiente pasa directo a J4.
+        var mano = CrearMano("J1");
+        AsignarCartasBasicas(mano);
+        mano.PuntosEnvido = 2;
+        EnvidoServicio2v2.IniciarDeclaracionTantos(mano);
+
+        EnvidoServicio2v2.ProcesarDeclaracion(mano, "J1", 33, sonBuenas: false);
+        var siguePendiente = EnvidoServicio2v2.ProcesarDeclaracion(mano, "J2", 27, sonBuenas: false);
+
+        // J3 (compañero) salteado → el pendiente es J4, no J3.
+        Assert.False(siguePendiente);
+        Assert.Equal("J4", mano.EnvidoPendienteRespuestaDe);
+
+        var terminado = EnvidoServicio2v2.ProcesarDeclaracion(mano, "J4", 20, sonBuenas: false);
+        Assert.True(terminado);
+        Assert.Equal("EquipoA", mano.GanadorEnvido);
+        Assert.Equal(2, mano.PuntosEquipoA);
+    }
+
+    [Fact]
+    public void ProcesarDeclaracion_CompaneroYaGana_ElOtroNoNecesitaCantar()
+    {
+        // Pedido del usuario: "si mi compañero ya le gana, no hace falta que cante el otro".
+        // Mano = J2 (EquipoB). Orden: J2, J3, J4, J1. J3 (EquipoA) muestra 31 → gana A
+        // y J1 (su compañero) ni siquiera llega a cantar.
+        var mano = CrearMano("J2");
+        mano.EquipoMano = "EquipoB";
+        AsignarCartasBasicas(mano);
+        mano.PuntosEnvido = 2;
+        EnvidoServicio2v2.IniciarDeclaracionTantos(mano);
+
+        EnvidoServicio2v2.ProcesarDeclaracion(mano, "J2", 20, sonBuenas: false);
+        EnvidoServicio2v2.ProcesarDeclaracion(mano, "J3", 31, sonBuenas: false);
+        var terminado = EnvidoServicio2v2.ProcesarDeclaracion(mano, "J4", 25, sonBuenas: false);
+
+        Assert.True(terminado);
+        Assert.Equal("EquipoA", mano.GanadorEnvido);
+        Assert.Null(mano.EnvidoPendienteRespuestaDe); // J1 salteado
     }
 
     // ── ResolverNoQuiero ──────────────────────────────────────────────

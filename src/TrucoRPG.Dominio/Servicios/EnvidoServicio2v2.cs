@@ -68,24 +68,26 @@ namespace TrucoRPG.Dominio.Servicios
 
             if (sonBuenas)
             {
-                // El equipo del que declaró "son buenas" pierde
-                mano.SonBuenasDeclarado  = true;
+                // "Son buenas" = este jugador no muestra tanto (no puede superar lo cantado).
+                // No resuelve por sí solo: su compañero todavía puede ganar el tanto.
+                mano.SonBuenasDeclarado = true;
                 mano.JugadorQueDijoSonBuenas = jugadorId;
-                string equipoPierde = mano.ObtenerEquipoDeJugador(jugadorId);
-                string equipoGana   = equipoPierde == "EquipoA" ? "EquipoB" : "EquipoA";
-
-                FinalizarEnvido(mano, equipoGana, "Son buenas declarado por " + jugadorId);
-                return true;
+                mano.TantosDeclarados[jugadorId] = null;
+            }
+            else
+            {
+                mano.TantosDeclarados[jugadorId] = tanto;
             }
 
-            // Registrar tanto declarado
-            mano.TantosDeclarados[jugadorId] = tanto;
             mano.IndiceDeclaracionTanto++;
+
+            // El conteo arranca por el mano y se saltea a los jugadores cuyo equipo YA va
+            // ganando: no necesitan cantar, solo cantan los que podrían dar vuelta el tanto.
+            AvanzarHastaProximoDeclarante(mano, orden);
 
             if (mano.IndiceDeclaracionTanto >= orden.Count)
             {
-                // Todos declararon → resolver
-                ResolverPorTantos(mano, orden);
+                ResolverPorDeclarados(mano, orden);
                 return true;
             }
 
@@ -93,18 +95,70 @@ namespace TrucoRPG.Dominio.Servicios
             return false;
         }
 
-        private static void ResolverPorTantos(ManoTruco2v2 mano, List<string> orden)
+        /// <summary>Mejor tanto YA DECLARADO entre los jugadores de un equipo (-1 si ninguno declaró aún).</summary>
+        private static int MejorTantoDeclaradoDeEquipo(ManoTruco2v2 mano, string equipoId)
         {
-            int tantoA = CalcularTantoEquipo(mano.EquipoA);
-            int tantoB = CalcularTantoEquipo(mano.EquipoB);
+            int mejor = -1;
+            foreach (var jugador in mano.ObtenerEquipo(equipoId).Jugadores)
+            {
+                if (mano.TantosDeclarados.TryGetValue(jugador.Id, out var t) && t.HasValue && t.Value > mejor)
+                    mejor = t.Value;
+            }
+            return mejor;
+        }
 
-            string ganador;
-            if (tantoA > tantoB)      ganador = "EquipoA";
-            else if (tantoB > tantoA) ganador = "EquipoB";
-            else                      ganador = mano.EquipoMano; // empate → gana el mano
+        /// <summary>
+        /// Equipo que va ganando según los tantos YA declarados hasta cierto índice.
+        /// El equipo mano gana los empates. Devuelve null si nadie declaró todavía.
+        /// </summary>
+        private static string? EquipoLiderDeclaracion(ManoTruco2v2 mano, List<string> orden, int hastaIndice)
+        {
+            int mejor = -1;
+            string? lider = null;
+            for (int i = 0; i < hastaIndice && i < orden.Count; i++)
+            {
+                if (!mano.TantosDeclarados.TryGetValue(orden[i], out var t) || !t.HasValue) continue;
+                string equipo = mano.ObtenerEquipoDeJugador(orden[i]);
+                if (t.Value > mejor)
+                {
+                    mejor = t.Value;
+                    lider = equipo;
+                }
+                else if (t.Value == mejor && equipo == mano.EquipoMano)
+                {
+                    lider = equipo; // empate → gana el mano
+                }
+            }
+            return lider;
+        }
 
-            FinalizarEnvido(mano, ganador,
-                $"EquipoA: {tantoA} vs EquipoB: {tantoB}. Ganador: {ganador}");
+        /// <summary>
+        /// Avanza el índice de declaración salteando a los jugadores cuyo equipo ya va
+        /// ganando (no necesitan cantar). Se detiene en el próximo que podría dar vuelta
+        /// el tanto, o al final si ya no queda nadie que pueda.
+        /// </summary>
+        private static void AvanzarHastaProximoDeclarante(ManoTruco2v2 mano, List<string> orden)
+        {
+            while (mano.IndiceDeclaracionTanto < orden.Count)
+            {
+                string siguiente = orden[mano.IndiceDeclaracionTanto];
+                string? lider = EquipoLiderDeclaracion(mano, orden, mano.IndiceDeclaracionTanto);
+                if (lider != null && mano.ObtenerEquipoDeJugador(siguiente) == lider)
+                {
+                    mano.IndiceDeclaracionTanto++; // su equipo ya gana → no necesita cantar
+                    continue;
+                }
+                break;
+            }
+        }
+
+        /// <summary>Resuelve el envido según los tantos declarados (gana el mejor; empate → mano).</summary>
+        private static void ResolverPorDeclarados(ManoTruco2v2 mano, List<string> orden)
+        {
+            string ganador = EquipoLiderDeclaracion(mano, orden, orden.Count) ?? mano.EquipoMano;
+            int decA = MejorTantoDeclaradoDeEquipo(mano, "EquipoA");
+            int decB = MejorTantoDeclaradoDeEquipo(mano, "EquipoB");
+            FinalizarEnvido(mano, ganador, $"EquipoA: {decA} vs EquipoB: {decB}. Ganador: {ganador}");
         }
 
         private static void FinalizarEnvido(ManoTruco2v2 mano, string equipoGanador, string descripcion)

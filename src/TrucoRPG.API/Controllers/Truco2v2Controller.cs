@@ -234,6 +234,43 @@ namespace TrucoRPG.API.Controllers
         }
 
         // ─────────────────────────────────────────────────────────
+        //  Truco — escalar en tu turno (retruco / vale cuatro)
+        //  Cuando ya aceptaste un truco, tu equipo tiene "la palabra"
+        //  y puede subir la apuesta en su turno.
+        // ─────────────────────────────────────────────────────────
+        [HttpPost("escalar-truco")]
+        public ActionResult<ManoTruco2v2> EscalarTruco([FromBody] Truco2v2Request req)
+        {
+            var mano = ObtenerMano(req.ManoId);
+            if (mano.GanadorMano != null || mano.ManoTerminada || mano.PartidaTerminada)
+                throw new InvalidOperationException("La mano ya terminó.");
+            if (!mano.TrucoCantado)
+                throw new InvalidOperationException("Todavía no se cantó el truco.");
+            if (mano.TrucoPendienteRespuestaDe != null)
+                throw new InvalidOperationException("Hay una respuesta de truco pendiente.");
+            if (mano.NivelTruco >= 3)
+                throw new InvalidOperationException("El truco ya está en su nivel máximo.");
+            // La palabra la tiene el equipo que NO cantó el último nivel.
+            if (mano.EquipoCantorTruco == "EquipoA")
+                throw new InvalidOperationException("Tu equipo cantó el último truco; le toca escalar al rival.");
+            if (mano.TurnoActual != J1)
+                throw new InvalidOperationException("No es tu turno.");
+
+            mano.NivelTruco++;
+            mano.PuntosTrucoMano   = mano.NivelTruco == 2 ? 3 : 4;
+            mano.EquipoCantorTruco = "EquipoA";
+            mano.CantorTruco       = J1;
+            mano.TrucoResuelto     = false;
+            string nombre          = mano.NivelTruco == 2 ? "Retruco" : "Vale Cuatro";
+            mano.EstadoTruco       = $"Cantaste {nombre}.";
+            mano.TrucoPendienteRespuestaDe = TurnoServicio2v2.ObtenerResponsableTruco(mano, "EquipoA");
+            mano.PuedeEscalarTruco = TurnoServicio2v2.ObtenerUltimoDelEquipoEnTurno(mano, "EquipoA");
+
+            Truco2v2MemoriaServicio.Actualizar(mano);
+            return Ok(mano);
+        }
+
+        // ─────────────────────────────────────────────────────────
         //  Truco — responder (quiero / no quiero / escalar)
         // ─────────────────────────────────────────────────────────
         [HttpPost("responder-truco")]
@@ -375,26 +412,28 @@ namespace TrucoRPG.API.Controllers
             mano.CompaConsultaTruco   = false;
             mano.CompaTrucoConsultado = true;
 
-            if (req.Voy)
+            // "Voy/Vení": el compañero juega su carta más BAJA para que vos metas la alta
+            //             (no canta nada).
+            // "Pongo":    el compañero juega su carta más ALTA para intentar ganar la baza.
+            var compa = mano.ObtenerJugador(J3);
+            if (compa != null && compa.Mano.Count > 0)
             {
-                // "Voy": el compañero (J3) canta truco.
-                mano.TrucoCantado      = true;
-                mano.CantorTruco       = J3;
-                mano.EquipoCantorTruco = mano.ObtenerEquipoDeJugador(J3);
-                mano.NivelTruco        = 1;
-                mano.PuntosTrucoMano   = 2;
-                mano.TrucoPendienteRespuestaDe = TurnoServicio2v2.ObtenerResponsableTruco(mano, mano.EquipoCantorTruco!);
-                mano.EstadoTruco       = "Tu compañero cantó Truco.";
-            }
-            else
-            {
-                // "Pongo": el compañero juega su carta más alta.
-                var jugador = mano.ObtenerJugador(J3);
-                if (jugador != null && jugador.Mano.Count > 0)
+                var carta = req.Voy
+                    ? compa.Mano.OrderBy(c => c.ValorTruco).First()
+                    : compa.Mano.OrderByDescending(c => c.ValorTruco).First();
+
+                // Si el envido sigue disponible, el compañero te tira además una pista de su
+                // tanto, para que decidas si cantar el envido en tu turno.
+                if (!mano.EnvidoCantado && !mano.EnvidoResuelto && mano.Vueltas.Count == 0
+                    && string.IsNullOrEmpty(mano.CompaPista))
                 {
-                    var alta = jugador.Mano.OrderByDescending(c => c.ValorTruco).First();
-                    JuegoServicio2v2.JugarCarta(mano, J3, alta);
+                    int tantoCompa = EnvidoServicio2v2.TantoOriginal(compa);
+                    mano.CompaPista = tantoCompa >= 28 ? "Tengo mucho"
+                                    : tantoCompa >= 23 ? "Tengo algo"
+                                    : "Tengo poco";
                 }
+
+                JuegoServicio2v2.JugarCarta(mano, J3, carta);
             }
 
             Truco2v2MemoriaServicio.Actualizar(mano);
@@ -478,15 +517,20 @@ namespace TrucoRPG.API.Controllers
             // ── Turno normal: cantar o jugar carta ────────────────────
             if (mano.TurnoActual == actor)
             {
-                // El compañero (J3) le pregunta al humano si quiere que cante los tantos.
+                // El compañero (J3), cuando es el PIE del equipo, SIEMPRE le pregunta al humano
+                // si quiere que cante los tantos (el humano decide, ya que el tanto del equipo
+                // es el máximo entre ambos). Le da una pista de su propio tanto para decidir.
                 if (actor == J3
                     && J3 == TurnoServicio2v2.ObtenerUltimoDelEquipoEnTurno(mano, "EquipoA")
                     && !mano.CompaEnvidoConsultado
                     && !mano.EnvidoCantado && !mano.EnvidoResuelto
                     && mano.Vueltas.Count == 0
-                    && (!mano.TrucoCantado || mano.TrucoPendienteRespuestaDe != null)
-                    && MaquinaServicio2v2.DebeCantarEnvido(jugador.Mano))
+                    && (!mano.TrucoCantado || mano.TrucoPendienteRespuestaDe != null))
                 {
+                    int tantoCompa = EnvidoServicio2v2.TantoOriginal(jugador);
+                    mano.CompaPista = tantoCompa >= 28 ? "Tengo mucho"
+                                    : tantoCompa >= 23 ? "Tengo algo"
+                                    : "Tengo poco";
                     mano.CompaConsultaEnvido = true;
                     return new EventoMaquina(actor, "consulta-envido", "¿Canto los tantos?");
                 }
@@ -523,6 +567,21 @@ namespace TrucoRPG.API.Controllers
                 }
                 if (!trucoAntes && mano.TrucoCantado)
                     return new EventoMaquina(actor, "truco", "¡Truco!");
+
+                // Si nadie cantó el envido y el HUMANO (J1) es el pie de su equipo (juega
+                // último), el compañero le tira una pista de su tanto al jugar, para que el
+                // humano decida si canta o no el envido.
+                if (actor == J3
+                    && !mano.EnvidoCantado && !mano.EnvidoResuelto
+                    && mano.Vueltas.Count == 0
+                    && string.IsNullOrEmpty(mano.CompaPista)
+                    && J1 == TurnoServicio2v2.ObtenerUltimoDelEquipoEnTurno(mano, "EquipoA"))
+                {
+                    int tantoCompa = EnvidoServicio2v2.TantoOriginal(jugador);
+                    mano.CompaPista = tantoCompa >= 28 ? "Tengo mucho"
+                                    : tantoCompa >= 23 ? "Tengo algo"
+                                    : "Tengo poco";
+                }
 
                 return new EventoMaquina(actor, "carta", "");
             }

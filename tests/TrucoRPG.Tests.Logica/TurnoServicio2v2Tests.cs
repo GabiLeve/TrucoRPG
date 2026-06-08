@@ -293,29 +293,54 @@ public class TurnoServicio2v2Tests
         Assert.False(puede);
     }
 
+    // ── ObtenerAbreSiguienteVuelta ────────────────────────────────────
+
+    [Fact]
+    public void ObtenerAbreSiguienteVuelta_Parda_AbreElMano()
+    {
+        // Tras una parda, la vuelta siguiente la abre el jugador MANO de la ronda
+        // (p. ej. si el compañero es mano, juega primero su carta).
+        var mano = CrearMano("J3"); // el compañero (J3) es mano
+        var vuelta = new Vuelta2v2();
+
+        var abre = TurnoServicio2v2.ObtenerAbreSiguienteVuelta(mano, vuelta, "Parda");
+
+        Assert.Equal("J3", abre);
+    }
+
+    [Fact]
+    public void ObtenerAbreSiguienteVuelta_GanoEquipoA_AbreElDeLaCartaMasAlta()
+    {
+        // Si gana un equipo, abre el jugador de ese equipo que tiró la carta más alta.
+        var mano = CrearMano("J1");
+        var vuelta = new Vuelta2v2();
+        vuelta.CartasJugadas["J1"] = new Carta { Numero = 4, Palo = "Oro",   ValorTruco = 5 };
+        vuelta.CartasJugadas["J3"] = new Carta { Numero = 3, Palo = "Espada", ValorTruco = 10 };
+
+        var abre = TurnoServicio2v2.ObtenerAbreSiguienteVuelta(mano, vuelta, "EquipoA");
+
+        Assert.Equal("J3", abre); // J3 jugó la más alta del equipo
+    }
+
     // ── ObtenerOrdenDeclaracionEnvido ─────────────────────────────────
 
     [Fact]
-    public void ObtenerOrdenDeclaracionEnvido_ManoJ1_EquipoAMano_RivalPrimeroManoUltimo()
+    public void ObtenerOrdenDeclaracionEnvido_ManoJ1_EmpiezaPorElMano()
     {
-        // Do - EquipoA es mano (J1 es mano). Rival = EquipoB. Orden: rival primero, mano último.
-        // Orden turno: J1→J2→J3→J4. EquipoB en orden: J2, J4. EquipoA en orden: J1, J3.
-        // Declaración: J2, J4, J1, J3
+        // Do - El conteo arranca por el mano (J1) y sigue el orden de la mesa.
         var mano = CrearMano("J1");
 
         // To
         var orden = TurnoServicio2v2.ObtenerOrdenDeclaracionEnvido(mano);
 
         // Where
-        Assert.Equal(new[] { "J2", "J4", "J1", "J3" }, orden);
+        Assert.Equal(new[] { "J1", "J2", "J3", "J4" }, orden);
     }
 
     [Fact]
-    public void ObtenerOrdenDeclaracionEnvido_ManoJ2_EquipoBMano_RivalPrimeroManoUltimo()
+    public void ObtenerOrdenDeclaracionEnvido_ManoJ2_EmpiezaPorElMano()
     {
-        // Do - J2 es mano → EquipoB es mano. Rival = EquipoA.
-        // Orden turno: J2→J3→J4→J1. EquipoA en orden: J3, J1. EquipoB en orden: J2, J4.
-        // Declaración: J3, J1, J2, J4
+        // Do - J2 es mano → el conteo arranca por J2.
         var mano = CrearMano("J2");
         mano.EquipoMano = "EquipoB";
 
@@ -323,7 +348,7 @@ public class TurnoServicio2v2Tests
         var orden = TurnoServicio2v2.ObtenerOrdenDeclaracionEnvido(mano);
 
         // Where
-        Assert.Equal(new[] { "J3", "J1", "J2", "J4" }, orden);
+        Assert.Equal(new[] { "J2", "J3", "J4", "J1" }, orden);
     }
 
     // ── ObtenerResponsableTruco ───────────────────────────────────────

@@ -124,25 +124,30 @@ namespace TrucoRPG.Dominio.Servicios
             var equipoContrario = mano.ObtenerEquipoContrario(equipoCantorId);
             // El humano (J1) siempre decide quiero/no quiero por su equipo (no su compañero).
             if (equipoContrario.ContieneJugador("J1")) return "J1";
+
             var orden = ObtenerOrdenTurno(mano);
+            // Responde el rival que SIGUE en la ronda después del cantor (el de la derecha /
+            // próximo a jugar), no el que recién jugó. El cantor de EquipoA en solo es J1.
+            int idxCantor = orden.IndexOf("J1");
+            if (idxCantor >= 0)
+            {
+                for (int i = 1; i <= orden.Count; i++)
+                {
+                    var id = orden[(idxCantor + i) % orden.Count];
+                    if (equipoContrario.ContieneJugador(id)) return id;
+                }
+            }
             return orden.First(id => equipoContrario.ContieneJugador(id));
         }
 
         /// <summary>
         /// Devuelve el orden de declaración de tantos de envido.
-        /// El equipo mano declara ÚLTIMO (sus jugadores van al final).
-        /// Dentro de cada equipo se mantiene el orden de mesa.
+        /// El conteo arranca por el jugador MANO y sigue el orden de la mesa.
+        /// (El mano canta primero; gana los empates por declarar antes.)
         /// </summary>
         public static List<string> ObtenerOrdenDeclaracionEnvido(ManoTruco2v2 mano)
         {
-            var orden = ObtenerOrdenTurno(mano);
-            var equipoMano = mano.ObtenerEquipo(mano.EquipoMano);
-            var equipoRival = mano.ObtenerEquipoContrario(mano.EquipoMano);
-
-            var rivalPrimero = orden.Where(id => equipoRival.ContieneJugador(id)).ToList();
-            var manoUltimo   = orden.Where(id => equipoMano.ContieneJugador(id)).ToList();
-
-            return rivalPrimero.Concat(manoUltimo).ToList();
+            return ObtenerOrdenTurno(mano);
         }
     }
 }
