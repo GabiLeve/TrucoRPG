@@ -34,6 +34,60 @@ namespace TrucoRPG.Dominio.Servicios
         }
 
         /// <summary>
+        /// Indica si el jugador puede cantar el envido: en la primera vuelta, antes de jugar
+        /// su carta, y solo contra el primer truco del rival sin aceptar ("el envido va primero").
+        /// </summary>
+        public static bool PuedeCantarEnvido(ManoTruco2v2 mano, string jugadorId)
+        {
+            if (mano.EnvidoCantado || mano.EnvidoResuelto) return false;
+            if (mano.PartidaTerminada || mano.GanadorMano != null) return false;
+            if (mano.Vueltas.Count > 0) return false;
+            if ((mano.ObtenerJugador(jugadorId)?.Jugadas.Count ?? 0) > 0) return false;
+            if (mano.TrucoCantado &&
+                !(mano.NivelTruco == 1 && mano.EquipoCantorTruco != mano.ObtenerEquipoDeJugador(jugadorId)))
+                return false;
+            return true;
+        }
+
+        /// <summary>Canta el envido (Envido / Real Envido / Falta Envido). Devuelve false si no corresponde.</summary>
+        public static bool Cantar(ManoTruco2v2 mano, string jugadorId, string tipo,
+                                  Func<ManoTruco2v2, string, string> responsable)
+        {
+            if (!PuedeCantarEnvido(mano, jugadorId)) return false;
+
+            mano.EnvidoCantado        = true;
+            mano.CantorEnvido         = jugadorId;
+            mano.TipoEnvidoCantado    = EnvidoServicio.NormalizarTipo(tipo);
+            mano.PuntosEnvido         = ObtenerPuntosEnJuego(mano.TipoEnvidoCantado);
+            mano.PuntosEnvidoNoQuiero = 1; // rechazar el primer envido = 1 punto
+            mano.FaseEnvido           = "pendiente_respuesta";
+            mano.EnvidoPendienteRespuestaDe = responsable(mano, jugadorId);
+            mano.EstadoEnvido = $"{jugadorId} cantó {tipo}.";
+            return true;
+        }
+
+        /// <summary>Escala el envido (Envido → Envido Envido → Real Envido → Falta Envido).</summary>
+        public static bool Escalar(ManoTruco2v2 mano, string jugadorId, string tipo,
+                                   Func<ManoTruco2v2, string, string> responsable)
+        {
+            if (!mano.EnvidoCantado || mano.EnvidoResuelto) return false;
+            if (mano.FaseEnvido != "pendiente_respuesta") return false;
+            if (mano.EnvidoPendienteRespuestaDe != jugadorId) return false;
+
+            string tipoNuevo = EnvidoServicio.NormalizarTipo(tipo);
+            if (EnvidoServicio.OrdinalTipo(tipoNuevo) <= EnvidoServicio.OrdinalTipo(mano.TipoEnvidoCantado)) return false;
+
+            int ptsAntes = mano.PuntosEnvido;
+            mano.TipoEnvidoCantado    = tipoNuevo;
+            mano.PuntosEnvido         = ObtenerPuntosEnJuego(tipoNuevo);
+            mano.PuntosEnvidoNoQuiero = ptsAntes; // rechazar la escalada paga lo de la apuesta anterior
+            mano.CantorEnvido         = jugadorId;
+            mano.EnvidoPendienteRespuestaDe = responsable(mano, jugadorId);
+            mano.EstadoEnvido = $"{jugadorId} cantó {tipo}.";
+            return true;
+        }
+
+        /// <summary>
         /// Inicia la fase de declaración de tantos (después del "quiero").
         /// Precalcula los tantos reales y prepara el orden de declaración.
         /// </summary>
