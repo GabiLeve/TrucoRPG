@@ -66,6 +66,26 @@ namespace TrucoRPG.Dominio.Servicios
             return true;
         }
 
+        /// <summary>Responde un envido pendiente: quiero (inicia la declaración de tantos) o no quiero.</summary>
+        public static bool Responder(ManoTruco2v2 mano, string jugadorId, bool aceptar)
+        {
+            if (!mano.EnvidoCantado || mano.EnvidoResuelto) return false;
+            if (mano.FaseEnvido != "pendiente_respuesta") return false;
+            if (mano.EnvidoPendienteRespuestaDe != jugadorId) return false;
+
+            if (!aceptar)
+            {
+                ResolverNoQuiero(mano);
+            }
+            else
+            {
+                mano.EnvidoPendienteRespuestaDe = null;
+                mano.FaseEnvido = "aceptado";
+                IniciarDeclaracionTantos(mano);
+            }
+            return true;
+        }
+
         /// <summary>Escala el envido (Envido → Envido Envido → Real Envido → Falta Envido).</summary>
         public static bool Escalar(ManoTruco2v2 mano, string jugadorId, string tipo,
                                    Func<ManoTruco2v2, string, string> responsable)

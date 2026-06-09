@@ -31,6 +31,10 @@ namespace TrucoRPG.API.Controllers
         private const string J4 = "J4"; // rival 2
         private static readonly Random _rng = new Random();
 
+        // En el modo solo, el humano (J1) decide quiero/no quiero por todo su equipo.
+        private static readonly Func<ManoTruco2v2, string, string> Responsable =
+            (m, j) => TurnoServicio2v2.ObtenerResponsableTruco(m, m.ObtenerEquipoDeJugador(j));
+
         // ─────────────────────────────────────────────────────────
         //  Nueva partida
         // ─────────────────────────────────────────────────────────
@@ -84,37 +88,8 @@ namespace TrucoRPG.API.Controllers
         public ActionResult<ManoTruco2v2> CantarEnvido([FromBody] Truco2v2EnvidoRequest req)
         {
             var mano = ObtenerMano(req.ManoId);
-            if (mano.EnvidoCantado || mano.EnvidoResuelto)
-                throw new InvalidOperationException("El envido ya fue cantado o resuelto.");
-            // El envido se puede cantar durante la primera vuelta, pero SOLO si todavía no
-            // jugaste tu carta (el envido se canta antes de jugar; si ya jugaste, tu momento pasó).
-            if (mano.Vueltas.Count > 0)
-                throw new InvalidOperationException("El envido solo se puede cantar en la primera vuelta.");
-            if ((mano.ObtenerJugador(J1)?.Jugadas.Count ?? 0) > 0)
-                throw new InvalidOperationException("El envido ya no se puede cantar: ya jugaste tu carta.");
-            // "Envido va primero" solo aplica contra el PRIMER truco cantado por el rival
-            // (nivel 1) y todavía sin aceptar. Si el truco ya fue aceptado o escalado, se cerró.
-            bool trucoBloqueaEnvido = mano.TrucoCantado &&
-                !(mano.TrucoPendienteRespuestaDe == J1 && mano.NivelTruco == 1 && mano.EquipoCantorTruco == "EquipoB");
-            if (trucoBloqueaEnvido)
-                throw new InvalidOperationException("El envido ya no se puede cantar: el truco ya está en juego.");
-            // "El envido va primero": se permite también si te deben una respuesta de truco.
-            bool esTuTurno  = mano.TurnoActual == J1;
-            bool debesTruco = mano.TrucoPendienteRespuestaDe == J1;
-            if (!esTuTurno && !debesTruco)
-                throw new InvalidOperationException("No es tu turno.");
-
-            var tipo = EnvidoServicio.NormalizarTipo(req.Tipo);
-            mano.EnvidoCantado     = true;
-            mano.CantorEnvido      = J1;
-            mano.TipoEnvidoCantado = tipo;
-            mano.PuntosEnvido      = EnvidoServicio2v2.ObtenerPuntosEnJuego(tipo);
-            mano.PuntosEnvidoNoQuiero = 1; // rechazar el primer envido = 1 punto
-            mano.FaseEnvido        = "pendiente_respuesta";
-            mano.EstadoEnvido      = $"Cantaste {req.Tipo}.";
-
-            // Primer jugador del equipo contrario (EquipoB) responde
-            mano.EnvidoPendienteRespuestaDe = TurnoServicio2v2.ObtenerResponsableTruco(mano, "EquipoA");
+            if (!EnvidoServicio2v2.Cantar(mano, J1, req.Tipo, Responsable))
+                throw new InvalidOperationException("No se puede cantar el envido ahora.");
 
             // Las máquinas avanzan paso a paso desde el front (endpoint avanzar-maquina).
             Truco2v2MemoriaServicio.Actualizar(mano);
@@ -128,49 +103,13 @@ namespace TrucoRPG.API.Controllers
         public ActionResult<ManoTruco2v2> ResponderEnvido([FromBody] Truco2v2ResponderEnvidoRequest req)
         {
             var mano = ObtenerMano(req.ManoId);
-            if (!mano.EnvidoCantado || mano.EnvidoResuelto)
-                throw new InvalidOperationException("No hay envido pendiente de respuesta.");
-            if (mano.EnvidoPendienteRespuestaDe != J1)
-                throw new InvalidOperationException("No sos vos quien debe responder el envido.");
 
-            // Escalación
-            var escalar = req.EscalarA?.Trim().ToLowerInvariant();
-            if (req.Aceptar && !string.IsNullOrEmpty(escalar))
-            {
-                var tipoActual = (mano.TipoEnvidoCantado ?? "Envido").ToLowerInvariant();
-                bool valida = escalar switch
-                {
-                    "envido" or "envido envido" or "envidoenvido" => tipoActual == "envido",
-                    "real envido"  => tipoActual is "envido" or "envidoenvido" or "envido envido",
-                    "falta envido" => tipoActual is "envido" or "envidoenvido" or "envido envido" or "realenvido" or "real envido",
-                    _ => false
-                };
-                if (!valida)
-                    throw new InvalidOperationException($"No podés escalar a '{req.EscalarA}' desde '{mano.TipoEnvidoCantado}'.");
-
-                int ptsAntes = mano.PuntosEnvido;
-                mano.TipoEnvidoCantado = EnvidoServicio.NormalizarTipo(escalar);
-                mano.PuntosEnvido      = EnvidoServicio2v2.ObtenerPuntosEnJuego(mano.TipoEnvidoCantado);
-                mano.PuntosEnvidoNoQuiero = ptsAntes; // rechazar la escalada paga lo de la apuesta anterior
-                mano.CantorEnvido      = J1;
-                mano.EstadoEnvido      = $"Cantaste {req.EscalarA}.";
-                mano.EnvidoPendienteRespuestaDe = TurnoServicio2v2.ObtenerResponsableTruco(mano, "EquipoA");
-
-                // Las máquinas avanzan paso a paso desde el front (endpoint avanzar-maquina).
-                Truco2v2MemoriaServicio.Actualizar(mano);
-                return Ok(mano);
-            }
-
-            mano.EnvidoPendienteRespuestaDe = null;
-            if (!req.Aceptar)
-            {
-                EnvidoServicio2v2.ResolverNoQuiero(mano);
-            }
-            else
-            {
-                mano.FaseEnvido = "aceptado";
-                EnvidoServicio2v2.IniciarDeclaracionTantos(mano);
-            }
+            var escalar = req.EscalarA?.Trim();
+            bool ok = (req.Aceptar && !string.IsNullOrEmpty(escalar))
+                ? EnvidoServicio2v2.Escalar(mano, J1, escalar!, Responsable)
+                : EnvidoServicio2v2.Responder(mano, J1, req.Aceptar);
+            if (!ok)
+                throw new InvalidOperationException("No podés responder el envido ahora.");
 
             // Las máquinas avanzan paso a paso desde el front (endpoint avanzar-maquina).
             Truco2v2MemoriaServicio.Actualizar(mano);
@@ -220,21 +159,8 @@ namespace TrucoRPG.API.Controllers
         public ActionResult<ManoTruco2v2> CantarTruco([FromBody] Truco2v2Request req)
         {
             var mano = ObtenerMano(req.ManoId);
-            if (mano.TrucoCantado)
-                throw new InvalidOperationException("El truco ya fue cantado.");
-            if (mano.GanadorMano != null || mano.ManoTerminada || mano.PartidaTerminada)
-                throw new InvalidOperationException("La mano ya terminó.");
-            if (mano.TurnoActual != J1)
-                throw new InvalidOperationException("No es tu turno.");
-
-            mano.TrucoCantado      = true;
-            mano.CantorTruco       = J1;
-            mano.EquipoCantorTruco = "EquipoA";
-            mano.NivelTruco        = 1;
-            mano.PuntosTrucoMano   = 2;
-            mano.EstadoTruco       = "Cantaste Truco.";
-            mano.TrucoPendienteRespuestaDe = TurnoServicio2v2.ObtenerResponsableTruco(mano, "EquipoA");
-            mano.PuedeEscalarTruco = TurnoServicio2v2.ObtenerUltimoDelEquipoEnTurno(mano, "EquipoA");
+            if (!TrucoServicio2v2.Cantar(mano, J1, Responsable))
+                throw new InvalidOperationException("No se puede cantar el truco ahora.");
 
             // Las máquinas avanzan paso a paso desde el front (endpoint avanzar-maquina).
             Truco2v2MemoriaServicio.Actualizar(mano);
@@ -250,29 +176,8 @@ namespace TrucoRPG.API.Controllers
         public ActionResult<ManoTruco2v2> EscalarTruco([FromBody] Truco2v2Request req)
         {
             var mano = ObtenerMano(req.ManoId);
-            if (mano.GanadorMano != null || mano.ManoTerminada || mano.PartidaTerminada)
-                throw new InvalidOperationException("La mano ya terminó.");
-            if (!mano.TrucoCantado)
-                throw new InvalidOperationException("Todavía no se cantó el truco.");
-            if (mano.TrucoPendienteRespuestaDe != null)
-                throw new InvalidOperationException("Hay una respuesta de truco pendiente.");
-            if (mano.NivelTruco >= 3)
-                throw new InvalidOperationException("El truco ya está en su nivel máximo.");
-            // La palabra la tiene el equipo que NO cantó el último nivel.
-            if (mano.EquipoCantorTruco == "EquipoA")
-                throw new InvalidOperationException("Tu equipo cantó el último truco; le toca escalar al rival.");
-            if (mano.TurnoActual != J1)
-                throw new InvalidOperationException("No es tu turno.");
-
-            mano.NivelTruco++;
-            mano.PuntosTrucoMano   = mano.NivelTruco == 2 ? 3 : 4;
-            mano.EquipoCantorTruco = "EquipoA";
-            mano.CantorTruco       = J1;
-            mano.TrucoResuelto     = false;
-            string nombre          = mano.NivelTruco == 2 ? "Retruco" : "Vale Cuatro";
-            mano.EstadoTruco       = $"Cantaste {nombre}.";
-            mano.TrucoPendienteRespuestaDe = TurnoServicio2v2.ObtenerResponsableTruco(mano, "EquipoA");
-            mano.PuedeEscalarTruco = TurnoServicio2v2.ObtenerUltimoDelEquipoEnTurno(mano, "EquipoA");
+            if (!TrucoServicio2v2.Escalar(mano, J1, Responsable))
+                throw new InvalidOperationException("No podés escalar el truco ahora.");
 
             Truco2v2MemoriaServicio.Actualizar(mano);
             return Ok(mano);
@@ -285,43 +190,8 @@ namespace TrucoRPG.API.Controllers
         public ActionResult<ManoTruco2v2> ResponderTruco([FromBody] Truco2v2ResponderTrucoRequest req)
         {
             var mano = ObtenerMano(req.ManoId);
-            if (!mano.TrucoCantado || mano.TrucoResuelto)
-                throw new InvalidOperationException("No hay truco pendiente de respuesta.");
-            if (mano.TrucoPendienteRespuestaDe != J1)
-                throw new InvalidOperationException("No sos vos quien debe responder el truco.");
-
-            mano.TrucoPendienteRespuestaDe = null;
-
-            if (!req.Aceptar)
-            {
-                int pts = mano.NivelTruco;
-                mano.TrucoResuelto   = true;
-                mano.GanadorMano     = mano.EquipoCantorTruco;
-                mano.ManoTerminada   = true;
-                mano.PuntosTrucoMano = pts;
-                mano.EstadoTruco     = $"No quisiste truco. {mano.EquipoCantorTruco} gana {pts} pt.";
-                JuegoServicio2v2.SumarPuntos(mano, mano.EquipoCantorTruco!, pts);
-            }
-            else
-            {
-                var escalar = req.EscalarA?.Trim().ToLowerInvariant();
-                if (!string.IsNullOrEmpty(escalar) && mano.NivelTruco < 3 &&
-                    TurnoServicio2v2.PuedeEscalarTruco(mano, J1))
-                {
-                    mano.NivelTruco++;
-                    mano.PuntosTrucoMano   = mano.NivelTruco == 2 ? 3 : 4;
-                    mano.EquipoCantorTruco = "EquipoA";
-                    mano.CantorTruco       = J1;
-                    string nombre          = mano.NivelTruco == 2 ? "Retruco" : "Vale Cuatro";
-                    mano.EstadoTruco       = $"Quisiste y cantaste {nombre}! Vale {mano.PuntosTrucoMano} pt.";
-                    mano.TrucoPendienteRespuestaDe = TurnoServicio2v2.ObtenerResponsableTruco(mano, "EquipoA");
-                }
-                else
-                {
-                    mano.TrucoResuelto = true;
-                    mano.EstadoTruco   = $"Quisiste el truco. Vale {mano.PuntosTrucoMano} pt.";
-                }
-            }
+            if (!TrucoServicio2v2.Responder(mano, J1, req.Aceptar, req.EscalarA, Responsable))
+                throw new InvalidOperationException("No podés responder el truco ahora.");
 
             // Las máquinas avanzan paso a paso desde el front (endpoint avanzar-maquina).
             Truco2v2MemoriaServicio.Actualizar(mano);
@@ -335,17 +205,8 @@ namespace TrucoRPG.API.Controllers
         public ActionResult<ManoTruco2v2> IrseAlMazo([FromBody] Truco2v2Request req)
         {
             var mano = ObtenerMano(req.ManoId);
-            if (mano.GanadorMano != null || mano.ManoTerminada || mano.PartidaTerminada)
-                throw new InvalidOperationException("La mano ya terminó.");
-            if (mano.TurnoActual != J1)
-                throw new InvalidOperationException("No es tu turno.");
-
-            int pts = mano.TrucoCantado && !mano.TrucoResuelto ? mano.PuntosTrucoMano : 1;
-            mano.GanadorMano     = "EquipoB";
-            mano.ManoTerminada   = true;
-            mano.TrucoResuelto   = true;
-            mano.EstadoTruco     = $"Te fuiste al mazo. EquipoB gana {pts} pt.";
-            JuegoServicio2v2.SumarPuntos(mano, "EquipoB", pts);
+            if (!TrucoServicio2v2.IrseAlMazo(mano, J1))
+                throw new InvalidOperationException("No podés irte al mazo ahora.");
 
             Truco2v2MemoriaServicio.Actualizar(mano);
             return Ok(mano);
@@ -393,15 +254,8 @@ namespace TrucoRPG.API.Controllers
 
             if (req.Aceptar)
             {
-                // El compañero (J3) canta el envido.
-                mano.EnvidoCantado     = true;
-                mano.CantorEnvido      = J3;
-                mano.TipoEnvidoCantado = "Envido";
-                mano.PuntosEnvido      = EnvidoServicio2v2.ObtenerPuntosEnJuego("Envido");
-                mano.PuntosEnvidoNoQuiero = 1;
-                mano.FaseEnvido        = "pendiente_respuesta";
-                mano.EstadoEnvido      = "Tu compañero cantó Envido.";
-                mano.EnvidoPendienteRespuestaDe = TurnoServicio2v2.ObtenerResponsableTruco(mano, "EquipoA");
+                // El compañero (J3) canta el envido (delega la regla en el dominio).
+                EnvidoServicio2v2.Cantar(mano, J3, "Envido", Responsable);
             }
 
             Truco2v2MemoriaServicio.Actualizar(mano);

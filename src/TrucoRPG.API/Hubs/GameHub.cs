@@ -414,22 +414,10 @@ public class GameHub : Hub
     public async Task ResponderEnvido2v2(bool aceptar)
     {
         if (!ObtenerSalaYEstado2v2(out var sala, out var state2v2)) return;
-        var mano = state2v2!.Mano;
-        if (!mano.EnvidoCantado || mano.EnvidoResuelto) return;
+        var jugadorId = state2v2!.GetJugadorId(Context.ConnectionId);
+        if (string.IsNullOrEmpty(jugadorId)) return;
 
-        var jugadorId = state2v2.GetJugadorId(Context.ConnectionId);
-        if (mano.EnvidoPendienteRespuestaDe != jugadorId) return;
-
-        if (!aceptar)
-        {
-            EnvidoServicio2v2.ResolverNoQuiero(mano);
-        }
-        else
-        {
-            mano.EnvidoPendienteRespuestaDe = null;
-            mano.FaseEnvido = "aceptado";
-            EnvidoServicio2v2.IniciarDeclaracionTantos(mano);
-        }
+        if (!EnvidoServicio2v2.Responder(state2v2.Mano, jugadorId, aceptar)) return;
 
         _trucoGames2v2[sala!] = state2v2;
         await BroadcastTrucoEstado2v2(sala!, state2v2);
