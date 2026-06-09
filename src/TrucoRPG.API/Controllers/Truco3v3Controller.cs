@@ -14,6 +14,7 @@ namespace TrucoRPG.API.Controllers
     public record Truco3v3NuevaPartidaRequest(int? NumeroDeMano = null, int? PuntosA = null, int? PuntosB = null);
     public record Truco3v3ConsultaEnvidoRequest(Guid ManoId, bool Aceptar);
     public record Truco3v3ConsultaTrucoRequest(Guid ManoId, bool Voy);
+    public record Truco3v3OrdenMayorRequest(Guid ManoId, string JugadorId);
 
     public record Truco3v3PasoResponse(ManoTruco3v3 Mano, EventoMaquina3v3? Evento);
 
@@ -106,8 +107,11 @@ namespace TrucoRPG.API.Controllers
         public ActionResult<ManoTruco3v3> DeclararTanto([FromBody] Truco3v3TantoRequest req)
         {
             var mano = ObtenerMano(req.ManoId);
-            if (!EnvidoServicio3v3.ProcesarDeclaracion(mano, J1, req.Tanto, sonBuenas: false))
+            // Validamos pre-condiciones explícitamente: ProcesarDeclaracion devuelve false tanto
+            // cuando falla la validación COMO cuando J1 declara OK pero todavía quedan rivales.
+            if (mano.FaseEnvido != "declarando_tantos" || mano.EnvidoPendienteRespuestaDe != J1)
                 throw new InvalidOperationException("No podés declarar el tanto ahora.");
+            EnvidoServicio3v3.ProcesarDeclaracion(mano, J1, req.Tanto, sonBuenas: false);
             Truco3v3MemoriaServicio.Actualizar(mano);
             return Ok(mano);
         }
@@ -116,8 +120,9 @@ namespace TrucoRPG.API.Controllers
         public ActionResult<ManoTruco3v3> SonBuenas([FromBody] Truco3v3Request req)
         {
             var mano = ObtenerMano(req.ManoId);
-            if (!EnvidoServicio3v3.ProcesarDeclaracion(mano, J1, null, sonBuenas: true))
+            if (mano.FaseEnvido != "declarando_tantos" || mano.EnvidoPendienteRespuestaDe != J1)
                 throw new InvalidOperationException("No podés decir 'son buenas' ahora.");
+            EnvidoServicio3v3.ProcesarDeclaracion(mano, J1, null, sonBuenas: true);
             Truco3v3MemoriaServicio.Actualizar(mano);
             return Ok(mano);
         }
@@ -193,6 +198,24 @@ namespace TrucoRPG.API.Controllers
         {
             var mano = ObtenerMano(req.ManoId);
             MaquinaServicio3v3.ResolverConsultaTruco(mano, req.Voy);
+            Truco3v3MemoriaServicio.Actualizar(mano);
+            return Ok(mano);
+        }
+
+        // ─────────────────────────────────────────────────────────
+        //  Órdenes del humano a sus compañeros bot
+        // ─────────────────────────────────────────────────────────
+        [HttpPost("ordenar-mayor")]
+        public ActionResult<ManoTruco3v3> OrdenarMayor([FromBody] Truco3v3OrdenMayorRequest req)
+        {
+            var mano = ObtenerMano(req.ManoId);
+            var jugador = mano.ObtenerJugador(req.JugadorId)
+                ?? throw new InvalidOperationException($"Jugador {req.JugadorId} no encontrado.");
+            if (!jugador.EsMaquina || mano.ObtenerEquipoDeJugador(req.JugadorId) != "EquipoA")
+                throw new InvalidOperationException("Solo podés ordenar a tus compañeros bot.");
+            if (jugador.Mano.Count == 0)
+                throw new InvalidOperationException($"{req.JugadorId} no tiene cartas en mano.");
+            mano.OrdenJugarMayor = req.JugadorId;
             Truco3v3MemoriaServicio.Actualizar(mano);
             return Ok(mano);
         }

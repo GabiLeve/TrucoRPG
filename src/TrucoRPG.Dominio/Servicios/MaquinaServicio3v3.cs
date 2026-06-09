@@ -160,7 +160,17 @@ namespace TrucoRPG.Dominio.Servicios
             }
 
             // ── Jugar carta ──
-            var carta = ElegirCartaEnEquipo(mano, jugadorId, jugador.Mano);
+            Carta? carta;
+            if (mano.OrdenJugarMayor == jugadorId)
+            {
+                // El humano ordenó jugar la más alta → respetamos la orden y limpiamos el flag.
+                mano.OrdenJugarMayor = null;
+                carta = jugador.Mano.OrderByDescending(c => c.ValorTruco).FirstOrDefault();
+            }
+            else
+            {
+                carta = ElegirCartaEnEquipo(mano, jugadorId, jugador.Mano);
+            }
             if (carta == null) return;
             JuegoServicio3v3.JugarCarta(mano, jugadorId, carta);
         }

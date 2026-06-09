@@ -91,6 +91,12 @@ namespace TrucoRPG.Dominio.Entities
         public string? CompaPista { get; set; }
         /// <summary>Id del compañero que está preguntando (J3 o J5).</summary>
         public string? CompaConsultor { get; set; }
+        /// <summary>
+        /// Si no es null, este jugador bot debe jugar su carta de mayor ValorTruco
+        /// en su próximo turno (orden del humano vía botón Acciones).
+        /// Se limpia automáticamente al ejecutar la acción.
+        /// </summary>
+        public string? OrdenJugarMayor { get; set; }
 
         // ─── Helpers ─────────────────────────────────────────────────────
         public List<Jugador> OrdenJugadores =>

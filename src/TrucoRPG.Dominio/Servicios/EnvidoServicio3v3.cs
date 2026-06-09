@@ -218,6 +218,18 @@ namespace TrucoRPG.Dominio.Servicios
             mano.EnvidoPendienteRespuestaDe = null;
 
             int puntosEnJuego = mano.PuntosEnvido;
+
+            // Falta Envido: vale exactamente lo que le falta al ganador para llegar a 30.
+            // ObtenerPuntosSegunTipo devuelve 0 para FaltaEnvido porque el valor es dinámico.
+            if (mano.TipoEnvidoCantado == "FaltaEnvido")
+            {
+                int puntosActualesGanador = equipoGanador == "EquipoA"
+                    ? mano.PuntosEquipoA
+                    : mano.PuntosEquipoB;
+                puntosEnJuego = Math.Max(JuegoServicio3v3.PuntajeObjetivo - puntosActualesGanador, 1);
+                mano.PuntosEnvido = puntosEnJuego;
+            }
+
             mano.EstadoEnvido = descripcion + $". Vale {puntosEnJuego} pt.";
 
             JuegoServicio3v3.SumarPuntos(mano, equipoGanador, puntosEnJuego);
