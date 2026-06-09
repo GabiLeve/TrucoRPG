@@ -404,20 +404,29 @@ public class GameHub : Hub
         if (!ObtenerSalaYEstado2v2(out var sala, out var state2v2)) return;
         var mano = state2v2!.Mano;
         if (mano.EnvidoCantado || mano.EnvidoResuelto) return;
-        if (mano.Vueltas.Count > 0 || mano.VueltaActual != null) return;
         if (mano.PartidaTerminada || mano.GanadorMano != null) return;
+        if (mano.Vueltas.Count > 0) return; // solo en la primera vuelta
 
         var jugadorId = state2v2.GetJugadorId(Context.ConnectionId);
         if (string.IsNullOrEmpty(jugadorId)) return;
 
-        mano.EnvidoCantado     = true;
-        mano.CantorEnvido      = jugadorId;
-        mano.TipoEnvidoCantado = EnvidoServicio.NormalizarTipo(tipo);
-        mano.PuntosEnvido      = EnvidoServicio2v2.ObtenerPuntosEnJuego(tipo);
-        mano.FaseEnvido        = "pendiente_respuesta";
+        // El envido se canta ANTES de jugar tu carta.
+        if ((mano.ObtenerJugador(jugadorId)?.Jugadas.Count ?? 0) > 0) return;
 
-        string equipoCantor = mano.ObtenerEquipoDeJugador(jugadorId);
-        mano.EnvidoPendienteRespuestaDe = TurnoServicio2v2.ObtenerResponsableTruco(mano, equipoCantor);
+        // "El envido va primero" solo vale contra el PRIMER truco (nivel 1) cantado por el
+        // equipo rival y todavía sin aceptar; si tu equipo cantó el truco, ya no podés.
+        if (mano.TrucoCantado &&
+            !(mano.NivelTruco == 1 && mano.EquipoCantorTruco != mano.ObtenerEquipoDeJugador(jugadorId)))
+            return;
+
+        mano.EnvidoCantado        = true;
+        mano.CantorEnvido         = jugadorId;
+        mano.TipoEnvidoCantado    = EnvidoServicio.NormalizarTipo(tipo);
+        mano.PuntosEnvido         = EnvidoServicio2v2.ObtenerPuntosEnJuego(tipo);
+        mano.PuntosEnvidoNoQuiero = 1;
+        mano.FaseEnvido           = "pendiente_respuesta";
+
+        mano.EnvidoPendienteRespuestaDe = TurnoServicio2v2.ObtenerResponsableCanto(mano, jugadorId);
         mano.EstadoEnvido = $"{jugadorId} cantó {tipo}.";
 
         _trucoGames2v2[sala!] = state2v2;
@@ -473,6 +482,34 @@ public class GameHub : Hub
         if (mano.EnvidoPendienteRespuestaDe != jugadorId) return;
 
         EnvidoServicio2v2.ProcesarDeclaracion(mano, jugadorId, null, sonBuenas: true);
+
+        _trucoGames2v2[sala!] = state2v2;
+        await BroadcastTrucoEstado2v2(sala!, state2v2);
+    }
+
+    /// <summary>Escala el envido en 2v2 (Envido → Envido Envido → Real Envido → Falta Envido).</summary>
+    public async Task EscalarEnvido2v2(string tipo)
+    {
+        if (!ObtenerSalaYEstado2v2(out var sala, out var state2v2)) return;
+        var mano = state2v2!.Mano;
+        if (!mano.EnvidoCantado || mano.EnvidoResuelto) return;
+        if (mano.FaseEnvido != "pendiente_respuesta") return;
+
+        var jugadorId = state2v2.GetJugadorId(Context.ConnectionId);
+        if (string.IsNullOrEmpty(jugadorId)) return;
+        // Solo puede escalar quien recibió el canto (a quien le toca responder).
+        if (mano.EnvidoPendienteRespuestaDe != jugadorId) return;
+
+        string tipoNuevo = EnvidoServicio.NormalizarTipo(tipo);
+        if (EnvidoServicio.OrdinalTipo(tipoNuevo) <= EnvidoServicio.OrdinalTipo(mano.TipoEnvidoCantado)) return;
+
+        int ptsAntes = mano.PuntosEnvido;
+        mano.TipoEnvidoCantado    = tipoNuevo;
+        mano.PuntosEnvido         = EnvidoServicio2v2.ObtenerPuntosEnJuego(tipoNuevo);
+        mano.PuntosEnvidoNoQuiero = ptsAntes; // rechazar la escalada paga lo de la apuesta anterior
+        mano.CantorEnvido         = jugadorId;
+        mano.EnvidoPendienteRespuestaDe = TurnoServicio2v2.ObtenerResponsableCanto(mano, jugadorId);
+        mano.EstadoEnvido = $"{jugadorId} cantó {tipo}.";
 
         _trucoGames2v2[sala!] = state2v2;
         await BroadcastTrucoEstado2v2(sala!, state2v2);
@@ -600,7 +637,7 @@ public class GameHub : Hub
         mano.EquipoCantorTruco = mano.ObtenerEquipoDeJugador(jugadorId);
         mano.NivelTruco        = 1;
         mano.PuntosTrucoMano   = 2;
-        mano.TrucoPendienteRespuestaDe = TurnoServicio2v2.ObtenerResponsableTruco(mano, mano.EquipoCantorTruco);
+        mano.TrucoPendienteRespuestaDe = TurnoServicio2v2.ObtenerResponsableCanto(mano, jugadorId);
         mano.PuedeEscalarTruco = TurnoServicio2v2.ObtenerUltimoDelEquipoEnTurno(mano, mano.EquipoCantorTruco);
         mano.EstadoTruco       = $"{jugadorId} cantó Truco.";
 
@@ -639,12 +676,13 @@ public class GameHub : Hub
                 {
                     mano.NivelTruco++;
                     mano.PuntosTrucoMano = mano.NivelTruco == 2 ? 3 : 4;
-                    string equipoRival   = mano.ObtenerEquipoDeJugador(jugadorId);
-                    mano.EquipoCantorTruco = equipoRival;
+                    string equipoEscalador = mano.ObtenerEquipoDeJugador(jugadorId);
+                    mano.EquipoCantorTruco = equipoEscalador;
                     mano.CantorTruco     = jugadorId;
                     string nombreNivel   = mano.NivelTruco == 2 ? "Retruco" : "Vale Cuatro";
                     mano.EstadoTruco     = $"{jugadorId} quiso y cantó {nombreNivel}! Vale {mano.PuntosTrucoMano} pt.";
-                    mano.TrucoPendienteRespuestaDe = TurnoServicio2v2.ObtenerResponsableTruco(mano, equipoRival);
+                    mano.TrucoPendienteRespuestaDe = TurnoServicio2v2.ObtenerResponsableCanto(mano, jugadorId);
+                    mano.PuedeEscalarTruco = TurnoServicio2v2.ObtenerUltimoDelEquipoEnTurno(mano, mano.ObtenerEquipoContrario(equipoEscalador).Id);
                 }
                 else
                 {
@@ -943,6 +981,9 @@ public class GameHub : Hub
             mano.EnvidoResuelto,
             mano.TipoEnvidoCantado,
             mano.CantorEnvido,
+            mano.GanadorEnvido,
+            mano.PuntosEnvido,
+            mano.PuntosEnvidoNoQuiero,
             mano.FaseEnvido,
             mano.EnvidoPendienteRespuestaDe,
             mano.SonBuenasDeclarado,
@@ -956,6 +997,7 @@ public class GameHub : Hub
             mano.TrucoPendienteRespuestaDe,
             mano.PuedeEscalarTruco,
             Vueltas = mano.Vueltas,
+            mano.VueltaActual,
         };
 
         // Enviar estado personalizado a cada jugador (solo ve sus propias cartas)

@@ -86,12 +86,18 @@ namespace TrucoRPG.API.Controllers
             var mano = ObtenerMano(req.ManoId);
             if (mano.EnvidoCantado || mano.EnvidoResuelto)
                 throw new InvalidOperationException("El envido ya fue cantado o resuelto.");
-            // El envido se puede cantar durante toda la primera vuelta (aún con cartas en mesa).
+            // El envido se puede cantar durante la primera vuelta, pero SOLO si todavía no
+            // jugaste tu carta (el envido se canta antes de jugar; si ya jugaste, tu momento pasó).
             if (mano.Vueltas.Count > 0)
                 throw new InvalidOperationException("El envido solo se puede cantar en la primera vuelta.");
-            // Si el truco ya fue cantado y resuelto, la ventana del envido se cerró.
-            if (mano.TrucoCantado && mano.TrucoPendienteRespuestaDe == null)
-                throw new InvalidOperationException("El envido ya no se puede cantar: el truco fue resuelto.");
+            if ((mano.ObtenerJugador(J1)?.Jugadas.Count ?? 0) > 0)
+                throw new InvalidOperationException("El envido ya no se puede cantar: ya jugaste tu carta.");
+            // "Envido va primero" solo aplica contra el PRIMER truco cantado por el rival
+            // (nivel 1) y todavía sin aceptar. Si el truco ya fue aceptado o escalado, se cerró.
+            bool trucoBloqueaEnvido = mano.TrucoCantado &&
+                !(mano.TrucoPendienteRespuestaDe == J1 && mano.NivelTruco == 1 && mano.EquipoCantorTruco == "EquipoB");
+            if (trucoBloqueaEnvido)
+                throw new InvalidOperationException("El envido ya no se puede cantar: el truco ya está en juego.");
             // "El envido va primero": se permite también si te deben una respuesta de truco.
             bool esTuTurno  = mano.TurnoActual == J1;
             bool debesTruco = mano.TrucoPendienteRespuestaDe == J1;
@@ -103,6 +109,7 @@ namespace TrucoRPG.API.Controllers
             mano.CantorEnvido      = J1;
             mano.TipoEnvidoCantado = tipo;
             mano.PuntosEnvido      = EnvidoServicio2v2.ObtenerPuntosEnJuego(tipo);
+            mano.PuntosEnvidoNoQuiero = 1; // rechazar el primer envido = 1 punto
             mano.FaseEnvido        = "pendiente_respuesta";
             mano.EstadoEnvido      = $"Cantaste {req.Tipo}.";
 
@@ -144,6 +151,7 @@ namespace TrucoRPG.API.Controllers
                 int ptsAntes = mano.PuntosEnvido;
                 mano.TipoEnvidoCantado = EnvidoServicio.NormalizarTipo(escalar);
                 mano.PuntosEnvido      = EnvidoServicio2v2.ObtenerPuntosEnJuego(mano.TipoEnvidoCantado);
+                mano.PuntosEnvidoNoQuiero = ptsAntes; // rechazar la escalada paga lo de la apuesta anterior
                 mano.CantorEnvido      = J1;
                 mano.EstadoEnvido      = $"Cantaste {req.EscalarA}.";
                 mano.EnvidoPendienteRespuestaDe = TurnoServicio2v2.ObtenerResponsableTruco(mano, "EquipoA");
@@ -390,6 +398,7 @@ namespace TrucoRPG.API.Controllers
                 mano.CantorEnvido      = J3;
                 mano.TipoEnvidoCantado = "Envido";
                 mano.PuntosEnvido      = EnvidoServicio2v2.ObtenerPuntosEnJuego("Envido");
+                mano.PuntosEnvidoNoQuiero = 1;
                 mano.FaseEnvido        = "pendiente_respuesta";
                 mano.EstadoEnvido      = "Tu compañero cantó Envido.";
                 mano.EnvidoPendienteRespuestaDe = TurnoServicio2v2.ObtenerResponsableTruco(mano, "EquipoA");
@@ -489,7 +498,17 @@ namespace TrucoRPG.API.Controllers
             // ── Responder truco ───────────────────────────────────────
             if (mano.TrucoPendienteRespuestaDe == actor)
             {
+                int nivelAntes = mano.NivelTruco;
                 MaquinaServicio2v2.ResponderTruco(mano, actor);
+
+                // Si en vez de solo querer, la máquina ESCALÓ (retruco / vale cuatro),
+                // el diálogo debe decir el nuevo canto, no "¡Quiero!".
+                if (mano.NivelTruco > nivelAntes && mano.TrucoPendienteRespuestaDe == J1)
+                {
+                    string nombre = mano.NivelTruco == 2 ? "Retruco" : "Vale Cuatro";
+                    return new EventoMaquina(actor, "truco", "¡" + nombre + "!");
+                }
+
                 bool noQuiso = (mano.EstadoTruco ?? "").Contains("no quiso");
                 return new EventoMaquina(actor, "truco-resp", noQuiso ? "¡No quiero!" : "¡Quiero!");
             }
@@ -566,7 +585,12 @@ namespace TrucoRPG.API.Controllers
                     return new EventoMaquina(actor, "envido", "¡" + (mano.TipoEnvidoCantado ?? "Envido") + "!");
                 }
                 if (!trucoAntes && mano.TrucoCantado)
+                {
+                    // Si vos ya jugaste pero tu compañero todavía no, te ofrece cantar el
+                    // envido "va primero" antes de responder el truco.
+                    OfrecerEnvidoVaPrimeroSiCorresponde(mano);
                     return new EventoMaquina(actor, "truco", "¡Truco!");
+                }
 
                 // Si nadie cantó el envido y el HUMANO (J1) es el pie de su equipo (juega
                 // último), el compañero le tira una pista de su tanto al jugar, para que el
@@ -629,6 +653,28 @@ namespace TrucoRPG.API.Controllers
                     break;
                 }
             }
+        }
+
+        /// <summary>
+        /// Tras un truco cantado por un rival, si vos (J1) ya jugaste tu carta pero tu
+        /// compañero (J3) todavía no, te ofrece cantar el envido "va primero" antes de
+        /// responder el truco. (Si vos no jugaste, ya tenés los botones para cantarlo directo.)
+        /// </summary>
+        private static void OfrecerEnvidoVaPrimeroSiCorresponde(ManoTruco2v2 mano)
+        {
+            if (mano.CompaConsultaEnvido || mano.CompaEnvidoConsultado) return;
+            if (mano.EnvidoCantado || mano.EnvidoResuelto)              return;
+            if (mano.Vueltas.Count != 0)                                return;
+            if (mano.TrucoPendienteRespuestaDe != J1)                   return;
+            if ((mano.ObtenerJugador(J1)?.Jugadas.Count ?? 0) == 0)     return; // J1 no jugó → canta directo
+            if ((mano.ObtenerJugador(J3)?.Jugadas.Count ?? 1) != 0)     return; // J3 ya jugó → no puede
+
+            var compa = mano.ObtenerJugador(J3);
+            int tantoCompa = compa != null ? EnvidoServicio2v2.TantoOriginal(compa) : 0;
+            mano.CompaPista = tantoCompa >= 28 ? "Tengo mucho"
+                            : tantoCompa >= 23 ? "Tengo algo"
+                            : "Tengo poco";
+            mano.CompaConsultaEnvido = true;
         }
 
         private static string? ProximoActor(ManoTruco2v2 mano)

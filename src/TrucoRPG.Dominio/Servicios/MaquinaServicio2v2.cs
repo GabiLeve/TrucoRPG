@@ -159,6 +159,45 @@ namespace TrucoRPG.Dominio.Servicios
         }
 
         /// <summary>
+        /// Mejor carta del equipo en toda la mano: las que YA jugó + las que le quedan.
+        /// Sirve para no achicarse cuando ya tiró una carta brava (p. ej. el ancho de basto).
+        /// </summary>
+        private static int FuerzaEquipoEnMano(ManoTruco2v2 mano, string equipoId)
+        {
+            int mejor = 0;
+            foreach (var j in mano.ObtenerEquipo(equipoId).Jugadores)
+            {
+                foreach (var c in j.Jugadas) mejor = Math.Max(mejor, c.ValorTruco);
+                foreach (var c in j.Mano)    mejor = Math.Max(mejor, c.ValorTruco);
+            }
+            return mejor;
+        }
+
+        /// <summary>
+        /// Decide si la máquina acepta el truco/retruco considerando TODA la situación del
+        /// equipo (vueltas ganadas y cartas ya jugadas), no solo lo que le queda en la mano.
+        /// </summary>
+        private static bool AceptarTrucoEnContexto(ManoTruco2v2 mano, string jugadorId)
+        {
+            string equipo  = mano.ObtenerEquipoDeJugador(jugadorId);
+            var jugador     = mano.ObtenerJugador(jugadorId);
+            int mejorEquipo = FuerzaEquipoEnMano(mano, equipo);
+
+            int ganadas   = mano.Vueltas.Count(v => v.GanadorVuelta == equipo);
+            int perdidas  = mano.Vueltas.Count(v => v.GanadorVuelta is not null and not "Parda" && v.GanadorVuelta != equipo);
+
+            // Va ganando la mano → casi siempre quiere.
+            if (ganadas > perdidas) return _random.Next(100) < 92;
+            // Tiene (o jugó) una carta brava → quiere casi siempre.
+            if (mejorEquipo >= 12) return _random.Next(100) < 88;
+            if (mejorEquipo >= 10) return _random.Next(100) < 65;
+            // Va claramente perdiendo y sin cartas → normalmente no quiere.
+            if (perdidas > ganadas && mejorEquipo < 9) return _random.Next(100) < 15;
+            // Caso intermedio: según lo que le queda en la mano.
+            return (jugador?.Mano.Count ?? 0) > 0 ? AceptarTruco(jugador!.Mano) : _random.Next(100) < 30;
+        }
+
+        /// <summary>
         /// Procesa el turno de la máquina en la mano actual.
         /// Incluye decisiones de envido, truco y jugar carta.
         /// </summary>
@@ -188,6 +227,7 @@ namespace TrucoRPG.Dominio.Servicios
                     mano.CantorEnvido  = jugadorId;
                     mano.TipoEnvidoCantado = "Envido";
                     mano.PuntosEnvido  = 2;
+                    mano.PuntosEnvidoNoQuiero = 1;
                     mano.FaseEnvido    = "pendiente_respuesta";
 
                     // El primer jugador del equipo contrario responde
@@ -248,8 +288,10 @@ namespace TrucoRPG.Dominio.Servicios
             string? escala = ElegirEscaladaEnvido(mano.TipoEnvidoCantado, tanto);
             if (escala != null)
             {
+                int ptsAntes = mano.PuntosEnvido;
                 mano.TipoEnvidoCantado = EnvidoServicio.NormalizarTipo(escala);
                 mano.PuntosEnvido      = EnvidoServicio2v2.ObtenerPuntosEnJuego(mano.TipoEnvidoCantado);
+                mano.PuntosEnvidoNoQuiero = ptsAntes; // rechazar la escalada paga lo anterior
                 mano.CantorEnvido      = jugadorId;
                 string equipoCantor    = mano.ObtenerEquipoDeJugador(jugadorId);
                 mano.EnvidoPendienteRespuestaDe = TurnoServicio2v2.ObtenerResponsableTruco(mano, equipoCantor);
@@ -330,7 +372,7 @@ namespace TrucoRPG.Dominio.Servicios
             var jugador = mano.ObtenerJugador(jugadorId);
             if (jugador == null || !jugador.EsMaquina) return;
 
-            bool acepta = jugador.Mano.Count > 0 && AceptarTruco(jugador.Mano);
+            bool acepta = AceptarTrucoEnContexto(mano, jugadorId);
             mano.TrucoPendienteRespuestaDe = null;
 
             if (!acepta)
@@ -345,8 +387,8 @@ namespace TrucoRPG.Dominio.Servicios
             }
             else
             {
-                // Con mano fuerte, a veces en vez de solo querer, sube la apuesta (retruco / vale cuatro).
-                int fuerte = jugador.Mano.Max(c => c.ValorTruco);
+                // Con el equipo fuerte (carta brava jugada o en mano), a veces sube la apuesta.
+                int fuerte = FuerzaEquipoEnMano(mano, mano.ObtenerEquipoDeJugador(jugadorId));
                 if (mano.NivelTruco < 3 && fuerte >= 12 && _random.Next(100) < 55)
                 {
                     string equipoMaquina = mano.ObtenerEquipoDeJugador(jugadorId);
@@ -358,6 +400,8 @@ namespace TrucoRPG.Dominio.Servicios
                     string nombre          = mano.NivelTruco == 2 ? "Retruco" : "Vale Cuatro";
                     mano.EstadoTruco       = $"{jugadorId} cantó {nombre}.";
                     mano.TrucoPendienteRespuestaDe = TurnoServicio2v2.ObtenerResponsableTruco(mano, equipoMaquina);
+                    var equipoContrario = mano.ObtenerEquipoContrario(equipoMaquina);
+                    mano.PuedeEscalarTruco = TurnoServicio2v2.ObtenerUltimoDelEquipoEnTurno(mano, equipoContrario.Id);
                 }
                 else
                 {

@@ -47,6 +47,9 @@ namespace TrucoRPG.Dominio.Entities
         public string? TipoEnvidoCantado { get; set; }
         public string? GanadorEnvido { get; set; }  // "EquipoA" o "EquipoB"
         public int PuntosEnvido { get; set; } = 0;
+        /// <summary>Puntos que se pagan si el envido se rechaza ("no quiero"): el valor de la
+        /// apuesta ANTERIOR a la última (Envido→1, Envido Envido→2, etc.).</summary>
+        public int PuntosEnvidoNoQuiero { get; set; } = 1;
         public string? EstadoEnvido { get; set; }
 
         /// <summary>jugadorId del jugador que debe responder el envido.</summary>

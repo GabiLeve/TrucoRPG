@@ -182,13 +182,14 @@ namespace TrucoRPG.Dominio.Servicios
         {
             if (mano.CantorEnvido == null) return;
             string equipoCantor = mano.ObtenerEquipoDeJugador(mano.CantorEnvido);
+            int pts = Math.Max(1, mano.PuntosEnvidoNoQuiero); // Envido→1, Envido Envido→2, etc.
             mano.GanadorEnvido          = equipoCantor;
-            mano.PuntosEnvido           = 1;
+            mano.PuntosEnvido           = pts;
             mano.EnvidoResuelto         = true;
             mano.FaseEnvido             = "resuelto";
             mano.EnvidoPendienteRespuestaDe = null;
-            mano.EstadoEnvido           = $"No quiso. {equipoCantor} gana 1 punto.";
-            JuegoServicio2v2.SumarPuntos(mano, equipoCantor, 1);
+            mano.EstadoEnvido           = $"No quiso. {equipoCantor} gana {pts} punto(s).";
+            JuegoServicio2v2.SumarPuntos(mano, equipoCantor, pts);
         }
 
         /// <summary>Devuelve los puntos en juego según el tipo de envido cantado.</summary>

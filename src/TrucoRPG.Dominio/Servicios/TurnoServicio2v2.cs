@@ -141,6 +141,28 @@ namespace TrucoRPG.Dominio.Servicios
         }
 
         /// <summary>
+        /// Responsable de responder un canto (envido/truco) en MULTIJUGADOR (4 jugadores reales):
+        /// el rival que sigue en la ronda DESPUÉS del cantor. Sin atajo a J1 (ese es del modo solo,
+        /// donde el humano decide por todo su equipo).
+        /// </summary>
+        public static string ObtenerResponsableCanto(ManoTruco2v2 mano, string cantorId)
+        {
+            string equipoCantor = mano.ObtenerEquipoDeJugador(cantorId);
+            var equipoContrario = mano.ObtenerEquipoContrario(equipoCantor);
+            var orden = ObtenerOrdenTurno(mano);
+            int idx = orden.IndexOf(cantorId);
+            if (idx >= 0)
+            {
+                for (int i = 1; i <= orden.Count; i++)
+                {
+                    var id = orden[(idx + i) % orden.Count];
+                    if (equipoContrario.ContieneJugador(id)) return id;
+                }
+            }
+            return orden.First(id => equipoContrario.ContieneJugador(id));
+        }
+
+        /// <summary>
         /// Devuelve el orden de declaración de tantos de envido.
         /// El conteo arranca por el jugador MANO y sigue el orden de la mesa.
         /// (El mano canta primero; gana los empates por declarar antes.)
