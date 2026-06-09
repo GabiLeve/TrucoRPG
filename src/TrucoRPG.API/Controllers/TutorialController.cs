@@ -7,11 +7,11 @@ namespace TrucoRPG.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class ReglasController : ControllerBase
+    public class TutorialController : ControllerBase
     {
         private readonly ReglasUseCase _reglasUseCase;
 
-        public ReglasController(ReglasUseCase reglasUseCase)
+        public TutorialController(ReglasUseCase reglasUseCase)
         {
             _reglasUseCase = reglasUseCase;
         }
