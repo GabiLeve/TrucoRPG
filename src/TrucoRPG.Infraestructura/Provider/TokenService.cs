@@ -1,6 +1,7 @@
-using System.IdentityModel.Tokens.Jwt;
+﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using TrucoRPG.Dominio.Entities;
@@ -11,21 +12,31 @@ namespace TrucoRPG.Infraestructura.Provider
     public class TokenService : ITokenService
     {
         private readonly IConfiguration _config;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public TokenService(IConfiguration config)
+        public TokenService(IConfiguration config, UserManager<ApplicationUser> userManager)
         {
             _config = config;
+            _userManager = userManager;
         }
 
         public string GenerarToken(Usuario usuario)
         {
-            var claims = new[]
+            var identityUser = _userManager.FindByIdAsync(usuario.Id).Result;
+            var roles = identityUser != null ? _userManager.GetRolesAsync(identityUser).Result : new List<string>();
+
+            var claims = new List<Claim>
             {
                 new Claim(JwtRegisteredClaimNames.Sub,   usuario.Id),
                 new Claim(JwtRegisteredClaimNames.Email, usuario.Email),
                 new Claim(JwtRegisteredClaimNames.Name,  usuario.UserName),
                 new Claim(JwtRegisteredClaimNames.Jti,   Guid.NewGuid().ToString())
             };
+
+            foreach (var rol in roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, rol));
+            }
 
             var key   = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

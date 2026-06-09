@@ -44,6 +44,13 @@ namespace TrucoRPG.Infraestructura.Repositorios
                 var errores = string.Join(", ", result.Errors.Select(e => e.Description));
                 throw new InvalidOperationException($"Error al crear usuario: {errores}");
             }
+
+            var resultadoRol = await _userManager.AddToRoleAsync(appUser, "Jugador");
+
+            if (!resultadoRol.Succeeded)
+            {
+                throw new InvalidOperationException("El usuario se creó pero no se le pudo asignar el rol de Jugador.");
+            }
         }
 
         public async Task<bool> ValidarPasswordAsync(string email, string password)
