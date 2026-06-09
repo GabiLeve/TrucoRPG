@@ -15,3 +15,20 @@ public class TrucoMultiState
     public bool TrucoPendienteRespuestaJ2 { get; set; } = false;
     public bool EnvidoPendienteRespuestaJ2 { get; set; } = false;
 }
+
+/// <summary>Estado completo del juego 2v2 en el hub.</summary>
+public class TrucoMultiState2v2
+{
+    // Conexiones de los 4 jugadores (en orden de posicion 1-4)
+    public string[] JugadoresIds { get; set; } = new string[4];
+
+    public ManoTruco2v2 Mano { get; set; } = new();
+
+    // Mapeo connectionId → posicion (1-4)
+    public Dictionary<string, int> Posiciones { get; set; } = new();
+
+    public string GetJugadorId(string connectionId) =>
+        Posiciones.TryGetValue(connectionId, out var pos)
+            ? $"J{pos}"
+            : "";
+}

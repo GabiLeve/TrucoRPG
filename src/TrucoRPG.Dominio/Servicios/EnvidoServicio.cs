@@ -7,6 +7,7 @@ namespace TrucoRPG.Dominio.Servicios
     {
         public static int CalcularTanto(List<Carta> cartas)
         {
+            if (!cartas.Any()) return 0;
             var gruposPorPalo = cartas.GroupBy(c => c.Palo).ToList();
 
             int mejorTanto = 0;
