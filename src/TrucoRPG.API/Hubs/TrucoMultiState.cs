@@ -32,3 +32,20 @@ public class TrucoMultiState2v2
             ? $"J{pos}"
             : "";
 }
+
+/// <summary>Estado completo del juego 3v3 en el hub.</summary>
+public class TrucoMultiState3v3
+{
+    // Conexiones de los 6 jugadores (en orden de posicion 1-6)
+    public string[] JugadoresIds { get; set; } = new string[6];
+
+    public ManoTruco3v3 Mano { get; set; } = new();
+
+    // Mapeo connectionId → posicion (1-6)
+    public Dictionary<string, int> Posiciones { get; set; } = new();
+
+    public string GetJugadorId(string connectionId) =>
+        Posiciones.TryGetValue(connectionId, out var pos)
+            ? $"J{pos}"
+            : "";
+}

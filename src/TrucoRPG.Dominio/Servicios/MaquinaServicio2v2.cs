@@ -410,5 +410,201 @@ namespace TrucoRPG.Dominio.Servicios
                 }
             }
         }
+
+        // ─────────────────────────────────────────────────────────────
+        //  Orquestación: avanzar UNA sola acción de la máquina
+        //  (lógica de negocio antes en Truco2v2Controller; movida al dominio)
+        // ─────────────────────────────────────────────────────────────
+        private const string J1 = "J1";
+        private const string J3 = "J3";
+
+        /// <summary>
+        /// Ejecuta exactamente UNA acción del próximo jugador máquina y devuelve un evento
+        /// describiendo qué hizo (para mostrar el diálogo). Devuelve null si no hay máquina
+        /// por actuar (turno del humano o mano/partida terminada).
+        /// </summary>
+        public static EventoMaquina2v2? AvanzarUnPaso(ManoTruco2v2 mano)
+        {
+            if (mano.PartidaTerminada || mano.ManoTerminada || mano.GanadorMano != null) return null;
+
+            string? actor = ProximoActor(mano);
+            if (actor == null || actor == J1) return null;
+
+            var jugador = mano.ObtenerJugador(actor);
+            if (jugador == null || !jugador.EsMaquina) return null;
+
+            // ── Responder truco ──
+            if (mano.TrucoPendienteRespuestaDe == actor)
+            {
+                int nivelAntes = mano.NivelTruco;
+                ResponderTruco(mano, actor);
+
+                if (mano.NivelTruco > nivelAntes && mano.TrucoPendienteRespuestaDe == J1)
+                {
+                    string nombre = mano.NivelTruco == 2 ? "Retruco" : "Vale Cuatro";
+                    return new EventoMaquina2v2(actor, "truco", "¡" + nombre + "!");
+                }
+
+                bool noQuiso = (mano.EstadoTruco ?? "").Contains("no quiso");
+                return new EventoMaquina2v2(actor, "truco-resp", noQuiso ? "¡No quiero!" : "¡Quiero!");
+            }
+
+            // ── Responder envido ──
+            if (mano.FaseEnvido == "pendiente_respuesta" && mano.EnvidoPendienteRespuestaDe == actor)
+            {
+                ResponderEnvido(mano, actor);
+                bool quiso = mano.FaseEnvido == "declarando_tantos" || mano.FaseEnvido == "aceptado";
+                return new EventoMaquina2v2(actor, "envido-resp", quiso ? "¡Quiero!" : "¡No quiero!");
+            }
+
+            // ── Declarar tanto ──
+            if (mano.FaseEnvido == "declarando_tantos" && mano.EnvidoPendienteRespuestaDe == actor)
+            {
+                DeclararTanto(mano, actor);
+                if (mano.JugadorQueDijoSonBuenas == actor)
+                    return new EventoMaquina2v2(actor, "tanto", "¡Son buenas!");
+                string texto = mano.TantosDeclarados.TryGetValue(actor, out var t) && t.HasValue
+                    ? t.Value.ToString()
+                    : "¡Son buenas!";
+                return new EventoMaquina2v2(actor, "tanto", texto);
+            }
+
+            // ── Turno normal: cantar o jugar carta ──
+            if (mano.TurnoActual == actor)
+            {
+                // El compañero (J3), cuando es el PIE del equipo, le pregunta al humano si
+                // quiere que cante los tantos (le da una pista de su propio tanto).
+                if (actor == J3
+                    && J3 == TurnoServicio2v2.ObtenerUltimoDelEquipoEnTurno(mano, "EquipoA")
+                    && !mano.CompaEnvidoConsultado
+                    && !mano.EnvidoCantado && !mano.EnvidoResuelto
+                    && mano.Vueltas.Count == 0
+                    && (!mano.TrucoCantado || mano.TrucoPendienteRespuestaDe != null))
+                {
+                    int tantoCompa = EnvidoServicio2v2.TantoOriginal(jugador);
+                    mano.CompaPista = tantoCompa >= 28 ? "Tengo mucho"
+                                    : tantoCompa >= 23 ? "Tengo algo"
+                                    : "Tengo poco";
+                    mano.CompaConsultaEnvido = true;
+                    return new EventoMaquina2v2(actor, "consulta-envido", "¿Canto los tantos?");
+                }
+
+                // El compañero (J3) pregunta antes de cantar truco: ¿voy o pongo?
+                if (actor == J3 && !mano.CompaTrucoConsultado
+                    && (mano.ObtenerJugador(J1)?.Jugadas.Count ?? 1) == 0
+                    && !mano.TrucoCantado && !mano.TrucoResuelto
+                    && mano.TrucoPendienteRespuestaDe == null
+                    && jugador.Mano.Count > 0 && jugador.Mano.Max(c => c.ValorTruco) >= 10)
+                {
+                    mano.CompaConsultaTruco = true;
+                    return new EventoMaquina2v2(actor, "consulta-truco", "¿Voy o pongo?");
+                }
+
+                bool envidoAntes = mano.EnvidoCantado;
+                bool trucoAntes  = mano.TrucoCantado;
+
+                ProcesarTurnoMaquina(mano, actor);
+
+                if (!envidoAntes && mano.EnvidoCantado)
+                {
+                    if (mano.EnvidoPendienteRespuestaDe == J1 && _random.Next(100) < 50)
+                    {
+                        var compa = mano.ObtenerJugador(J3);
+                        int tantoCompa = compa != null ? EnvidoServicio2v2.TantoOriginal(compa) : 0;
+                        mano.CompaPista = tantoCompa >= 28 ? "Tengo mucho"
+                                        : tantoCompa >= 23 ? "Tengo algo"
+                                        : "Tengo poco";
+                    }
+                    return new EventoMaquina2v2(actor, "envido", "¡" + (mano.TipoEnvidoCantado ?? "Envido") + "!");
+                }
+                if (!trucoAntes && mano.TrucoCantado)
+                {
+                    OfrecerEnvidoVaPrimeroSiCorresponde(mano);
+                    return new EventoMaquina2v2(actor, "truco", "¡Truco!");
+                }
+
+                if (actor == J3
+                    && !mano.EnvidoCantado && !mano.EnvidoResuelto
+                    && mano.Vueltas.Count == 0
+                    && string.IsNullOrEmpty(mano.CompaPista)
+                    && J1 == TurnoServicio2v2.ObtenerUltimoDelEquipoEnTurno(mano, "EquipoA"))
+                {
+                    int tantoCompa = EnvidoServicio2v2.TantoOriginal(jugador);
+                    mano.CompaPista = tantoCompa >= 28 ? "Tengo mucho"
+                                    : tantoCompa >= 23 ? "Tengo algo"
+                                    : "Tengo poco";
+                }
+
+                return new EventoMaquina2v2(actor, "carta", "");
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Tras un truco cantado por un rival, si el humano (J1) ya jugó su carta pero el
+        /// compañero (J3) todavía no, le ofrece cantar el envido "va primero" antes de responder.
+        /// </summary>
+        private static void OfrecerEnvidoVaPrimeroSiCorresponde(ManoTruco2v2 mano)
+        {
+            if (mano.CompaConsultaEnvido || mano.CompaEnvidoConsultado) return;
+            if (mano.EnvidoCantado || mano.EnvidoResuelto)              return;
+            if (mano.Vueltas.Count != 0)                                return;
+            if (mano.TrucoPendienteRespuestaDe != J1)                   return;
+            if ((mano.ObtenerJugador(J1)?.Jugadas.Count ?? 0) == 0)     return;
+            if ((mano.ObtenerJugador(J3)?.Jugadas.Count ?? 1) != 0)     return;
+
+            var compa = mano.ObtenerJugador(J3);
+            int tantoCompa = compa != null ? EnvidoServicio2v2.TantoOriginal(compa) : 0;
+            mano.CompaPista = tantoCompa >= 28 ? "Tengo mucho"
+                            : tantoCompa >= 23 ? "Tengo algo"
+                            : "Tengo poco";
+            mano.CompaConsultaEnvido = true;
+        }
+
+        /// <summary>
+        /// Resuelve la consulta "¿voy o pongo?" del compañero (J3) al humano:
+        /// "voy" → el compañero juega su carta más baja (vos metés la alta);
+        /// "pongo" → juega su carta más alta para intentar ganar la baza.
+        /// </summary>
+        public static void ResolverConsultaTruco(ManoTruco2v2 mano, bool voy)
+        {
+            mano.CompaConsultaTruco   = false;
+            mano.CompaTrucoConsultado = true;
+
+            var compa = mano.ObtenerJugador(J3);
+            if (compa == null || compa.Mano.Count == 0) return;
+
+            var carta = voy
+                ? compa.Mano.OrderBy(c => c.ValorTruco).First()
+                : compa.Mano.OrderByDescending(c => c.ValorTruco).First();
+
+            // Si el envido sigue disponible, deja una pista de su tanto.
+            if (!mano.EnvidoCantado && !mano.EnvidoResuelto && mano.Vueltas.Count == 0
+                && string.IsNullOrEmpty(mano.CompaPista))
+            {
+                int tantoCompa = EnvidoServicio2v2.TantoOriginal(compa);
+                mano.CompaPista = tantoCompa >= 28 ? "Tengo mucho"
+                                : tantoCompa >= 23 ? "Tengo algo"
+                                : "Tengo poco";
+            }
+
+            JuegoServicio2v2.JugarCarta(mano, J3, carta);
+        }
+
+        /// <summary>Próximo jugador que debe actuar (el envido va primero).</summary>
+        private static string? ProximoActor(ManoTruco2v2 mano)
+        {
+            if (mano.EnvidoPendienteRespuestaDe != null &&
+                (mano.FaseEnvido == "pendiente_respuesta" || mano.FaseEnvido == "declarando_tantos"))
+                return mano.EnvidoPendienteRespuestaDe;
+            if (mano.TrucoPendienteRespuestaDe != null)    return mano.TrucoPendienteRespuestaDe;
+            if (mano.EnvidoPendienteRespuestaDe != null)   return mano.EnvidoPendienteRespuestaDe;
+            if (!mano.ManoTerminada && mano.GanadorMano == null) return mano.TurnoActual;
+            return null;
+        }
     }
+
+    /// <summary>Evento de una acción de máquina 2v2, para mostrar diálogos en el front.</summary>
+    public record EventoMaquina2v2(string Jugador, string Tipo, string Texto);
 }

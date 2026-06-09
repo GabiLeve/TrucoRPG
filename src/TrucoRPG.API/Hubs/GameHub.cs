@@ -14,6 +14,7 @@ public class GameHub : Hub
     private static readonly ConcurrentDictionary<string, string> _conexionASala = new();
     private static readonly ConcurrentDictionary<string, TrucoMultiState> _trucoGames = new();
     private static readonly ConcurrentDictionary<string, TrucoMultiState2v2> _trucoGames2v2 = new();
+    private static readonly ConcurrentDictionary<string, TrucoMultiState3v3> _trucoGames3v3 = new();
     private static readonly ConcurrentDictionary<string, ConcurrentDictionary<string, bool>> _listos = new();
 
     // ─── 2v2 ─────────────────────────────────────────────────────
@@ -39,7 +40,7 @@ public class GameHub : Hub
         if (!_salas.TryGetValue(codigo, out var jugadores)) return false;
 
         var modo = _salasModo.TryGetValue(codigo, out var m) ? m : "1v1";
-        int maxJugadores = modo == "2v2" ? 4 : 2;
+        int maxJugadores = JugadoresRequeridos(modo);
 
         if (jugadores.Count >= maxJugadores) return false;
 
@@ -52,19 +53,30 @@ public class GameHub : Hub
             if (jugadores.Count == 2)
                 await Clients.Group(codigo).SendAsync("SalaLista");
         }
-        else // 2v2
+        else // 2v2 / 3v3
         {
             await Clients.Group(codigo).SendAsync("LobbyActualizado", new
             {
                 jugadoresEnSala = jugadores.Count,
-                maxJugadores = 4
+                maxJugadores
             });
-            if (jugadores.Count == 4)
+            if (jugadores.Count == maxJugadores)
                 await Clients.Group(codigo).SendAsync("SalaCompleta");
         }
 
         return true;
     }
+
+    /// <summary>Cantidad de jugadores requeridos según el modo de sala.</summary>
+    private static int JugadoresRequeridos(string modo) => modo switch
+    {
+        "2v2" => 4,
+        "3v3" => 6,
+        _     => 2,
+    };
+
+    /// <summary>Jugadores por equipo según el modo (2 en 2v2, 3 en 3v3).</summary>
+    private static int JugadoresPorEquipo(string modo) => modo == "3v3" ? 3 : 2;
 
     // ─────────────────────────────────────────────────────────────
     //  EQUIPOS — selección 2v2
@@ -75,6 +87,9 @@ public class GameHub : Hub
         if (!_salas.TryGetValue(sala, out var jugadores)) return;
         if (equipo != "sanMartin" && equipo != "belgrano") return;
 
+        var modo = _salasModo.TryGetValue(sala, out var m) ? m : "2v2";
+        int cupoPorEquipo = JugadoresPorEquipo(modo);
+
         var equiposMap = _equiposJugadores.GetOrAdd(sala, _ => new ConcurrentDictionary<string, string>());
 
         // Verificar si el equipo destino tiene lugar
@@ -84,8 +99,8 @@ public class GameHub : Hub
         // Si ya está en ese equipo, no hacer nada
         if (equipoActual == equipo) return;
 
-        // Si el equipo destino está lleno (2 jugadores), rechazar
-        if (countEnEquipo >= 2) return;
+        // Si el equipo destino está lleno, rechazar
+        if (countEnEquipo >= cupoPorEquipo) return;
 
         equiposMap[Context.ConnectionId] = equipo;
         await BroadcastEstadoEquipos(sala, jugadores, equiposMap);
@@ -109,7 +124,7 @@ public class GameHub : Hub
         if (!_salas.TryGetValue(sala, out var jugadores)) return;
 
         var modo = _salasModo.TryGetValue(sala, out var m) ? m : "1v1";
-        int requiredPlayers = modo == "2v2" ? 4 : 2;
+        int requiredPlayers = JugadoresRequeridos(modo);
 
         if (jugadores.Count < requiredPlayers) return;
 
@@ -137,6 +152,19 @@ public class GameHub : Hub
                 var state2v2 = IniciarNuevaMano2v2(sala, jugadores, esPrimeraPartida: true);
                 _trucoGames2v2[sala] = state2v2;
                 await BroadcastTrucoEstado2v2(sala, state2v2);
+                return;
+            }
+
+            if (modo == "3v3")
+            {
+                if (_trucoGames3v3.TryGetValue(sala, out var existing3v3))
+                {
+                    await BroadcastTrucoEstado3v3(sala, existing3v3);
+                    return;
+                }
+                var state3v3 = IniciarNuevaMano3v3(sala, jugadores, esPrimeraPartida: true);
+                _trucoGames3v3[sala] = state3v3;
+                await BroadcastTrucoEstado3v3(sala, state3v3);
                 return;
             }
 
@@ -678,6 +706,158 @@ public class GameHub : Hub
     }
 
     // ─────────────────────────────────────────────────────────────
+    //  3v3 — Jugar carta / Envido / Truco (multijugador, 6 reales)
+    // ─────────────────────────────────────────────────────────────
+    public async Task JugarCarta3v3(int numero, string palo)
+    {
+        if (!ObtenerSalaYEstado3v3(out var sala, out var state3v3)) return;
+        var mano = state3v3!.Mano;
+        if (mano.GanadorMano != null || mano.PartidaTerminada) return;
+        if (mano.TrucoPendienteRespuestaDe != null || mano.EnvidoPendienteRespuestaDe != null) return;
+
+        var jugadorId = state3v3.GetJugadorId(Context.ConnectionId);
+        if (string.IsNullOrEmpty(jugadorId) || mano.TurnoActual != jugadorId) return;
+
+        var jugador = mano.ObtenerJugador(jugadorId);
+        if (jugador == null) return;
+
+        var carta = jugador.Mano.FirstOrDefault(c =>
+            c.Numero == numero && c.Palo.Equals(palo, StringComparison.OrdinalIgnoreCase));
+        if (carta == null) return;
+
+        JuegoServicio3v3.JugarCarta(mano, jugadorId, carta);
+
+        _trucoGames3v3[sala!] = state3v3;
+        await BroadcastTrucoEstado3v3(sala!, state3v3);
+    }
+
+    public async Task SolicitarEnvido3v3(string tipo)
+    {
+        if (!ObtenerSalaYEstado3v3(out var sala, out var state3v3)) return;
+        var jugadorId = state3v3!.GetJugadorId(Context.ConnectionId);
+        if (string.IsNullOrEmpty(jugadorId)) return;
+
+        if (!EnvidoServicio3v3.Cantar(state3v3.Mano, jugadorId, tipo, TurnoServicio3v3.ObtenerResponsableCanto)) return;
+
+        _trucoGames3v3[sala!] = state3v3;
+        await BroadcastTrucoEstado3v3(sala!, state3v3);
+    }
+
+    public async Task ResponderEnvido3v3(bool aceptar)
+    {
+        if (!ObtenerSalaYEstado3v3(out var sala, out var state3v3)) return;
+        var jugadorId = state3v3!.GetJugadorId(Context.ConnectionId);
+        if (string.IsNullOrEmpty(jugadorId)) return;
+
+        if (!EnvidoServicio3v3.Responder(state3v3.Mano, jugadorId, aceptar)) return;
+
+        _trucoGames3v3[sala!] = state3v3;
+        await BroadcastTrucoEstado3v3(sala!, state3v3);
+    }
+
+    public async Task DeclararTanto3v3(int tanto)
+    {
+        if (!ObtenerSalaYEstado3v3(out var sala, out var state3v3)) return;
+        var mano = state3v3!.Mano;
+        if (mano.FaseEnvido != "declarando_tantos") return;
+
+        var jugadorId = state3v3.GetJugadorId(Context.ConnectionId);
+        if (mano.EnvidoPendienteRespuestaDe != jugadorId) return;
+
+        EnvidoServicio3v3.ProcesarDeclaracion(mano, jugadorId, tanto, sonBuenas: false);
+
+        _trucoGames3v3[sala!] = state3v3;
+        await BroadcastTrucoEstado3v3(sala!, state3v3);
+    }
+
+    public async Task SonBuenas3v3()
+    {
+        if (!ObtenerSalaYEstado3v3(out var sala, out var state3v3)) return;
+        var mano = state3v3!.Mano;
+        if (mano.FaseEnvido != "declarando_tantos") return;
+
+        var jugadorId = state3v3.GetJugadorId(Context.ConnectionId);
+        if (mano.EnvidoPendienteRespuestaDe != jugadorId) return;
+
+        EnvidoServicio3v3.ProcesarDeclaracion(mano, jugadorId, null, sonBuenas: true);
+
+        _trucoGames3v3[sala!] = state3v3;
+        await BroadcastTrucoEstado3v3(sala!, state3v3);
+    }
+
+    public async Task EscalarEnvido3v3(string tipo)
+    {
+        if (!ObtenerSalaYEstado3v3(out var sala, out var state3v3)) return;
+        var jugadorId = state3v3!.GetJugadorId(Context.ConnectionId);
+        if (string.IsNullOrEmpty(jugadorId)) return;
+
+        if (!EnvidoServicio3v3.Escalar(state3v3.Mano, jugadorId, tipo, TurnoServicio3v3.ObtenerResponsableCanto)) return;
+
+        _trucoGames3v3[sala!] = state3v3;
+        await BroadcastTrucoEstado3v3(sala!, state3v3);
+    }
+
+    public async Task SolicitarTruco3v3()
+    {
+        if (!ObtenerSalaYEstado3v3(out var sala, out var state3v3)) return;
+        var jugadorId = state3v3!.GetJugadorId(Context.ConnectionId);
+        if (string.IsNullOrEmpty(jugadorId)) return;
+
+        if (!TrucoServicio3v3.Cantar(state3v3.Mano, jugadorId, TurnoServicio3v3.ObtenerResponsableCanto)) return;
+
+        _trucoGames3v3[sala!] = state3v3;
+        await BroadcastTrucoEstado3v3(sala!, state3v3);
+    }
+
+    public async Task ResponderTruco3v3(bool aceptar, string? escalarA)
+    {
+        if (!ObtenerSalaYEstado3v3(out var sala, out var state3v3)) return;
+        var jugadorId = state3v3!.GetJugadorId(Context.ConnectionId);
+        if (string.IsNullOrEmpty(jugadorId)) return;
+
+        if (!TrucoServicio3v3.Responder(state3v3.Mano, jugadorId, aceptar, escalarA, TurnoServicio3v3.ObtenerResponsableCanto)) return;
+
+        _trucoGames3v3[sala!] = state3v3;
+        await BroadcastTrucoEstado3v3(sala!, state3v3);
+    }
+
+    public async Task IrseAlMazo3v3()
+    {
+        if (!ObtenerSalaYEstado3v3(out var sala, out var state3v3)) return;
+        var jugadorId = state3v3!.GetJugadorId(Context.ConnectionId);
+        if (string.IsNullOrEmpty(jugadorId)) return;
+
+        if (!TrucoServicio3v3.IrseAlMazo(state3v3.Mano, jugadorId)) return;
+
+        _trucoGames3v3[sala!] = state3v3;
+        await BroadcastTrucoEstado3v3(sala!, state3v3);
+    }
+
+    public async Task EscalarTruco3v3()
+    {
+        if (!ObtenerSalaYEstado3v3(out var sala, out var state3v3)) return;
+        var jugadorId = state3v3!.GetJugadorId(Context.ConnectionId);
+        if (string.IsNullOrEmpty(jugadorId)) return;
+
+        if (!TrucoServicio3v3.Escalar(state3v3.Mano, jugadorId, TurnoServicio3v3.ObtenerResponsableCanto)) return;
+
+        _trucoGames3v3[sala!] = state3v3;
+        await BroadcastTrucoEstado3v3(sala!, state3v3);
+    }
+
+    public async Task NuevaMano3v3()
+    {
+        if (!ObtenerSalaYEstado3v3(out var sala, out var state3v3)) return;
+        var mano = state3v3!.Mano;
+        if (mano.GanadorMano == null && !mano.PartidaTerminada) return;
+
+        if (!_salas.TryGetValue(sala!, out var jugadores)) return;
+        var nuevoState = IniciarNuevaMano3v3(sala!, jugadores, esPrimeraPartida: false, estadoAnterior: mano);
+        _trucoGames3v3[sala!] = nuevoState;
+        await BroadcastTrucoEstado3v3(sala!, nuevoState);
+    }
+
+    // ─────────────────────────────────────────────────────────────
     //  Desconexión
     // ─────────────────────────────────────────────────────────────
     public override async Task OnDisconnectedAsync(Exception? exception)
@@ -696,6 +876,7 @@ public class GameHub : Hub
             }
             _trucoGames.TryRemove(sala, out _);
             _trucoGames2v2.TryRemove(sala, out _);
+            _trucoGames3v3.TryRemove(sala, out _);
             if (_listos.TryGetValue(sala, out var readySet))
                 readySet.TryRemove(Context.ConnectionId, out _);
 
@@ -728,6 +909,14 @@ public class GameHub : Hub
         sala = null; state = null;
         if (!_conexionASala.TryGetValue(Context.ConnectionId, out sala)) return false;
         if (!_trucoGames2v2.TryGetValue(sala, out state)) return false;
+        return true;
+    }
+
+    private bool ObtenerSalaYEstado3v3(out string? sala, out TrucoMultiState3v3? state)
+    {
+        sala = null; state = null;
+        if (!_conexionASala.TryGetValue(Context.ConnectionId, out sala)) return false;
+        if (!_trucoGames3v3.TryGetValue(sala, out state)) return false;
         return true;
     }
 
@@ -786,6 +975,45 @@ public class GameHub : Hub
         return state2v2;
     }
 
+    private static TrucoMultiState3v3 IniciarNuevaMano3v3(
+        string sala,
+        List<string> jugadores,
+        bool esPrimeraPartida,
+        ManoTruco3v3? estadoAnterior = null)
+    {
+        int numMano = esPrimeraPartida ? 1 : (estadoAnterior?.NumeroDeMano ?? 0) + 1;
+        int ptsA    = esPrimeraPartida ? 0 : estadoAnterior?.PuntosEquipoA ?? 0;
+        int ptsB    = esPrimeraPartida ? 0 : estadoAnterior?.PuntosEquipoB ?? 0;
+
+        // Crear jugadores con ids basados en posición (J1..J6)
+        var jugadoresEntidad = jugadores.Take(6).Select((connId, i) => new Jugador
+        {
+            Id        = $"J{i + 1}",
+            Nombre    = $"Jugador {i + 1}",
+            EsMaquina = false
+        }).ToArray();
+
+        var mano = PartidaServicio3v3.CrearManoNueva(
+            numeroDeMano: numMano,
+            puntosEquipoA: ptsA,
+            puntosEquipoB: ptsB,
+            pos1: jugadoresEntidad.Length > 0 ? jugadoresEntidad[0] : null,
+            pos2: jugadoresEntidad.Length > 1 ? jugadoresEntidad[1] : null,
+            pos3: jugadoresEntidad.Length > 2 ? jugadoresEntidad[2] : null,
+            pos4: jugadoresEntidad.Length > 3 ? jugadoresEntidad[3] : null,
+            pos5: jugadoresEntidad.Length > 4 ? jugadoresEntidad[4] : null,
+            pos6: jugadoresEntidad.Length > 5 ? jugadoresEntidad[5] : null);
+
+        var state3v3 = new TrucoMultiState3v3 { Mano = mano };
+
+        for (int i = 0; i < Math.Min(jugadores.Count, 6); i++)
+            state3v3.Posiciones[jugadores[i]] = i + 1;
+
+        state3v3.JugadoresIds = jugadores.Take(6).ToArray();
+
+        return state3v3;
+    }
+
     private static void ResolverBazaMulti(ManoTruco mano, Carta cartaJ1, Carta cartaJ2)
     {
         var ganador = JuegoServicio.ResolverBaza(cartaJ1, cartaJ2);
@@ -804,9 +1032,11 @@ public class GameHub : Hub
 
     private async Task BroadcastEstadoEquipos(string sala, List<string> jugadores, ConcurrentDictionary<string, string> equiposMap)
     {
+        var modo = _salasModo.TryGetValue(sala, out var mm) ? mm : "2v2";
+        int cupoPorEquipo = JugadoresPorEquipo(modo);
         int countSanMartin = equiposMap.Values.Count(v => v == "sanMartin");
         int countBelgrano  = equiposMap.Values.Count(v => v == "belgrano");
-        bool equiposListos = countSanMartin == 2 && countBelgrano == 2;
+        bool equiposListos = countSanMartin == cupoPorEquipo && countBelgrano == cupoPorEquipo;
 
         var jugadoresDto = jugadores.Select((cId, i) => new
         {
@@ -941,6 +1171,72 @@ public class GameHub : Hub
                 misCartas        = jugador.Mano,
                 misJugadas       = jugador.Jugadas,
                 cartasCompanero  = companero?.Jugadas ?? new List<Carta>(),
+                estado           = baseDto
+            });
+        }
+    }
+
+    private async Task BroadcastTrucoEstado3v3(string sala, TrucoMultiState3v3 state3v3)
+    {
+        var mano = state3v3.Mano;
+        var baseDto = new
+        {
+            mano.NumeroDeMano,
+            mano.TurnoActual,
+            mano.JugadorMano,
+            mano.EquipoMano,
+            mano.GanadorMano,
+            mano.ManoTerminada,
+            mano.PartidaTerminada,
+            mano.GanadorPartida,
+            mano.PuntosEquipoA,
+            mano.PuntosEquipoB,
+            mano.EstadoEnvido,
+            mano.EstadoTruco,
+            mano.EnvidoCantado,
+            mano.EnvidoResuelto,
+            mano.TipoEnvidoCantado,
+            mano.CantorEnvido,
+            mano.GanadorEnvido,
+            mano.PuntosEnvido,
+            mano.PuntosEnvidoNoQuiero,
+            mano.FaseEnvido,
+            mano.EnvidoPendienteRespuestaDe,
+            mano.SonBuenasDeclarado,
+            mano.TantosDeclarados,
+            mano.TrucoCantado,
+            mano.TrucoResuelto,
+            mano.NivelTruco,
+            mano.PuntosTrucoMano,
+            mano.CantorTruco,
+            mano.EquipoCantorTruco,
+            mano.TrucoPendienteRespuestaDe,
+            mano.PuedeEscalarTruco,
+            Vueltas = mano.Vueltas,
+            mano.VueltaActual,
+        };
+
+        // Enviar estado personalizado a cada jugador (solo ve sus propias cartas)
+        foreach (var (connId, posicion) in state3v3.Posiciones)
+        {
+            var jugadorId = $"J{posicion}";
+            var jugador   = mano.ObtenerJugador(jugadorId);
+            if (jugador == null) continue;
+
+            string equipoId = mano.ObtenerEquipoDeJugador(jugadorId);
+            var equipo      = mano.ObtenerEquipo(equipoId);
+            // Jugadas de los DOS compañeros (resto del equipo), keyed por rol.
+            var cartasCompaneros = equipo.Jugadores
+                .Where(j => j.Id != jugadorId)
+                .ToDictionary(j => j.Id, j => j.Jugadas);
+
+            await Clients.Client(connId).SendAsync("TrucoEstado3v3", new
+            {
+                miRol            = jugadorId,
+                miEquipo         = equipoId,
+                misCartas        = jugador.Mano,
+                misJugadas       = jugador.Jugadas,
+                cartasCompaneros = cartasCompaneros,
                 estado           = baseDto
             });
         }
