@@ -28,15 +28,16 @@ namespace TrucoRPG.Dominio.Servicios
 
         /// <summary>
         /// Calcula el siguiente jugador en el orden de turno después de jugadorActualId.
+        /// Si jugadorActualId es el último del orden de la vuelta, devuelve null
+        /// (la vuelta está completa, no hay "siguiente").
         /// </summary>
         public static string? SiguienteJugador(ManoTruco2v2 mano, string jugadorActualId)
         {
             var orden = ObtenerOrdenTurno(mano);
             int idx = orden.IndexOf(jugadorActualId);
             if (idx < 0) return null;
-            // Circular: si una vuelta la abre un jugador que no es el "mano", el orden
-            // debe envolver hasta completar los 4 jugadores (no cortar en el último).
-            return orden[(idx + 1) % orden.Count];
+            if (idx == orden.Count - 1) return null;
+            return orden[idx + 1];
         }
 
         /// <summary>
