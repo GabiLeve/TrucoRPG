@@ -14,6 +14,12 @@ public class TrucoMultiState
     // Truco: el campo equivalente para J2 no existe en ManoTruco, lo rastreamos aquí
     public bool TrucoPendienteRespuestaJ2 { get; set; } = false;
     public bool EnvidoPendienteRespuestaJ2 { get; set; } = false;
+
+    // Cadena de cantos del envido (se acumulan: Envido + Real Envido = 5, etc.)
+    /// <summary>Puntos que vale el envido si se acepta (0 = Falta Envido, se calcula al resolver).</summary>
+    public int PuntosEnvidoEnJuego { get; set; } = 0;
+    /// <summary>Puntos que paga rechazar el último canto (lo apostado ANTES de la última suba).</summary>
+    public int PuntosEnvidoNoQuiero { get; set; } = 1;
 }
 
 /// <summary>Estado completo del juego 2v2 en el hub.</summary>

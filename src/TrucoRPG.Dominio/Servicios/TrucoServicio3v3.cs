@@ -98,11 +98,22 @@ namespace TrucoRPG.Dominio.Servicios
 
             string equipoQueSeVa = mano.ObtenerEquipoDeJugador(jugadorId);
             string equipoGana    = equipoQueSeVa == "EquipoA" ? "EquipoB" : "EquipoA";
-            int pts              = mano.TrucoCantado && !mano.TrucoResuelto ? mano.PuntosTrucoMano : 1;
+
+            // Puntos que se lleva el rival:
+            //  - sin truco cantado → 1
+            //  - truco cantado SIN responder → equivale a "no quiero": vale el nivel anterior
+            //  - truco ya querido → vale lo apostado (2/3/4)
+            int pts;
+            if (!mano.TrucoCantado)                          pts = 1;
+            else if (mano.TrucoPendienteRespuestaDe != null) pts = Math.Max(1, mano.NivelTruco);
+            else                                             pts = Math.Max(1, mano.PuntosTrucoMano);
 
             mano.GanadorMano   = equipoGana;
             mano.ManoTerminada = true;
             mano.TrucoResuelto = true;
+            // La mano terminó: no quedan cantos por responder.
+            mano.TrucoPendienteRespuestaDe  = null;
+            mano.EnvidoPendienteRespuestaDe = null;
             mano.EstadoTruco   = $"{jugadorId} se fue al mazo. {equipoGana} gana {pts} pt.";
             JuegoServicio3v3.SumarPuntos(mano, equipoGana, pts);
             return true;

@@ -26,6 +26,9 @@ namespace TrucoRPG.Dominio.UseCases
             mano.Humano.Mano.Remove(cartaHumano);
             mano.Humano.Jugadas.Add(cartaHumano);
 
+            // Si la máquina ya tenía una carta en la mesa, fue ella quien abrió esta baza.
+            bool maquinaAbrioLaBaza = mano.CartaMaquinaEnMesa != null;
+
             Carta cartaMaquina;
             if (mano.CartaMaquinaEnMesa != null)
             {
@@ -47,7 +50,11 @@ namespace TrucoRPG.Dominio.UseCases
                 Ganador      = ganadorBaza
             });
 
-            mano.TurnoActual = ganadorBaza == "Parda" ? mano.ManoIniciadaPor : ganadorBaza;
+            // Si la baza fue parda, vuelve a salir quien ABRIÓ esa baza (no siempre el mano
+            // de la mano: en la 2da/3ra baza puede haber salido el que ganó la anterior).
+            mano.TurnoActual = ganadorBaza == "Parda"
+                ? (maquinaAbrioLaBaza ? "Maquina" : "Humano")
+                : ganadorBaza;
             mano.GanadorMano = JuegoServicio.ResolverGanadorMano(mano.Bazas, mano.ManoIniciadaPor);
 
             if (mano.GanadorMano is "Humano" or "Maquina")

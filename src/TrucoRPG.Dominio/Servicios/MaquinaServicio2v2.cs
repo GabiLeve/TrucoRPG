@@ -274,9 +274,13 @@ namespace TrucoRPG.Dominio.Servicios
             if (mano.EnvidoPendienteRespuestaDe != jugadorId) return;
             var jugador = mano.ObtenerJugador(jugadorId);
             if (jugador == null || !jugador.EsMaquina) return;
-            if (jugador.Mano.Count == 0) { EnvidoServicio2v2.ResolverNoQuiero(mano); return; }
 
-            bool acepta = AceptarEnvido(jugador.Mano);
+            // El tanto se evalúa SIEMPRE con las 3 cartas originales (mano + jugadas):
+            // si la máquina ya tiró una carta en la primera vuelta, igual cuenta.
+            var cartasOriginales = jugador.Mano.Concat(jugador.Jugadas).ToList();
+            if (cartasOriginales.Count == 0) { EnvidoServicio2v2.ResolverNoQuiero(mano); return; }
+
+            bool acepta = AceptarEnvido(cartasOriginales);
             if (!acepta)
             {
                 EnvidoServicio2v2.ResolverNoQuiero(mano);
@@ -284,18 +288,13 @@ namespace TrucoRPG.Dominio.Servicios
             }
 
             // Si tiene mucho tanto, a veces sube la apuesta en vez de solo querer.
-            int tanto = EnvidoServicio.CalcularTanto(jugador.Mano);
+            // Delega en EnvidoServicio2v2.Escalar para que los puntos se acumulen bien.
+            int tanto = EnvidoServicio.CalcularTanto(cartasOriginales);
             string? escala = ElegirEscaladaEnvido(mano.TipoEnvidoCantado, tanto);
-            if (escala != null)
+            if (escala != null && EnvidoServicio2v2.Escalar(
+                    mano, jugadorId, escala,
+                    (m, j) => TurnoServicio2v2.ObtenerResponsableTruco(m, m.ObtenerEquipoDeJugador(j))))
             {
-                int ptsAntes = mano.PuntosEnvido;
-                mano.TipoEnvidoCantado = EnvidoServicio.NormalizarTipo(escala);
-                mano.PuntosEnvido      = EnvidoServicio2v2.ObtenerPuntosEnJuego(mano.TipoEnvidoCantado);
-                mano.PuntosEnvidoNoQuiero = ptsAntes; // rechazar la escalada paga lo anterior
-                mano.CantorEnvido      = jugadorId;
-                string equipoCantor    = mano.ObtenerEquipoDeJugador(jugadorId);
-                mano.EnvidoPendienteRespuestaDe = TurnoServicio2v2.ObtenerResponsableTruco(mano, equipoCantor);
-                mano.EstadoEnvido      = $"{jugadorId} cantó {escala}.";
                 return; // queda esperando la respuesta del rival
             }
 
@@ -333,13 +332,12 @@ namespace TrucoRPG.Dominio.Servicios
 
             var jugador = mano.ObtenerJugador(jugadorId);
             if (jugador == null || !jugador.EsMaquina) return;
-            if (jugador.Mano.Count == 0)
-            {
-                EnvidoServicio2v2.ProcesarDeclaracion(mano, jugadorId, 0, sonBuenas: true);
-                return;
-            }
 
-            int tantoPropio = EnvidoServicio.CalcularTanto(jugador.Mano);
+            // Declara el tanto REAL (calculado con sus 3 cartas originales al repartir,
+            // ya precalculado en TantosReales): si ya jugó una carta, igual cuenta.
+            int tantoPropio = mano.TantosReales.TryGetValue(jugadorId, out var tantoReal)
+                ? tantoReal
+                : EnvidoServicio2v2.TantoOriginal(jugador);
 
             // Mejor tanto que ya muestra el equipo rival. Como a los jugadores cuyo equipo
             // ya va ganando se los saltea (no llegan a cantar), si me toca cantar es porque

@@ -237,9 +237,10 @@ public class GameHub : Hub
         {
             if (mano.CartaMaquinaEnMesa != null)
             {
+                // J2 abrió la baza (su carta ya estaba en la mesa).
                 var cartaJ2 = mano.CartaMaquinaEnMesa;
                 mano.CartaMaquinaEnMesa = null;
-                ResolverBazaMulti(mano, carta, cartaJ2);
+                ResolverBazaMulti(mano, carta, cartaJ2, abridorBaza: "Maquina");
             }
             else
             {
@@ -251,9 +252,10 @@ public class GameHub : Hub
         {
             if (state.CartaPendienteJ1 != null)
             {
+                // J1 abrió la baza (su carta ya estaba en la mesa).
                 var cartaJ1 = state.CartaPendienteJ1;
                 state.CartaPendienteJ1 = null;
-                ResolverBazaMulti(mano, cartaJ1, carta);
+                ResolverBazaMulti(mano, cartaJ1, carta, abridorBaza: "Humano");
             }
             else
             {
@@ -308,6 +310,10 @@ public class GameHub : Hub
         mano.CantorEnvido      = esJ1 ? "Humano" : "Maquina";
         mano.TipoEnvidoCantado = EnvidoServicio.NormalizarTipo(tipo);
 
+        // Arranca la cadena de apuestas del envido.
+        state.PuntosEnvidoEnJuego  = EnvidoServicio.ObtenerPuntosSegunTipo(mano.TipoEnvidoCantado);
+        state.PuntosEnvidoNoQuiero = 1;
+
         if (esJ1)
         {
             state.EnvidoPendienteRespuestaJ2 = true;
@@ -338,29 +344,34 @@ public class GameHub : Hub
 
         if (!aceptar)
         {
+            // Rechazar paga lo apostado ANTES de la última suba (Envido→1, Envido+Real→2, etc.)
+            int ptsNoQuiero     = Math.Max(1, state.PuntosEnvidoNoQuiero);
             mano.EnvidoResuelto = true;
             mano.GanadorEnvido  = mano.CantorEnvido;
-            mano.PuntosEnvido   = 1;
+            mano.PuntosEnvido   = ptsNoQuiero;
             string ganNombre    = mano.CantorEnvido == "Humano" ? "Jugador 1" : "Jugador 2";
-            mano.EstadoEnvido   = $"No quiso. {ganNombre} gana 1 punto de envido.";
-            JuegoServicio.SumarPuntos(mano, mano.CantorEnvido!, 1);
+            mano.EstadoEnvido   = $"No quiso. {ganNombre} gana {ptsNoQuiero} punto(s) de envido.";
+            JuegoServicio.SumarPuntos(mano, mano.CantorEnvido!, ptsNoQuiero);
         }
         else
         {
-            int pts = EnvidoServicio.ObtenerPuntosSegunTipo(mano.TipoEnvidoCantado);
-            mano.TantoHumano  = EnvidoServicio.CalcularTanto(mano.Humano.Mano);
-            mano.TantoMaquina = EnvidoServicio.CalcularTanto(mano.Maquina.Mano);
+            // Los cantos acumulados de la cadena (Envido + Real Envido = 5, etc.)
+            int pts = state.PuntosEnvidoEnJuego > 0
+                ? state.PuntosEnvidoEnJuego
+                : EnvidoServicio.ObtenerPuntosSegunTipo(mano.TipoEnvidoCantado);
 
-            if (mano.TipoEnvidoCantado == "FaltaEnvido")
-            {
-                int ptsGanador = mano.TantoHumano >= mano.TantoMaquina
-                    ? mano.PuntosHumano : mano.PuntosMaquina;
-                pts = Math.Max(30 - ptsGanador, 1);
-            }
+            // El tanto se cuenta con las cartas ORIGINALES (mano + jugadas): si alguien ya
+            // tiró una carta en la primera vuelta, igual cuenta para el envido.
+            mano.TantoHumano  = EnvidoServicio.CalcularTantoOriginal(mano.Humano);
+            mano.TantoMaquina = EnvidoServicio.CalcularTantoOriginal(mano.Maquina);
 
             if (mano.TantoHumano > mano.TantoMaquina)       mano.GanadorEnvido = "Humano";
             else if (mano.TantoMaquina > mano.TantoHumano)  mano.GanadorEnvido = "Maquina";
             else                                             mano.GanadorEnvido = mano.ManoIniciadaPor;
+
+            // La Falta vale lo que le falta al que VA GANANDO la partida para llegar a 30.
+            if (mano.TipoEnvidoCantado == "FaltaEnvido")
+                pts = EnvidoServicio.CalcularPuntosFalta(Math.Max(mano.PuntosHumano, mano.PuntosMaquina));
 
             mano.PuntosEnvido   = pts;
             mano.EnvidoResuelto = true;
@@ -390,7 +401,12 @@ public class GameHub : Hub
         mano.SonBuenasDeclarado             = true;
         mano.EnvidoResuelto                 = true;
         mano.GanadorEnvido                  = mano.CantorEnvido;
-        int pts                             = EnvidoServicio.ObtenerPuntosSegunTipo(mano.TipoEnvidoCantado);
+        // "Son buenas" equivale a querer y perder: vale lo acumulado de la cadena.
+        int pts = state.PuntosEnvidoEnJuego > 0
+            ? state.PuntosEnvidoEnJuego
+            : EnvidoServicio.ObtenerPuntosSegunTipo(mano.TipoEnvidoCantado);
+        if (mano.TipoEnvidoCantado == "FaltaEnvido")
+            pts = EnvidoServicio.CalcularPuntosFalta(Math.Max(mano.PuntosHumano, mano.PuntosMaquina));
         mano.PuntosEnvido                   = pts;
         string ganNombre                    = mano.CantorEnvido == "Humano" ? "Jugador 1" : "Jugador 2";
         mano.EstadoEnvido                   = $"Son buenas. {ganNombre} gana {pts} punto(s) de envido.";
@@ -414,6 +430,13 @@ public class GameHub : Hub
 
         mano.TipoEnvidoCantado = tipoNuevo;
         mano.CantorEnvido      = rolActual;
+
+        // Acumular la apuesta: rechazar la suba paga lo anterior; aceptarla suma el
+        // incremento del nuevo canto (la Falta se calcula al resolver).
+        state.PuntosEnvidoNoQuiero = Math.Max(1, state.PuntosEnvidoEnJuego);
+        state.PuntosEnvidoEnJuego  = tipoNuevo == "FaltaEnvido"
+            ? 0
+            : state.PuntosEnvidoEnJuego + EnvidoServicio.IncrementoPuntosTipo(tipoNuevo);
 
         mano.EnvidoPendienteRespuestaHumano = !esJ1;
         state.EnvidoPendienteRespuestaJ2    = esJ1;
@@ -662,10 +685,22 @@ public class GameHub : Hub
 
         bool esJ1      = Context.ConnectionId == state.Jugador1Id;
         string ganador = esJ1 ? "Maquina" : "Humano";
-        int pts        = mano.TrucoCantado && !mano.TrucoResuelto ? mano.PuntosTrucoMano : 1;
+
+        // Puntos para el rival: sin truco → 1; truco cantado SIN responder → equivale a
+        // "no quiero" (vale el nivel); truco ya querido → vale lo apostado (2/3/4).
+        bool hayCantoSinResponder = mano.TrucoPendienteRespuestaHumano || state.TrucoPendienteRespuestaJ2;
+        int pts;
+        if (!mano.TrucoCantado)            pts = 1;
+        else if (hayCantoSinResponder)     pts = Math.Max(1, mano.NivelTruco);
+        else                               pts = Math.Max(1, mano.PuntosTrucoMano);
 
         mano.GanadorMano   = ganador;
         mano.TrucoResuelto = true;
+        // La mano terminó: no quedan cantos por responder.
+        mano.TrucoPendienteRespuestaHumano  = false;
+        state.TrucoPendienteRespuestaJ2     = false;
+        mano.EnvidoPendienteRespuestaHumano = false;
+        state.EnvidoPendienteRespuestaJ2    = false;
         mano.EstadoTruco   = $"{(esJ1 ? "J1" : "J2")} se fue al mazo. {(ganador == "Humano" ? "J1" : "J2")} gana {pts} pt.";
         JuegoServicio.SumarPuntos(mano, ganador, pts);
 
@@ -935,6 +970,8 @@ public class GameHub : Hub
         state.CartaPendienteJ1           = null;
         state.TrucoPendienteRespuestaJ2  = false;
         state.EnvidoPendienteRespuestaJ2 = false;
+        state.PuntosEnvidoEnJuego        = 0;
+        state.PuntosEnvidoNoQuiero       = 1;
     }
 
     private static TrucoMultiState2v2 IniciarNuevaMano2v2(
@@ -1014,11 +1051,13 @@ public class GameHub : Hub
         return state3v3;
     }
 
-    private static void ResolverBazaMulti(ManoTruco mano, Carta cartaJ1, Carta cartaJ2)
+    private static void ResolverBazaMulti(ManoTruco mano, Carta cartaJ1, Carta cartaJ2, string abridorBaza)
     {
         var ganador = JuegoServicio.ResolverBaza(cartaJ1, cartaJ2);
         mano.Bazas.Add(new Baza { CartaJugador = cartaJ1, CartaMaquina = cartaJ2, Ganador = ganador });
-        mano.TurnoActual = ganador == "Parda" ? mano.ManoIniciadaPor : ganador;
+        // Si la baza fue parda, vuelve a salir quien ABRIÓ esa baza (no siempre el mano
+        // de la mano: en la 2da/3ra baza puede haber salido el que ganó la anterior).
+        mano.TurnoActual = ganador == "Parda" ? abridorBaza : ganador;
 
         var ganadorMano = JuegoServicio.ResolverGanadorMano(mano.Bazas, mano.ManoIniciadaPor);
         if (ganadorMano != null)

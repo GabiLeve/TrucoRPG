@@ -37,6 +37,9 @@ namespace TrucoRPG.Dominio.Servicios
         {
             if (mano.EnvidoCantado || mano.EnvidoResuelto) return false;
             if (mano.PartidaTerminada || mano.GanadorMano != null) return false;
+            // En Pica-Pica solo los duelistas activos pueden cantar (un jugador sin cartas
+            // que mira el duelo no puede meterse en el envido).
+            if (mano.JugadoresActivos.Count > 0 && !mano.JugadoresActivos.Contains(jugadorId)) return false;
             if (mano.Vueltas.Count > 0) return false;
             if ((mano.ObtenerJugador(jugadorId)?.Jugadas.Count ?? 0) > 0) return false;
             if (mano.TrucoCantado &&
@@ -95,8 +98,12 @@ namespace TrucoRPG.Dominio.Servicios
 
             int ptsAntes = mano.PuntosEnvido;
             mano.TipoEnvidoCantado    = tipoNuevo;
-            mano.PuntosEnvido         = ObtenerPuntosEnJuego(tipoNuevo);
-            mano.PuntosEnvidoNoQuiero = ptsAntes;
+            // Los cantos se ACUMULAN: Envido (2) + Real Envido (3) = 5. La Falta no suma acá:
+            // su valor es dinámico y se calcula al resolver (FinalizarEnvido).
+            mano.PuntosEnvido         = tipoNuevo == "FaltaEnvido"
+                ? 0
+                : ptsAntes + EnvidoServicio.IncrementoPuntosTipo(tipoNuevo);
+            mano.PuntosEnvidoNoQuiero = Math.Max(1, ptsAntes);
             mano.CantorEnvido         = jugadorId;
             mano.EnvidoPendienteRespuestaDe = responsable(mano, jugadorId);
             mano.EstadoEnvido = $"{jugadorId} cantó {tipo}.";
@@ -134,6 +141,15 @@ namespace TrucoRPG.Dominio.Servicios
             }
             else
             {
+                // Nadie puede declarar MÁS tanto del que realmente tiene (eso es trampa);
+                // declarar de menos sí está permitido. Se capea al tanto real.
+                if (tanto.HasValue)
+                {
+                    int declarado = Math.Max(0, tanto.Value);
+                    if (mano.TantosReales.TryGetValue(jugadorId, out var real) && declarado > real)
+                        declarado = real;
+                    tanto = declarado;
+                }
                 mano.TantosDeclarados[jugadorId] = tanto;
             }
 
@@ -219,14 +235,13 @@ namespace TrucoRPG.Dominio.Servicios
 
             int puntosEnJuego = mano.PuntosEnvido;
 
-            // Falta Envido: vale exactamente lo que le falta al ganador para llegar a 30.
+            // Falta Envido: vale lo que le falta al equipo que VA GANANDO la partida para
+            // llegar a 30 (no al ganador del envido: si el que pierde la gana, no salta a 30).
             // ObtenerPuntosSegunTipo devuelve 0 para FaltaEnvido porque el valor es dinámico.
             if (mano.TipoEnvidoCantado == "FaltaEnvido")
             {
-                int puntosActualesGanador = equipoGanador == "EquipoA"
-                    ? mano.PuntosEquipoA
-                    : mano.PuntosEquipoB;
-                puntosEnJuego = Math.Max(JuegoServicio3v3.PuntajeObjetivo - puntosActualesGanador, 1);
+                int puntosLider = Math.Max(mano.PuntosEquipoA, mano.PuntosEquipoB);
+                puntosEnJuego = EnvidoServicio.CalcularPuntosFalta(puntosLider);
                 mano.PuntosEnvido = puntosEnJuego;
             }
 

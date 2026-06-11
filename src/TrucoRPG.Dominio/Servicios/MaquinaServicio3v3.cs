@@ -181,15 +181,19 @@ namespace TrucoRPG.Dominio.Servicios
             if (mano.EnvidoPendienteRespuestaDe != jugadorId) return;
             var jugador = mano.ObtenerJugador(jugadorId);
             if (jugador == null || !jugador.EsMaquina) return;
-            if (jugador.Mano.Count == 0) { EnvidoServicio3v3.ResolverNoQuiero(mano); return; }
 
-            if (!AceptarEnvido(jugador.Mano))
+            // El tanto se evalúa SIEMPRE con las 3 cartas originales (mano + jugadas):
+            // si la máquina ya tiró una carta en la primera vuelta, igual cuenta.
+            var cartasOriginales = jugador.Mano.Concat(jugador.Jugadas).ToList();
+            if (cartasOriginales.Count == 0) { EnvidoServicio3v3.ResolverNoQuiero(mano); return; }
+
+            if (!AceptarEnvido(cartasOriginales))
             {
                 EnvidoServicio3v3.ResolverNoQuiero(mano);
                 return;
             }
 
-            int tanto = EnvidoServicio.CalcularTanto(jugador.Mano);
+            int tanto = EnvidoServicio.CalcularTanto(cartasOriginales);
             string? escala = ElegirEscaladaEnvido(mano.TipoEnvidoCantado, tanto);
             if (escala != null)
             {
@@ -224,13 +228,12 @@ namespace TrucoRPG.Dominio.Servicios
 
             var jugador = mano.ObtenerJugador(jugadorId);
             if (jugador == null || !jugador.EsMaquina) return;
-            if (jugador.Mano.Count == 0)
-            {
-                EnvidoServicio3v3.ProcesarDeclaracion(mano, jugadorId, 0, sonBuenas: true);
-                return;
-            }
 
-            int tantoPropio = EnvidoServicio.CalcularTanto(jugador.Mano);
+            // Declara el tanto REAL (calculado con sus 3 cartas originales al repartir,
+            // ya precalculado en TantosReales): si ya jugó una carta, igual cuenta.
+            int tantoPropio = mano.TantosReales.TryGetValue(jugadorId, out var tantoReal)
+                ? tantoReal
+                : EnvidoServicio3v3.TantoOriginal(jugador);
 
             var orden = TurnoServicio3v3.ObtenerOrdenDeclaracionEnvido(mano);
             int idxActual = orden.IndexOf(jugadorId);
