@@ -27,8 +27,13 @@ public class GameHub : Hub
     // ─────────────────────────────────────────────────────────────
     public async Task<string> CrearSala(string modo = "1v1")
     {
-        var codigo = Guid.NewGuid().ToString("N")[..6].ToUpper();
-        _salas[codigo] = new List<string> { Context.ConnectionId };
+        // TryAdd en loop: evita pisar una sala existente si el código (6 chars) colisiona.
+        string codigo;
+        do
+        {
+            codigo = Guid.NewGuid().ToString("N")[..6].ToUpper();
+        } while (!_salas.TryAdd(codigo, new List<string> { Context.ConnectionId }));
+
         _salasModo[codigo] = modo;
         _conexionASala[Context.ConnectionId] = codigo;
         await Groups.AddToGroupAsync(Context.ConnectionId, codigo);
@@ -42,25 +47,33 @@ public class GameHub : Hub
         var modo = _salasModo.TryGetValue(codigo, out var m) ? m : "1v1";
         int maxJugadores = JugadoresRequeridos(modo);
 
-        if (jugadores.Count >= maxJugadores) return false;
+        int cantidad;
+        // La List<string> dentro del ConcurrentDictionary no es thread-safe:
+        // chequeo de cupo + alta deben ser atómicos para no superar el máximo.
+        lock (jugadores)
+        {
+            if (jugadores.Count >= maxJugadores) return false;
+            if (jugadores.Contains(Context.ConnectionId)) return false;
+            jugadores.Add(Context.ConnectionId);
+            cantidad = jugadores.Count;
+        }
 
-        jugadores.Add(Context.ConnectionId);
         _conexionASala[Context.ConnectionId] = codigo;
         await Groups.AddToGroupAsync(Context.ConnectionId, codigo);
 
         if (modo == "1v1")
         {
-            if (jugadores.Count == 2)
+            if (cantidad == 2)
                 await Clients.Group(codigo).SendAsync("SalaLista");
         }
         else // 2v2 / 3v3
         {
             await Clients.Group(codigo).SendAsync("LobbyActualizado", new
             {
-                jugadoresEnSala = jugadores.Count,
+                jugadoresEnSala = cantidad,
                 maxJugadores
             });
-            if (jugadores.Count == maxJugadores)
+            if (cantidad == maxJugadores)
                 await Clients.Group(codigo).SendAsync("SalaCompleta");
         }
 
@@ -192,11 +205,21 @@ public class GameHub : Hub
 
         var modo = _salasModo.TryGetValue(sala, out var m) ? m : "1v1";
 
-        if (modo == "2v2" && jugadores.Count == 4)
+        if (modo == "2v2")
         {
+            if (jugadores.Count < 4) return;
             var state2v2 = IniciarNuevaMano2v2(sala, jugadores, esPrimeraPartida: true);
             _trucoGames2v2[sala] = state2v2;
             await BroadcastTrucoEstado2v2(sala, state2v2);
+            return;
+        }
+
+        if (modo == "3v3")
+        {
+            if (jugadores.Count < 6) return;
+            var state3v3 = IniciarNuevaMano3v3(sala, jugadores, esPrimeraPartida: true);
+            _trucoGames3v3[sala] = state3v3;
+            await BroadcastTrucoEstado3v3(sala, state3v3);
             return;
         }
 
@@ -635,12 +658,18 @@ public class GameHub : Hub
         {
             if (_salas.TryGetValue(sala, out var jugadores))
             {
-                jugadores.Remove(Context.ConnectionId);
-                if (jugadores.Count == 0)
+                bool salaVacia;
+                lock (jugadores)
+                {
+                    jugadores.Remove(Context.ConnectionId);
+                    salaVacia = jugadores.Count == 0;
+                }
+                if (salaVacia)
                 {
                     _salas.TryRemove(sala, out _);
                     _salasModo.TryRemove(sala, out _);
                     _equiposJugadores.TryRemove(sala, out _);
+                    _listos.TryRemove(sala, out _);
                 }
             }
             _trucoGames.TryRemove(sala, out _);
@@ -733,28 +762,27 @@ public class GameHub : Hub
         bool esPrimeraPartida,
         ManoTruco3v3? estadoAnterior = null)
     {
-        int numMano = esPrimeraPartida ? 1 : (estadoAnterior?.NumeroDeMano ?? 0) + 1;
-        int ptsA    = esPrimeraPartida ? 0 : estadoAnterior?.PuntosEquipoA ?? 0;
-        int ptsB    = esPrimeraPartida ? 0 : estadoAnterior?.PuntosEquipoB ?? 0;
+        int numMano  = esPrimeraPartida ? 1 : (estadoAnterior?.NumeroDeMano ?? 0) + 1;
+        int ptsA     = esPrimeraPartida ? 0 : estadoAnterior?.PuntosEquipoA ?? 0;
+        int ptsB     = esPrimeraPartida ? 0 : estadoAnterior?.PuntosEquipoB ?? 0;
+        int prevSlot = esPrimeraPartida ? -1 : estadoAnterior?.PicaPicaSlot ?? -1;
 
-        // Crear jugadores con ids basados en posición (J1..J6)
-        var jugadoresEntidad = jugadores.Take(6).Select((connId, i) => new Jugador
+        // Crear jugadores con ids basados en posición (J1..J6).
+        // Se generan siempre los 6 (CrearProximaMano los requiere no-nulos).
+        var jugadoresEntidad = Enumerable.Range(1, 6).Select(i => new Jugador
         {
-            Id        = $"J{i + 1}",
-            Nombre    = $"Jugador {i + 1}",
+            Id        = $"J{i}",
+            Nombre    = $"Jugador {i}",
             EsMaquina = false
         }).ToArray();
 
-        var mano = PartidaServicio3v3.CrearManoNueva(
-            numeroDeMano: numMano,
-            puntosEquipoA: ptsA,
-            puntosEquipoB: ptsB,
-            pos1: jugadoresEntidad.Length > 0 ? jugadoresEntidad[0] : null,
-            pos2: jugadoresEntidad.Length > 1 ? jugadoresEntidad[1] : null,
-            pos3: jugadoresEntidad.Length > 2 ? jugadoresEntidad[2] : null,
-            pos4: jugadoresEntidad.Length > 3 ? jugadoresEntidad[3] : null,
-            pos5: jugadoresEntidad.Length > 4 ? jugadoresEntidad[4] : null,
-            pos6: jugadoresEntidad.Length > 5 ? jugadoresEntidad[5] : null);
+        // CrearProximaMano aplica el ciclo Pica-Pica (igual que el modo solo):
+        // redondas hasta 5 pts, luego ciclos de 3 duelos 1v1 + 1 redonda hasta 25,
+        // y de ahí solo redondas hasta 30.
+        var mano = PartidaServicio3v3.CrearProximaMano(
+            numMano, ptsA, ptsB, prevSlot,
+            jugadoresEntidad[0], jugadoresEntidad[1], jugadoresEntidad[2],
+            jugadoresEntidad[3], jugadoresEntidad[4], jugadoresEntidad[5]);
 
         var state3v3 = new TrucoMultiState3v3 { Mano = mano };
 
@@ -950,6 +978,9 @@ public class GameHub : Hub
             mano.PuedeEscalarTruco,
             Vueltas = mano.Vueltas,
             mano.VueltaActual,
+            mano.PicaPica,
+            mano.PicaPicaSlot,
+            mano.JugadoresActivos,
         };
 
         // Enviar estado personalizado a cada jugador (solo ve sus propias cartas)
