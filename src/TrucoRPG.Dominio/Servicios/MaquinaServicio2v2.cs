@@ -561,6 +561,24 @@ namespace TrucoRPG.Dominio.Servicios
         }
 
         /// <summary>
+        /// Resuelve la consulta "¿canto los tantos?" del compañero (J3) al humano:
+        /// si acepta, el compañero canta el Envido. (Antes vivía en Truco2v2Controller;
+        /// espejo de MaquinaServicio3v3.ResolverConsultaEnvido.)
+        /// </summary>
+        public static void ResolverConsultaEnvido(
+            ManoTruco2v2 mano, bool aceptar, Func<ManoTruco2v2, string, string> responsable)
+        {
+            if (!mano.CompaConsultaEnvido)
+                throw new InvalidOperationException("Tu compañero no está preguntando por el envido.");
+
+            mano.CompaConsultaEnvido   = false;
+            mano.CompaEnvidoConsultado = true;
+
+            if (aceptar)
+                EnvidoServicio2v2.Cantar(mano, J3, "Envido", responsable);
+        }
+
+        /// <summary>
         /// Resuelve la consulta "¿voy o pongo?" del compañero (J3) al humano:
         /// "voy" → el compañero juega su carta más baja (vos metés la alta);
         /// "pongo" → juega su carta más alta para intentar ganar la baza.

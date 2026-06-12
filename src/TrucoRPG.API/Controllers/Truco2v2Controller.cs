@@ -63,15 +63,11 @@ namespace TrucoRPG.API.Controllers
         public ActionResult<ManoTruco2v2> JugarCarta([FromBody] Truco2v2CartaRequest req)
         {
             var mano = ObtenerMano(req.ManoId);
-            ValidarTurnoHumano(mano);
+            JuegoServicio2v2.ValidarAccionJugador(mano, J1);
 
-            var jugador = mano.ObtenerJugador(J1)!;
-            var carta = jugador.Mano.FirstOrDefault(c =>
-                c.Numero == req.Numero &&
-                c.Palo.Equals(req.Palo, StringComparison.OrdinalIgnoreCase))
-                ?? throw new InvalidOperationException("Carta no encontrada en tu mano.");
+            if (!JuegoServicio2v2.JugarCartaPorValor(mano, J1, req.Numero, req.Palo))
+                throw new InvalidOperationException("Carta no encontrada en tu mano.");
 
-            JuegoServicio2v2.JugarCarta(mano, J1, carta);
             // Las máquinas avanzan paso a paso desde el front (endpoint avanzar-maquina).
             Truco2v2MemoriaServicio.Actualizar(mano);
             return Ok(mano);
@@ -242,17 +238,8 @@ namespace TrucoRPG.API.Controllers
         public ActionResult<ManoTruco2v2> ResponderConsultaEnvido([FromBody] Truco2v2ConsultaEnvidoRequest req)
         {
             var mano = ObtenerMano(req.ManoId);
-            if (!mano.CompaConsultaEnvido)
-                throw new InvalidOperationException("Tu compañero no está preguntando por el envido.");
-
-            mano.CompaConsultaEnvido   = false;
-            mano.CompaEnvidoConsultado = true;
-
-            if (req.Aceptar)
-            {
-                // El compañero (J3) canta el envido (delega la regla en el dominio).
-                EnvidoServicio2v2.Cantar(mano, J3, "Envido", Responsable);
-            }
+            // La regla (flags + canto del compañero) vive en el dominio.
+            MaquinaServicio2v2.ResolverConsultaEnvido(mano, req.Aceptar, Responsable);
 
             Truco2v2MemoriaServicio.Actualizar(mano);
             return Ok(mano);
@@ -293,17 +280,5 @@ namespace TrucoRPG.API.Controllers
         private static ManoTruco2v2 ObtenerMano(Guid id) =>
             Truco2v2MemoriaServicio.Obtener(id)
             ?? throw new KeyNotFoundException($"No se encontró la mano {id}.");
-
-        private static void ValidarTurnoHumano(ManoTruco2v2 mano)
-        {
-            if (mano.PartidaTerminada || mano.ManoTerminada)
-                throw new InvalidOperationException("La mano/partida ya terminó.");
-            if (mano.TrucoPendienteRespuestaDe == J1)
-                throw new InvalidOperationException("Debés responder el truco antes de jugar.");
-            if (mano.EnvidoPendienteRespuestaDe == J1)
-                throw new InvalidOperationException("Debés responder el envido antes de jugar.");
-            if (mano.TurnoActual != J1)
-                throw new InvalidOperationException("No es tu turno.");
-        }
     }
 }

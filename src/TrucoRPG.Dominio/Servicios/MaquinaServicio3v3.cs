@@ -442,6 +442,22 @@ namespace TrucoRPG.Dominio.Servicios
             JuegoServicio3v3.JugarCarta(mano, consultor, carta);
         }
 
+        /// <summary>
+        /// Orden del humano a un compañero bot: jugar su carta más alta en su próximo
+        /// turno. Valida que sea un bot del equipo del humano y que tenga cartas.
+        /// (Antes vivía en Truco3v3Controller.)
+        /// </summary>
+        public static void OrdenarJugarMayor(ManoTruco3v3 mano, string jugadorId)
+        {
+            var jugador = mano.ObtenerJugador(jugadorId)
+                ?? throw new InvalidOperationException($"Jugador {jugadorId} no encontrado.");
+            if (!jugador.EsMaquina || mano.ObtenerEquipoDeJugador(jugadorId) != "EquipoA")
+                throw new InvalidOperationException("Solo podés ordenar a tus compañeros bot.");
+            if (jugador.Mano.Count == 0)
+                throw new InvalidOperationException($"{jugadorId} no tiene cartas en mano.");
+            mano.OrdenJugarMayor = jugadorId;
+        }
+
         /// <summary>Próximo jugador que debe actuar (el envido va primero).</summary>
         private static string? ProximoActor(ManoTruco3v3 mano)
         {

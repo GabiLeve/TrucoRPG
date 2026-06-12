@@ -68,13 +68,9 @@ namespace TrucoRPG.API.Controllers
             var mano = ObtenerMano(req.ManoId);
             JuegoServicio3v3.ValidarAccionJugador(mano, J1);
 
-            var jugador = mano.ObtenerJugador(J1)!;
-            var carta = jugador.Mano.FirstOrDefault(c =>
-                c.Numero == req.Numero &&
-                c.Palo.Equals(req.Palo, StringComparison.OrdinalIgnoreCase))
-                ?? throw new InvalidOperationException("Carta no encontrada en tu mano.");
+            if (!JuegoServicio3v3.JugarCartaPorValor(mano, J1, req.Numero, req.Palo))
+                throw new InvalidOperationException("Carta no encontrada en tu mano.");
 
-            JuegoServicio3v3.JugarCarta(mano, J1, carta);
             Truco3v3MemoriaServicio.Actualizar(mano);
             return Ok(mano);
         }
@@ -209,13 +205,8 @@ namespace TrucoRPG.API.Controllers
         public ActionResult<ManoTruco3v3> OrdenarMayor([FromBody] Truco3v3OrdenMayorRequest req)
         {
             var mano = ObtenerMano(req.ManoId);
-            var jugador = mano.ObtenerJugador(req.JugadorId)
-                ?? throw new InvalidOperationException($"Jugador {req.JugadorId} no encontrado.");
-            if (!jugador.EsMaquina || mano.ObtenerEquipoDeJugador(req.JugadorId) != "EquipoA")
-                throw new InvalidOperationException("Solo podés ordenar a tus compañeros bot.");
-            if (jugador.Mano.Count == 0)
-                throw new InvalidOperationException($"{req.JugadorId} no tiene cartas en mano.");
-            mano.OrdenJugarMayor = req.JugadorId;
+            // La regla (quién puede recibir la orden) vive en el dominio.
+            MaquinaServicio3v3.OrdenarJugarMayor(mano, req.JugadorId);
             Truco3v3MemoriaServicio.Actualizar(mano);
             return Ok(mano);
         }

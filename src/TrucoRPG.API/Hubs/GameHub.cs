@@ -179,7 +179,7 @@ public class GameHub : Hub
                 Jugador1Id = jugadores[0],
                 Jugador2Id = jugadores[1],
             };
-            IniciarNuevaMano(state, esPrimeraPartida: true);
+            TrucoMulti1v1Servicio.IniciarNuevaMano(state, esPrimeraPartida: true);
             _trucoGames[sala] = state;
             await BroadcastTrucoEstado(sala, state);
         }
@@ -205,7 +205,7 @@ public class GameHub : Hub
             Jugador1Id = jugadores[0],
             Jugador2Id = jugadores[1],
         };
-        IniciarNuevaMano(state, esPrimeraPartida: true);
+        TrucoMulti1v1Servicio.IniciarNuevaMano(state, esPrimeraPartida: true);
         _trucoGames[sala] = state;
         await BroadcastTrucoEstado(sala, state);
     }
@@ -216,53 +216,8 @@ public class GameHub : Hub
     public async Task JugarCarta(int numero, string palo)
     {
         if (!ObtenerSalaYEstado(out var sala, out var state)) return;
-        var mano = state!.Mano;
-        if (mano.GanadorMano != null || mano.PartidaTerminada) return;
-        if (mano.EnvidoPendienteRespuestaHumano || state.EnvidoPendienteRespuestaJ2) return;
-        if (mano.TrucoPendienteRespuestaHumano || state.TrucoPendienteRespuestaJ2) return;
-
-        bool esJ1  = Context.ConnectionId == state.Jugador1Id;
-        string rol = esJ1 ? "Humano" : "Maquina";
-        if (mano.TurnoActual != rol) return;
-
-        var manoJugador = esJ1 ? mano.Humano.Mano : mano.Maquina.Mano;
-        var carta = manoJugador.FirstOrDefault(c =>
-            c.Numero == numero && c.Palo.Equals(palo, StringComparison.OrdinalIgnoreCase));
-        if (carta == null) return;
-
-        manoJugador.Remove(carta);
-        (esJ1 ? mano.Humano.Jugadas : mano.Maquina.Jugadas).Add(carta);
-
-        if (esJ1)
-        {
-            if (mano.CartaMaquinaEnMesa != null)
-            {
-                // J2 abrió la baza (su carta ya estaba en la mesa).
-                var cartaJ2 = mano.CartaMaquinaEnMesa;
-                mano.CartaMaquinaEnMesa = null;
-                ResolverBazaMulti(mano, carta, cartaJ2, abridorBaza: "Maquina");
-            }
-            else
-            {
-                state.CartaPendienteJ1 = carta;
-                mano.TurnoActual = "Maquina";
-            }
-        }
-        else
-        {
-            if (state.CartaPendienteJ1 != null)
-            {
-                // J1 abrió la baza (su carta ya estaba en la mesa).
-                var cartaJ1 = state.CartaPendienteJ1;
-                state.CartaPendienteJ1 = null;
-                ResolverBazaMulti(mano, cartaJ1, carta, abridorBaza: "Humano");
-            }
-            else
-            {
-                mano.CartaMaquinaEnMesa = carta;
-                mano.TurnoActual = "Humano";
-            }
-        }
+        bool esJ1 = Context.ConnectionId == state!.Jugador1Id;
+        if (!TrucoMulti1v1Servicio.JugarCarta(state, esJ1, numero, palo)) return;
 
         _trucoGames[sala!] = state;
         await BroadcastTrucoEstado(sala!, state);
@@ -274,21 +229,11 @@ public class GameHub : Hub
     public async Task JugarCarta2v2(int numero, string palo)
     {
         if (!ObtenerSalaYEstado2v2(out var sala, out var state2v2)) return;
-        var mano = state2v2!.Mano;
-        if (mano.GanadorMano != null || mano.PartidaTerminada) return;
-        if (mano.TrucoPendienteRespuestaDe != null || mano.EnvidoPendienteRespuestaDe != null) return;
+        var jugadorId = state2v2!.GetJugadorId(Context.ConnectionId);
+        if (string.IsNullOrEmpty(jugadorId)) return;
 
-        var jugadorId = state2v2.GetJugadorId(Context.ConnectionId);
-        if (string.IsNullOrEmpty(jugadorId) || mano.TurnoActual != jugadorId) return;
-
-        var jugador = mano.ObtenerJugador(jugadorId);
-        if (jugador == null) return;
-
-        var carta = jugador.Mano.FirstOrDefault(c =>
-            c.Numero == numero && c.Palo.Equals(palo, StringComparison.OrdinalIgnoreCase));
-        if (carta == null) return;
-
-        JuegoServicio2v2.JugarCarta(mano, jugadorId, carta);
+        // Las validaciones (turno, cantos pendientes, carta en mano) viven en el dominio.
+        if (!JuegoServicio2v2.JugarCartaPorValor(state2v2.Mano, jugadorId, numero, palo)) return;
 
         _trucoGames2v2[sala!] = state2v2;
         await BroadcastTrucoEstado2v2(sala!, state2v2);
@@ -300,30 +245,8 @@ public class GameHub : Hub
     public async Task SolicitarEnvido(string tipo)
     {
         if (!ObtenerSalaYEstado(out var sala, out var state)) return;
-        var mano = state!.Mano;
-        if (mano.EnvidoCantado || mano.EnvidoResuelto) return;
-        if (mano.Bazas.Count > 0) return;
-        if (mano.PartidaTerminada || mano.GanadorMano != null) return;
-
-        bool esJ1 = Context.ConnectionId == state.Jugador1Id;
-        mano.EnvidoCantado     = true;
-        mano.CantorEnvido      = esJ1 ? "Humano" : "Maquina";
-        mano.TipoEnvidoCantado = EnvidoServicio.NormalizarTipo(tipo);
-
-        // Arranca la cadena de apuestas del envido.
-        state.PuntosEnvidoEnJuego  = EnvidoServicio.ObtenerPuntosSegunTipo(mano.TipoEnvidoCantado);
-        state.PuntosEnvidoNoQuiero = 1;
-
-        if (esJ1)
-        {
-            state.EnvidoPendienteRespuestaJ2 = true;
-            mano.EstadoEnvido = $"Jugador 1 cantó {tipo}.";
-        }
-        else
-        {
-            mano.EnvidoPendienteRespuestaHumano = true;
-            mano.EstadoEnvido = $"Jugador 2 cantó {tipo}.";
-        }
+        bool esJ1 = Context.ConnectionId == state!.Jugador1Id;
+        if (!TrucoMulti1v1Servicio.CantarEnvido(state, esJ1, tipo)) return;
 
         _trucoGames[sala!] = state;
         await BroadcastTrucoEstado(sala!, state);
@@ -332,53 +255,8 @@ public class GameHub : Hub
     public async Task ResponderEnvido(bool aceptar)
     {
         if (!ObtenerSalaYEstado(out var sala, out var state)) return;
-        var mano = state!.Mano;
-        if (!mano.EnvidoCantado || mano.EnvidoResuelto) return;
-
-        bool esJ1 = Context.ConnectionId == state.Jugador1Id;
-        if (esJ1 && !mano.EnvidoPendienteRespuestaHumano) return;
-        if (!esJ1 && !state.EnvidoPendienteRespuestaJ2) return;
-
-        mano.EnvidoPendienteRespuestaHumano = false;
-        state.EnvidoPendienteRespuestaJ2    = false;
-
-        if (!aceptar)
-        {
-            // Rechazar paga lo apostado ANTES de la última suba (Envido→1, Envido+Real→2, etc.)
-            int ptsNoQuiero     = Math.Max(1, state.PuntosEnvidoNoQuiero);
-            mano.EnvidoResuelto = true;
-            mano.GanadorEnvido  = mano.CantorEnvido;
-            mano.PuntosEnvido   = ptsNoQuiero;
-            string ganNombre    = mano.CantorEnvido == "Humano" ? "Jugador 1" : "Jugador 2";
-            mano.EstadoEnvido   = $"No quiso. {ganNombre} gana {ptsNoQuiero} punto(s) de envido.";
-            JuegoServicio.SumarPuntos(mano, mano.CantorEnvido!, ptsNoQuiero);
-        }
-        else
-        {
-            // Los cantos acumulados de la cadena (Envido + Real Envido = 5, etc.)
-            int pts = state.PuntosEnvidoEnJuego > 0
-                ? state.PuntosEnvidoEnJuego
-                : EnvidoServicio.ObtenerPuntosSegunTipo(mano.TipoEnvidoCantado);
-
-            // El tanto se cuenta con las cartas ORIGINALES (mano + jugadas): si alguien ya
-            // tiró una carta en la primera vuelta, igual cuenta para el envido.
-            mano.TantoHumano  = EnvidoServicio.CalcularTantoOriginal(mano.Humano);
-            mano.TantoMaquina = EnvidoServicio.CalcularTantoOriginal(mano.Maquina);
-
-            if (mano.TantoHumano > mano.TantoMaquina)       mano.GanadorEnvido = "Humano";
-            else if (mano.TantoMaquina > mano.TantoHumano)  mano.GanadorEnvido = "Maquina";
-            else                                             mano.GanadorEnvido = mano.ManoIniciadaPor;
-
-            // La Falta vale lo que le falta al que VA GANANDO la partida para llegar a 30.
-            if (mano.TipoEnvidoCantado == "FaltaEnvido")
-                pts = EnvidoServicio.CalcularPuntosFalta(Math.Max(mano.PuntosHumano, mano.PuntosMaquina));
-
-            mano.PuntosEnvido   = pts;
-            mano.EnvidoResuelto = true;
-            string gan          = mano.GanadorEnvido == "Humano" ? "Jugador 1" : "Jugador 2";
-            mano.EstadoEnvido   = $"Quiso. J1 tiene {mano.TantoHumano}, J2 tiene {mano.TantoMaquina}. Gana {gan} ({pts} pt).";
-            JuegoServicio.SumarPuntos(mano, mano.GanadorEnvido, pts);
-        }
+        bool esJ1 = Context.ConnectionId == state!.Jugador1Id;
+        if (!TrucoMulti1v1Servicio.ResponderEnvido(state, esJ1, aceptar)) return;
 
         _trucoGames[sala!] = state;
         await BroadcastTrucoEstado(sala!, state);
@@ -388,29 +266,8 @@ public class GameHub : Hub
     public async Task SonBuenas()
     {
         if (!ObtenerSalaYEstado(out var sala, out var state)) return;
-        var mano = state!.Mano;
-        if (!mano.EnvidoCantado || mano.EnvidoResuelto) return;
-
-        bool esJ1 = Context.ConnectionId == state.Jugador1Id;
-        if (esJ1 && !mano.EnvidoPendienteRespuestaHumano) return;
-        if (!esJ1 && !state.EnvidoPendienteRespuestaJ2) return;
-
-        // El declarante pierde → el cantor gana
-        mano.EnvidoPendienteRespuestaHumano = false;
-        state.EnvidoPendienteRespuestaJ2    = false;
-        mano.SonBuenasDeclarado             = true;
-        mano.EnvidoResuelto                 = true;
-        mano.GanadorEnvido                  = mano.CantorEnvido;
-        // "Son buenas" equivale a querer y perder: vale lo acumulado de la cadena.
-        int pts = state.PuntosEnvidoEnJuego > 0
-            ? state.PuntosEnvidoEnJuego
-            : EnvidoServicio.ObtenerPuntosSegunTipo(mano.TipoEnvidoCantado);
-        if (mano.TipoEnvidoCantado == "FaltaEnvido")
-            pts = EnvidoServicio.CalcularPuntosFalta(Math.Max(mano.PuntosHumano, mano.PuntosMaquina));
-        mano.PuntosEnvido                   = pts;
-        string ganNombre                    = mano.CantorEnvido == "Humano" ? "Jugador 1" : "Jugador 2";
-        mano.EstadoEnvido                   = $"Son buenas. {ganNombre} gana {pts} punto(s) de envido.";
-        JuegoServicio.SumarPuntos(mano, mano.CantorEnvido!, pts);
+        bool esJ1 = Context.ConnectionId == state!.Jugador1Id;
+        if (!TrucoMulti1v1Servicio.SonBuenas(state, esJ1)) return;
 
         _trucoGames[sala!] = state;
         await BroadcastTrucoEstado(sala!, state);
@@ -419,29 +276,8 @@ public class GameHub : Hub
     public async Task EscalarEnvido(string tipo)
     {
         if (!ObtenerSalaYEstado(out var sala, out var state)) return;
-        var mano = state!.Mano;
-        if (!mano.EnvidoCantado || mano.EnvidoResuelto) return;
-
-        bool esJ1        = Context.ConnectionId == state.Jugador1Id;
-        string rolActual = esJ1 ? "Humano" : "Maquina";
-        if (mano.CantorEnvido == rolActual) return;
-        string tipoNuevo = EnvidoServicio.NormalizarTipo(tipo);
-        if (EnvidoServicio.OrdinalTipo(tipoNuevo) <= EnvidoServicio.OrdinalTipo(mano.TipoEnvidoCantado)) return;
-
-        mano.TipoEnvidoCantado = tipoNuevo;
-        mano.CantorEnvido      = rolActual;
-
-        // Acumular la apuesta: rechazar la suba paga lo anterior; aceptarla suma el
-        // incremento del nuevo canto (la Falta se calcula al resolver).
-        state.PuntosEnvidoNoQuiero = Math.Max(1, state.PuntosEnvidoEnJuego);
-        state.PuntosEnvidoEnJuego  = tipoNuevo == "FaltaEnvido"
-            ? 0
-            : state.PuntosEnvidoEnJuego + EnvidoServicio.IncrementoPuntosTipo(tipoNuevo);
-
-        mano.EnvidoPendienteRespuestaHumano = !esJ1;
-        state.EnvidoPendienteRespuestaJ2    = esJ1;
-
-        mano.EstadoEnvido = $"{(esJ1 ? "J1" : "J2")} cantó {tipo}.";
+        bool esJ1 = Context.ConnectionId == state!.Jugador1Id;
+        if (!TrucoMulti1v1Servicio.EscalarEnvido(state, esJ1, tipo)) return;
 
         _trucoGames[sala!] = state;
         await BroadcastTrucoEstado(sala!, state);
@@ -523,25 +359,8 @@ public class GameHub : Hub
     public async Task SolicitarTruco()
     {
         if (!ObtenerSalaYEstado(out var sala, out var state)) return;
-        var mano = state!.Mano;
-        if (mano.TrucoCantado || mano.GanadorMano != null || mano.PartidaTerminada) return;
-
-        bool esJ1 = Context.ConnectionId == state.Jugador1Id;
-        mano.TrucoCantado    = true;
-        mano.NivelTruco      = 1;
-        mano.PuntosTrucoMano = 2;
-        mano.CantorTruco     = esJ1 ? "Humano" : "Maquina";
-
-        if (esJ1)
-        {
-            state.TrucoPendienteRespuestaJ2 = true;
-            mano.EstadoTruco = "Jugador 1 cantó Truco.";
-        }
-        else
-        {
-            mano.TrucoPendienteRespuestaHumano = true;
-            mano.EstadoTruco = "Jugador 2 cantó Truco.";
-        }
+        bool esJ1 = Context.ConnectionId == state!.Jugador1Id;
+        if (!TrucoMulti1v1Servicio.CantarTruco(state, esJ1)) return;
 
         _trucoGames[sala!] = state;
         await BroadcastTrucoEstado(sala!, state);
@@ -550,46 +369,8 @@ public class GameHub : Hub
     public async Task ResponderTruco(bool aceptar, string? escalarA)
     {
         if (!ObtenerSalaYEstado(out var sala, out var state)) return;
-        var mano = state!.Mano;
-
-        bool esJ1 = Context.ConnectionId == state.Jugador1Id;
-        if (esJ1 && !mano.TrucoPendienteRespuestaHumano) return;
-        if (!esJ1 && !state.TrucoPendienteRespuestaJ2) return;
-
-        mano.TrucoPendienteRespuestaHumano = false;
-        state.TrucoPendienteRespuestaJ2    = false;
-
-        if (!aceptar)
-        {
-            int ptsRefusal       = mano.NivelTruco;
-            mano.TrucoResuelto   = true;
-            mano.GanadorMano     = mano.CantorTruco;
-            mano.PuntosTrucoMano = ptsRefusal;
-            string gan           = mano.CantorTruco == "Humano" ? "Jugador 1" : "Jugador 2";
-            mano.EstadoTruco     = $"No quiso. {gan} gana {ptsRefusal} pt.";
-            JuegoServicio.SumarPuntos(mano, mano.CantorTruco!, ptsRefusal);
-        }
-        else
-        {
-            var escalar        = escalarA?.Trim().ToLowerInvariant();
-            string respondedor = esJ1 ? "Humano" : "Maquina";
-
-            if (!string.IsNullOrEmpty(escalar) && mano.NivelTruco < 3)
-            {
-                mano.NivelTruco++;
-                mano.PuntosTrucoMano = mano.NivelTruco == 2 ? 3 : 4;
-                mano.CantorTruco     = respondedor;
-                string nombreNivel   = mano.NivelTruco == 2 ? "Retruco" : "Vale Cuatro";
-                mano.EstadoTruco     = $"Quiso y cantó {nombreNivel}! Vale {mano.PuntosTrucoMano} pt.";
-                if (esJ1) state.TrucoPendienteRespuestaJ2    = true;
-                else      mano.TrucoPendienteRespuestaHumano = true;
-            }
-            else
-            {
-                mano.TrucoResuelto = true;
-                mano.EstadoTruco   = $"Quiso. Vale {mano.PuntosTrucoMano} pt.";
-            }
-        }
+        bool esJ1 = Context.ConnectionId == state!.Jugador1Id;
+        if (!TrucoMulti1v1Servicio.ResponderTruco(state, esJ1, aceptar, escalarA)) return;
 
         _trucoGames[sala!] = state;
         await BroadcastTrucoEstado(sala!, state);
@@ -598,24 +379,8 @@ public class GameHub : Hub
     public async Task EscalarTruco()
     {
         if (!ObtenerSalaYEstado(out var sala, out var state)) return;
-        var mano = state!.Mano;
-        if (!mano.TrucoCantado || mano.NivelTruco >= 3) return;
-        if (mano.TrucoPendienteRespuestaHumano || state.TrucoPendienteRespuestaJ2) return;
-        if (mano.GanadorMano != null || mano.PartidaTerminada) return;
-
-        bool esJ1        = Context.ConnectionId == state.Jugador1Id;
-        string rolActual = esJ1 ? "Humano" : "Maquina";
-        if (mano.CantorTruco == rolActual) return;
-
-        mano.NivelTruco++;
-        mano.TrucoResuelto   = false;
-        mano.CantorTruco     = rolActual;
-        mano.PuntosTrucoMano = mano.NivelTruco == 2 ? 3 : 4;
-        string nombre        = mano.NivelTruco == 2 ? "Retruco" : "Vale Cuatro";
-        mano.EstadoTruco     = $"{(esJ1 ? "J1" : "J2")} cantó {nombre}!";
-
-        if (esJ1) state.TrucoPendienteRespuestaJ2    = true;
-        else      mano.TrucoPendienteRespuestaHumano = true;
+        bool esJ1 = Context.ConnectionId == state!.Jugador1Id;
+        if (!TrucoMulti1v1Servicio.EscalarTruco(state, esJ1)) return;
 
         _trucoGames[sala!] = state;
         await BroadcastTrucoEstado(sala!, state);
@@ -680,29 +445,8 @@ public class GameHub : Hub
     public async Task IrseAlMazo()
     {
         if (!ObtenerSalaYEstado(out var sala, out var state)) return;
-        var mano = state!.Mano;
-        if (mano.GanadorMano != null || mano.PartidaTerminada) return;
-
-        bool esJ1      = Context.ConnectionId == state.Jugador1Id;
-        string ganador = esJ1 ? "Maquina" : "Humano";
-
-        // Puntos para el rival: sin truco → 1; truco cantado SIN responder → equivale a
-        // "no quiero" (vale el nivel); truco ya querido → vale lo apostado (2/3/4).
-        bool hayCantoSinResponder = mano.TrucoPendienteRespuestaHumano || state.TrucoPendienteRespuestaJ2;
-        int pts;
-        if (!mano.TrucoCantado)            pts = 1;
-        else if (hayCantoSinResponder)     pts = Math.Max(1, mano.NivelTruco);
-        else                               pts = Math.Max(1, mano.PuntosTrucoMano);
-
-        mano.GanadorMano   = ganador;
-        mano.TrucoResuelto = true;
-        // La mano terminó: no quedan cantos por responder.
-        mano.TrucoPendienteRespuestaHumano  = false;
-        state.TrucoPendienteRespuestaJ2     = false;
-        mano.EnvidoPendienteRespuestaHumano = false;
-        state.EnvidoPendienteRespuestaJ2    = false;
-        mano.EstadoTruco   = $"{(esJ1 ? "J1" : "J2")} se fue al mazo. {(ganador == "Humano" ? "J1" : "J2")} gana {pts} pt.";
-        JuegoServicio.SumarPuntos(mano, ganador, pts);
+        bool esJ1 = Context.ConnectionId == state!.Jugador1Id;
+        if (!TrucoMulti1v1Servicio.IrseAlMazo(state, esJ1)) return;
 
         _trucoGames[sala!] = state;
         await BroadcastTrucoEstado(sala!, state);
@@ -715,7 +459,7 @@ public class GameHub : Hub
     {
         if (!ObtenerSalaYEstado(out var sala, out var state)) return;
         if (state!.Mano.GanadorMano == null && !state.Mano.PartidaTerminada) return;
-        IniciarNuevaMano(state, esPrimeraPartida: false);
+        TrucoMulti1v1Servicio.IniciarNuevaMano(state, esPrimeraPartida: false);
         _trucoGames[sala!] = state;
         await BroadcastTrucoEstado(sala!, state);
     }
@@ -723,7 +467,7 @@ public class GameHub : Hub
     public async Task NuevaPartida()
     {
         if (!ObtenerSalaYEstado(out var sala, out var state)) return;
-        IniciarNuevaMano(state, esPrimeraPartida: true);
+        TrucoMulti1v1Servicio.IniciarNuevaMano(state, esPrimeraPartida: true);
         _trucoGames[sala!] = state;
         await BroadcastTrucoEstado(sala!, state);
     }
@@ -746,21 +490,11 @@ public class GameHub : Hub
     public async Task JugarCarta3v3(int numero, string palo)
     {
         if (!ObtenerSalaYEstado3v3(out var sala, out var state3v3)) return;
-        var mano = state3v3!.Mano;
-        if (mano.GanadorMano != null || mano.PartidaTerminada) return;
-        if (mano.TrucoPendienteRespuestaDe != null || mano.EnvidoPendienteRespuestaDe != null) return;
+        var jugadorId = state3v3!.GetJugadorId(Context.ConnectionId);
+        if (string.IsNullOrEmpty(jugadorId)) return;
 
-        var jugadorId = state3v3.GetJugadorId(Context.ConnectionId);
-        if (string.IsNullOrEmpty(jugadorId) || mano.TurnoActual != jugadorId) return;
-
-        var jugador = mano.ObtenerJugador(jugadorId);
-        if (jugador == null) return;
-
-        var carta = jugador.Mano.FirstOrDefault(c =>
-            c.Numero == numero && c.Palo.Equals(palo, StringComparison.OrdinalIgnoreCase));
-        if (carta == null) return;
-
-        JuegoServicio3v3.JugarCarta(mano, jugadorId, carta);
+        // Las validaciones (turno, cantos pendientes, carta en mano) viven en el dominio.
+        if (!JuegoServicio3v3.JugarCartaPorValor(state3v3.Mano, jugadorId, numero, palo)) return;
 
         _trucoGames3v3[sala!] = state3v3;
         await BroadcastTrucoEstado3v3(sala!, state3v3);
@@ -955,25 +689,6 @@ public class GameHub : Hub
         return true;
     }
 
-    private static void IniciarNuevaMano(TrucoMultiState state, bool esPrimeraPartida)
-    {
-        int numMano = esPrimeraPartida ? 1 : state.Mano.NumeroDeMano + 1;
-        int ptsH    = esPrimeraPartida ? 0 : state.Mano.PuntosHumano;
-        int ptsM    = esPrimeraPartida ? 0 : state.Mano.PuntosMaquina;
-
-        var mano = PartidaServicio.CrearManoNueva(numMano, ptsH, ptsM);
-        mano.Humano.Nombre  = "Jugador 1";
-        mano.Maquina.Nombre = "Jugador 2";
-        mano.PuntosTrucoMano = 1;
-
-        state.Mano                       = mano;
-        state.CartaPendienteJ1           = null;
-        state.TrucoPendienteRespuestaJ2  = false;
-        state.EnvidoPendienteRespuestaJ2 = false;
-        state.PuntosEnvidoEnJuego        = 0;
-        state.PuntosEnvidoNoQuiero       = 1;
-    }
-
     private static TrucoMultiState2v2 IniciarNuevaMano2v2(
         string sala,
         List<string> jugadores,
@@ -1049,24 +764,6 @@ public class GameHub : Hub
         state3v3.JugadoresIds = jugadores.Take(6).ToArray();
 
         return state3v3;
-    }
-
-    private static void ResolverBazaMulti(ManoTruco mano, Carta cartaJ1, Carta cartaJ2, string abridorBaza)
-    {
-        var ganador = JuegoServicio.ResolverBaza(cartaJ1, cartaJ2);
-        mano.Bazas.Add(new Baza { CartaJugador = cartaJ1, CartaMaquina = cartaJ2, Ganador = ganador });
-        // Si la baza fue parda, vuelve a salir quien ABRIÓ esa baza (no siempre el mano
-        // de la mano: en la 2da/3ra baza puede haber salido el que ganó la anterior).
-        mano.TurnoActual = ganador == "Parda" ? abridorBaza : ganador;
-
-        var ganadorMano = JuegoServicio.ResolverGanadorMano(mano.Bazas, mano.ManoIniciadaPor);
-        if (ganadorMano != null)
-        {
-            mano.GanadorMano   = ganadorMano;
-            int pts            = mano.PuntosTrucoMano > 0 ? mano.PuntosTrucoMano : 1;
-            JuegoServicio.SumarPuntos(mano, ganadorMano, pts);
-            mano.TrucoResuelto = true;
-        }
     }
 
     private async Task BroadcastEstadoEquipos(string sala, List<string> jugadores, ConcurrentDictionary<string, string> equiposMap)

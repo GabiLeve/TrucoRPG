@@ -130,6 +130,24 @@ namespace TrucoRPG.Dominio.Servicios
         }
 
         /// <summary>
+        /// Variante de <see cref="JugarCarta(ManoTruco3v3, string, Carta)"/> que busca la
+        /// carta por número y palo. Devuelve false si la jugada no es válida ahora
+        /// (mano terminada, canto pendiente, no es su turno o no tiene esa carta).
+        /// </summary>
+        public static bool JugarCartaPorValor(ManoTruco3v3 mano, string jugadorId, int numero, string palo)
+        {
+            if (mano.GanadorMano != null || mano.ManoTerminada || mano.PartidaTerminada) return false;
+            if (mano.TrucoPendienteRespuestaDe != null || mano.EnvidoPendienteRespuestaDe != null) return false;
+            if (mano.TurnoActual != jugadorId) return false;
+
+            var carta = mano.ObtenerJugador(jugadorId)?.Mano.FirstOrDefault(c =>
+                c.Numero == numero && c.Palo.Equals(palo, StringComparison.OrdinalIgnoreCase));
+            if (carta == null) return false;
+            JugarCarta(mano, jugadorId, carta);
+            return true;
+        }
+
+        /// <summary>
         /// Procesa que un jugador juegue su carta en la vuelta actual.
         /// Si la vuelta se completa, la resuelve y verifica si la mano terminó.
         /// Devuelve true si la mano terminó.
