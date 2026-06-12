@@ -9,7 +9,11 @@ namespace TrucoRPG.Dominio.Entities
         public ConfiguracionPartida Configuracion { get; set; } = new();
         public EstadoHabilidadesPartida EstadoHabilidades { get; set; } = new();
         public VistaHabilidadesJugador? VistaHabilidadesHumano { get; set; }
+        public VistaHabilidadesRival? VistaHabilidadesRival { get; set; }
         public string? UltimoMensajeHabilidad { get; set; }
+        public string? UltimoMensajeHabilidadRival { get; set; }
+        public bool SalpicaduraActiva { get; set; }
+        public bool SalpicaduraBloqueando { get; set; }
 
         public List<Carta> CartasRestantesMazo { get; set; } = new();
 

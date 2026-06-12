@@ -11,6 +11,8 @@ namespace TrucoRPG.Dominio.UseCases
             var mano = PartidaMemoriaServicio.Obtener(manoId)
                 ?? throw new KeyNotFoundException("No se encontró la mano.");
 
+            SalpicaduraBloqueoServicio.ValidarNoBloqueado(mano);
+
             if (mano.PartidaTerminada)
                 throw new InvalidOperationException("La partida ya terminó.");
             if (mano.GanadorMano != null)

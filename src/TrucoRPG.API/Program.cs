@@ -7,6 +7,7 @@ using TrucoRPG.API.Hubs;
 using TrucoRPG.API.Middlewares;
 using TrucoRPG.Dominio.Entities;
 using TrucoRPG.Dominio.Repositorios;
+using TrucoRPG.Dominio.Servicios;
 using TrucoRPG.Dominio.UseCases;
 using TrucoRPG.Infraestructura.Data;
 using TrucoRPG.Infraestructura.Provider;
@@ -76,8 +77,16 @@ builder.Services.AddAuthentication(opt =>
 });
 
 // ── Inyección de dependencias (Infrastructure → Domain) ───────────
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IUsuarioRepositorio, UsuarioRepositorio>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IUsuarioActualServicio, UsuarioActualServicio>();
+builder.Services.AddScoped<IRivalRepositorio, RivalRepositorio>();
+builder.Services.AddScoped<IProgresoPartidaRepositorio, ProgresoPartidaRepositorio>();
+builder.Services.AddScoped<HistoriaValidacionServicio>();
+builder.Services.AddScoped<ObtenerRivalesHistoriaUseCase>();
+builder.Services.AddScoped<ObtenerProgresoHistoriaUseCase>();
+builder.Services.AddScoped<PuedePelearConRivalUseCase>();
 builder.Services.AddScoped<RegisterUseCase>();
 builder.Services.AddScoped<LoginUseCase>();
 builder.Services.AddScoped<ReglasUseCase>();
@@ -93,6 +102,7 @@ builder.Services.AddScoped<EscalarTrucoUseCase>();
 builder.Services.AddScoped<IrseAlMazoUseCase>();
 builder.Services.AddScoped<JugarCartaUseCase>();
 builder.Services.AddScoped<ActivarHabilidadUseCase>();
+builder.Services.AddScoped<ConfirmarSalpicaduraUseCase>();
 
 // ── API ───────────────────────────────────────────────────────────
 builder.Services.AddControllers();

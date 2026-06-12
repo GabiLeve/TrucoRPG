@@ -18,6 +18,8 @@ namespace TrucoRPG.Dominio.UseCases
             if (mano.TrucoPendienteRespuestaHumano || mano.EnvidoPendienteRespuestaHumano)
                 throw new InvalidOperationException("Respondé el canto pendiente antes de jugar.");
 
+            SalpicaduraBloqueoServicio.ValidarNoBloqueado(mano);
+
             var cartaHumano = mano.Humano.Mano
                 .FirstOrDefault(c => c.Numero == numero &&
                                      c.Palo.Equals(palo, StringComparison.OrdinalIgnoreCase))

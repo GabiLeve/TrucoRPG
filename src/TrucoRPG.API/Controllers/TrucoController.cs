@@ -3,6 +3,8 @@
 using Microsoft.AspNetCore.Mvc;
 using TrucoRPG.API.Models;
 using TrucoRPG.Dominio.Entities;
+using TrucoRPG.Dominio.Repositorios;
+using TrucoRPG.Dominio.Servicios;
 using TrucoRPG.Dominio.UseCases;
 
 namespace TrucoRPG.API.Controllers
@@ -22,6 +24,9 @@ namespace TrucoRPG.API.Controllers
         private readonly IrseAlMazoUseCase             _irseAlMazo;
         private readonly JugarCartaUseCase             _jugarCarta;
         private readonly ActivarHabilidadUseCase       _activarHabilidad;
+        private readonly ConfirmarSalpicaduraUseCase   _confirmarSalpicadura;
+        private readonly HistoriaValidacionServicio    _historiaValidacion;
+        private readonly IUsuarioActualServicio        _usuarioActual;
 
         public TrucoController(
             NuevaManoUseCase              nuevaMano,
@@ -33,7 +38,10 @@ namespace TrucoRPG.API.Controllers
             EscalarTrucoUseCase           escalarTruco,
             IrseAlMazoUseCase             irseAlMazo,
             JugarCartaUseCase             jugarCarta,
-            ActivarHabilidadUseCase       activarHabilidad)
+            ActivarHabilidadUseCase       activarHabilidad,
+            ConfirmarSalpicaduraUseCase   confirmarSalpicadura,
+            HistoriaValidacionServicio    historiaValidacion,
+            IUsuarioActualServicio        usuarioActual)
         {
             _nuevaMano         = nuevaMano;
             _configurarMentira = configurarMentira;
@@ -45,6 +53,9 @@ namespace TrucoRPG.API.Controllers
             _irseAlMazo        = irseAlMazo;
             _jugarCarta        = jugarCarta;
             _activarHabilidad  = activarHabilidad;
+            _confirmarSalpicadura = confirmarSalpicadura;
+            _historiaValidacion = historiaValidacion;
+            _usuarioActual      = usuarioActual;
         }
 
         // ── Partida / Mano ────────────────────────────────────────────
@@ -58,7 +69,7 @@ namespace TrucoRPG.API.Controllers
         }
 
         [HttpPost("nueva-partida")]
-        public ActionResult<ManoTruco> NuevaPartida([FromBody] NuevaPartidaRequest? request)
+        public async Task<ActionResult<ManoTruco>> NuevaPartida([FromBody] NuevaPartidaRequest? request)
         {
             var configuracion = request == null
                 ? new ConfiguracionPartida()
@@ -68,8 +79,23 @@ namespace TrucoRPG.API.Controllers
                     HeroeDelHumano = request.ClaseHeroe
                 };
 
+            if (request?.Modo == ModoJuego.Historia && request.RivalNivel.HasValue)
+            {
+                await _historiaValidacion.ValidarPuedeIniciarPartidaAsync(
+                    _usuarioActual.ObtenerId(),
+                    request.RivalNivel.Value);
+
+                var rival = await _historiaValidacion.ObtenerRivalOErrorAsync(request.RivalNivel.Value);
+                configuracion.RivalNivel = rival.Nivel;
+                configuracion.RivalDeLaMaquina = rival.TipoRival;
+            }
+
             return Ok(_nuevaMano.EjecutarNuevaPartida(configuracion));
         }
+
+        [HttpPost("confirmar-salpicadura")]
+        public ActionResult<ManoTruco> ConfirmarSalpicadura([FromBody] ConfirmarSalpicaduraRequest request) =>
+            Ok(_confirmarSalpicadura.Ejecutar(request.ManoId));
 
         // ── Configuración ─────────────────────────────────────────────
 

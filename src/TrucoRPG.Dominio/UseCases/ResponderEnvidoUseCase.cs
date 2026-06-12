@@ -10,6 +10,8 @@ namespace TrucoRPG.Dominio.UseCases
             var mano = PartidaMemoriaServicio.Obtener(manoId)
                 ?? throw new KeyNotFoundException("No se encontró la mano.");
 
+            SalpicaduraBloqueoServicio.ValidarNoBloqueado(mano);
+
             if (mano.PartidaTerminada)
                 throw new InvalidOperationException("La partida ya terminó. El primero en llegar a 30 gana.");
             if (!mano.EnvidoCantado)
@@ -97,6 +99,8 @@ namespace TrucoRPG.Dominio.UseCases
         {
             var mano = PartidaMemoriaServicio.Obtener(manoId)
                 ?? throw new KeyNotFoundException("No se encontró la mano.");
+
+            SalpicaduraBloqueoServicio.ValidarNoBloqueado(mano);
 
             if (mano.PartidaTerminada)
                 throw new InvalidOperationException("La partida ya terminó.");
