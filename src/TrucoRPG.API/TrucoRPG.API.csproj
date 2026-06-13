@@ -8,6 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="appsetting.Development.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.15" />
@@ -27,6 +31,10 @@
   <ItemGroup>
     <ProjectReference Include="..\TrucoRPG.Dominio\TrucoRPG.Dominio.csproj" />
     <ProjectReference Include="..\TrucoRPG.Infraestructura\TrucoRPG.Infraestructura.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="appsetting.Development.json" />
   </ItemGroup>
 
 </Project>

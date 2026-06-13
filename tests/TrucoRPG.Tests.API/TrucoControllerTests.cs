@@ -180,6 +180,27 @@ public class TrucoControllerTests
         Assert.IsNotType<NotFoundObjectResult>(result.Result);
     }
 
+    [Fact]
+    public void CantarEnvido_EnvidoYaCantado_DeberiaLanzarExcepcion()
+    {
+        //Given
+        var mano = ObtenerManoNueva();
+
+        mano.EnvidoCantado = true;
+
+        PartidaMemoriaServicio.Guardar(mano);
+
+        var request = new CantarEnvidoRequest
+        {
+            ManoId = mano.Id
+        };
+
+        //When
+        Action action = () => _controller.CantarEnvido(request);
+        // Act + Assert
+        Assert.Throws<InvalidOperationException>(action);
+    }
+
     // ─── CantarTruco ─────────────────────────────────────────────────
 
     [Fact]
@@ -352,6 +373,28 @@ public class TrucoControllerTests
         // Lo importante es que NO falla con "No podés escalar tu propio canto"
     }
 
+    [Fact]
+    public void EscalarTrucoPartidaTerminada()
+    {
+        //Given
+        var mano = new ManoTruco
+        {
+           PartidaTerminada = true,
+        };
+        PartidaMemoriaServicio.Guardar(mano);
+
+        var result = new CantarEnvidoRequest
+        {
+            ManoId = mano.Id
+
+        };
+
+        //When
+        Action act = () => _controller.EscalarTruco(result);
+
+        //Then 
+        Assert.Throws<InvalidOperationException>(act);
+    }
     // ─── ResponderTruco ──────────────────────────────────────────────
 
     [Fact]

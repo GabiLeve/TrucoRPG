@@ -1,0 +1,16 @@
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=localhost;Port=3306;Database=TrucoRPG;User=root;Password=;"
+  },
+  "Jwt": {
+    "Key": "TrucoRPG-SuperSecretKey-MinLength32Chars!",
+    "Issuer": "TrucoRPG.API",
+    "Audience": "TrucoRPG.Front"
+  }
+}

@@ -1,4 +1,4 @@
-using TrucoRPG.Dominio.Entities;
+﻿using TrucoRPG.Dominio.Entities;
 using TrucoRPG.Dominio.Servicios;
 
 namespace TrucoRPG.Tests.Logica;
@@ -107,7 +107,7 @@ public class TurnoServicio2v2Tests
         var siguiente = TurnoServicio2v2.SiguienteJugador(mano, "J4");
 
         // Where
-        Assert.Null(siguiente);
+        Assert.Equal("J1", siguiente);
     }
 
     [Fact]
