@@ -10,6 +10,11 @@ namespace TrucoRPG.Dominio.Habilidades
                 HabilidadesActivasEnPartida = mano.Configuracion.HabilidadesRivalActivas,
                 SalpicaduraActiva = mano.SalpicaduraActiva,
                 SalpicaduraBloqueando = mano.SalpicaduraBloqueando,
+                TravesuraActiva = mano.TravesuraActiva,
+                TravesuraBloqueando = mano.TravesuraBloqueando,
+                CartasOcultasTravesura = mano.CartasOcultasTravesura
+                    .Select(c => new CartaReferencia { Numero = c.Numero, Palo = c.Palo })
+                    .ToList(),
                 UltimoMensajeHabilidad = mano.UltimoMensajeHabilidadRival
             };
     }

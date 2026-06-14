@@ -40,10 +40,11 @@ namespace TrucoRPG.Infraestructura.Data.Configurations
                     Nivel = 2,
                     Nombre = "El Pomberito",
                     Descripcion = "Segundo jefe de la historia. Guarda la entrada de la cueva.",
-                    NombreHabilidad = "—",
-                    DescripcionHabilidad = "—",
+                    NombreHabilidad = "Travesura",
+                    DescripcionHabilidad =
+                        "Cada 2 manos, te muestra tus 3 cartas 5 segundos y luego oculta 2 al azar.",
                     TipoRival = ClaseRival.Pomberito,
-                    TipoHabilidad = TipoHabilidadRival.Ninguna
+                    TipoHabilidad = TipoHabilidadRival.Travesura
                 });
         }
     }

@@ -4,24 +4,23 @@ using TrucoRPG.Dominio.Servicios;
 
 namespace TrucoRPG.Dominio.UseCases
 {
-    public class ConfirmarSalpicaduraUseCase
+    public class ConfirmarTravesuraUseCase
     {
         public ManoTruco Ejecutar(Guid manoId)
         {
             var mano = PartidaMemoriaServicio.Obtener(manoId)
                 ?? throw new KeyNotFoundException("No se encontró la mano.");
 
-            if (!mano.SalpicaduraBloqueando)
+            if (!mano.TravesuraBloqueando)
                 return mano;
 
-            SalpicaduraServicio.ReemplazarCartasHumano(mano);
-            mano.SalpicaduraBloqueando = false;
+            TravesuraServicio.OcultarCartasHumano(mano);
+            mano.TravesuraBloqueando = false;
             mano.UltimoMensajeHabilidadRival =
-                "¡Salpicadura! Nahuelito cambió el palo de 2 de tus cartas.";
+                "¡Travesura! El Pomberito ocultó 2 de tus cartas. ¡Recordalas bien!";
 
             if (mano.ManoIniciadaPor == IdJugador.Maquina && mano.GanadorMano is null
-                && !MaquinaServicio.EsModoHistoriaPasoAPaso(mano)
-                && !mano.TravesuraBloqueando)
+                && !MaquinaServicio.EsModoHistoriaPasoAPaso(mano))
                 MaquinaServicio.ProcesarIniciativa(mano);
 
             HabilidadesOrquestador.ActualizarVistas(mano);

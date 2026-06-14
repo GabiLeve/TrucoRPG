@@ -104,7 +104,9 @@ builder.Services.AddScoped<IrseAlMazoUseCase>();
 builder.Services.AddScoped<JugarCartaUseCase>();
 builder.Services.AddScoped<ActivarHabilidadUseCase>();
 builder.Services.AddScoped<ConfirmarSalpicaduraUseCase>();
+builder.Services.AddScoped<ConfirmarTravesuraUseCase>();
 builder.Services.AddScoped<AvanzarMaquinaHistoriaUseCase>();
+builder.Services.AddScoped<GanarAutomaticoDebugUseCase>();
 
 // ── API ───────────────────────────────────────────────────────────
 builder.Services.AddControllers();

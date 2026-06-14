@@ -9,13 +9,14 @@ namespace TrucoRPG.Dominio.Habilidades
         {
             TipoHabilidadRival.Ninguna      => new NingunaHabilidad(),
             TipoHabilidadRival.Salpicadura  => new SalpicaduraHabilidad(),
+            TipoHabilidadRival.Travesura    => new TravesuraHabilidad(),
             _ => throw new ArgumentOutOfRangeException(nameof(tipo), tipo, "Habilidad de rival no implementada.")
         };
 
         public static IHabilidadRival CrearDesdeRival(ClaseRival claseRival) => claseRival switch
         {
             ClaseRival.Nahuelito => Crear(TipoHabilidadRival.Salpicadura),
-            ClaseRival.Pomberito => Crear(TipoHabilidadRival.Ninguna),
+            ClaseRival.Pomberito => Crear(TipoHabilidadRival.Travesura),
             _ => throw new ArgumentOutOfRangeException(nameof(claseRival), claseRival, "Rival no implementado.")
         };
     }
