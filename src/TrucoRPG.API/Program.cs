@@ -27,8 +27,12 @@ builder.Configuration.AddJsonFile(
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' no encontrada.");
 
-builder.Services.AddDbContext<AppDbContext>(opt =>
-    opt.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseMySql(
+        connectionString,
+        new MySqlServerVersion(new Version(8, 4, 8))
+    )
+    );
 
 // ── Identity ──────────────────────────────────────────────────────
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(opt =>
@@ -110,7 +114,6 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 
-// 1. LO PRIMERO: El middleware de excepciones debe envolver TODO lo demás
 app.UseMiddleware<ExceptionMiddleware>();
 
 app.UseSwagger();
@@ -121,27 +124,17 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
     app.UseHttpsRedirection();
 }
-
-// 2. ENRUTAMIENTO Y CORS (Tienen que ir pegados y antes de autenticar)
 app.UseRouting();
 
-// Esto interceptará los comandos OPTIONS del navegador antes de que lleguen a Identity
 app.UseCors("FrontPolicy");
 
-// 3. SEGURIDAD
 app.UseAuthentication();
 app.UseAuthorization();
 
-// 4. ENDPOINTS
 app.MapControllers();
 app.MapHub<GameHub>("/gamehub");
 
-// 5. INICIALIZACIÓN DE DATOS (Fuera del pipeline de middlewares de peticiones)
-using (var scope = app.Services.CreateScope())
-{
-    // Es mucho más seguro inicializar roles usando un Scope limpio
-    await InicializadorDatosIdentity.InicializarRolesAsync(scope.ServiceProvider);
-}
+// ── Inicialización de Roles ──────────────────────────────────────────────────────
+await InicializadorDatosIdentity.InicializarRolesAsync(app.Services);
 
-// 6. ENCHUFAR EL SERVIDOR
 app.Run();
