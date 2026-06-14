@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using TrucoRPG.Dominio.Entities;
 
@@ -14,6 +15,16 @@ namespace TrucoRPG.Infraestructura.Data
         {
             base.OnModelCreating(builder);
 
+            // Identity
+            builder.Entity<ApplicationUser>().ToTable("aspnetusers");
+            builder.Entity<IdentityRole>().ToTable("aspnetroles");
+            builder.Entity<IdentityUserRole<string>>().ToTable("aspnetuserroles");
+            builder.Entity<IdentityUserClaim<string>>().ToTable("aspnetuserclaims");
+            builder.Entity<IdentityUserLogin<string>>().ToTable("aspnetuserlogins");
+            builder.Entity<IdentityRoleClaim<string>>().ToTable("aspnetroleclaims");
+            builder.Entity<IdentityUserToken<string>>().ToTable("aspnetusertokens");
+
+            // Heroes
             builder.ApplyConfiguration(new Configurations.HeroeConfiguration());
 
             builder.Entity<ApplicationUser>()
