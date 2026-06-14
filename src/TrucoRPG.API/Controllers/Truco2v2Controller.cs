@@ -1,3 +1,4 @@
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TrucoRPG.Dominio.Entities;
 using TrucoRPG.Dominio.Servicios;
@@ -21,6 +22,7 @@ namespace TrucoRPG.API.Controllers
     public record Truco2v2PasoResponse(ManoTruco2v2 Mano, EventoMaquina? Evento);
 
     [ApiController]
+    [Authorize(Roles = "Jugador")]
     [Route("api/[controller]")]
     public class Truco2v2Controller : ControllerBase
     {
