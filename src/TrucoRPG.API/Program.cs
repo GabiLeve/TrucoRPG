@@ -115,6 +115,7 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 
+
 app.UseMiddleware<ExceptionMiddleware>();
 
 app.UseSwagger();
@@ -125,7 +126,6 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
     app.UseHttpsRedirection();
 }
-
 app.UseRouting();
 
 app.UseCors("FrontPolicy");
@@ -136,7 +136,9 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapHub<GameHub>("/gamehub");
 
+
 // ── Inicialización de Roles ──────────────────────────────────────────────────────
 await InicializadorDatosIdentity.InicializarRolesAsync(app.Services);
+
 
 app.Run();
