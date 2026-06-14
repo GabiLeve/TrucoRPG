@@ -109,7 +109,6 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-var app = builder.Build();
 
 // 1. LO PRIMERO: El middleware de excepciones debe envolver TODO lo demás
 app.UseMiddleware<ExceptionMiddleware>();
