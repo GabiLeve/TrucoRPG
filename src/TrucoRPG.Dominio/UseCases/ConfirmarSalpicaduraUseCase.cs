@@ -19,7 +19,8 @@ namespace TrucoRPG.Dominio.UseCases
             mano.UltimoMensajeHabilidadRival =
                 "¡Salpicadura! Nahuelito cambió el palo de 2 de tus cartas.";
 
-            if (mano.ManoIniciadaPor == IdJugador.Maquina && mano.GanadorMano is null)
+            if (mano.ManoIniciadaPor == IdJugador.Maquina && mano.GanadorMano is null
+                && !MaquinaServicio.EsModoHistoriaPasoAPaso(mano))
                 MaquinaServicio.ProcesarIniciativa(mano);
 
             HabilidadesOrquestador.ActualizarVistas(mano);

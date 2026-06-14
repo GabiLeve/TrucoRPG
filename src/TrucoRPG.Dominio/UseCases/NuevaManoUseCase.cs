@@ -38,7 +38,8 @@ namespace TrucoRPG.Dominio.UseCases
             HabilidadesOrquestador.Disparar(mano, EventoPartida.ManoIniciada);
             HabilidadesRivalOrquestador.Disparar(mano, EventoPartida.ManoIniciada);
 
-            if (mano.ManoIniciadaPor == IdJugador.Maquina && !mano.SalpicaduraBloqueando)
+            if (mano.ManoIniciadaPor == IdJugador.Maquina && !mano.SalpicaduraBloqueando
+                && !MaquinaServicio.EsModoHistoriaPasoAPaso(mano))
                 MaquinaServicio.ProcesarIniciativa(mano);
 
             PartidaMemoriaServicio.Guardar(mano);
@@ -55,7 +56,8 @@ namespace TrucoRPG.Dominio.UseCases
             HabilidadesOrquestador.Disparar(mano, EventoPartida.ManoIniciada);
             HabilidadesRivalOrquestador.Disparar(mano, EventoPartida.ManoIniciada);
 
-            if (mano.ManoIniciadaPor == IdJugador.Maquina && !mano.SalpicaduraBloqueando)
+            if (mano.ManoIniciadaPor == IdJugador.Maquina && !mano.SalpicaduraBloqueando
+                && !MaquinaServicio.EsModoHistoriaPasoAPaso(mano))
                 MaquinaServicio.ProcesarIniciativa(mano);
 
             PartidaMemoriaServicio.Guardar(mano);

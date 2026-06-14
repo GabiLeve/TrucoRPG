@@ -39,6 +39,10 @@ namespace TrucoRPG.Infraestructura.Repositorios
         {
             var progreso = await ObtenerOCrearAsync(usuarioId);
 
+            if (rivalNivelDerrotado > progreso.UltimoRivalDerrotadoNivel + 1)
+                throw new InvalidOperationException(
+                    "Debés derrotar al rival anterior antes de registrar esta victoria.");
+
             if (rivalNivelDerrotado > progreso.UltimoRivalDerrotadoNivel)
                 progreso.UltimoRivalDerrotadoNivel = rivalNivelDerrotado;
 

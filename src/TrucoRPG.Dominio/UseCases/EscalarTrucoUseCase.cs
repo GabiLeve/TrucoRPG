@@ -62,7 +62,7 @@ namespace TrucoRPG.Dominio.UseCases
             }
 
             if (!mano.TrucoPendienteRespuestaHumano)
-                MaquinaServicio.AvanzarTurno(mano);
+                MaquinaServicio.AvanzarTurnoSiNoEsHistoria(mano);
 
             PartidaMemoriaServicio.Actualizar(mano);
             return mano;

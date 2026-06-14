@@ -26,45 +26,26 @@ namespace TrucoRPG.Dominio.UseCases
                 ?? throw new InvalidOperationException("La carta no está en tu mano.");
 
             mano.Humano.Mano.Remove(cartaHumano);
-            mano.Humano.Jugadas.Add(cartaHumano);
 
-            Carta cartaMaquina;
             if (mano.CartaMaquinaEnMesa != null)
             {
-                cartaMaquina            = mano.CartaMaquinaEnMesa;
-                mano.CartaMaquinaEnMesa = null;
+                mano.Humano.Jugadas.Add(cartaHumano);
+                var cartaMaquina            = mano.CartaMaquinaEnMesa;
+                mano.CartaMaquinaEnMesa     = null;
+                MaquinaServicio.ResolverBazaJugada(mano, cartaHumano, cartaMaquina);
+            }
+            else if (MaquinaServicio.EsModoHistoriaPasoAPaso(mano))
+            {
+                mano.CartaHumanoEnMesa = cartaHumano;
+                mano.TurnoActual         = "Maquina";
             }
             else
             {
-                cartaMaquina = MaquinaServicio.ElegirCarta(mano.Maquina.Mano, cartaHumano);
+                mano.Humano.Jugadas.Add(cartaHumano);
+                var cartaMaquina = MaquinaServicio.ElegirCarta(mano.Maquina.Mano, cartaHumano);
                 mano.Maquina.Mano.Remove(cartaMaquina);
                 mano.Maquina.Jugadas.Add(cartaMaquina);
-            }
-
-            var ganadorBaza = JuegoServicio.ResolverBaza(cartaHumano, cartaMaquina);
-            mano.Bazas.Add(new Baza
-            {
-                CartaJugador = cartaHumano,
-                CartaMaquina = cartaMaquina,
-                Ganador      = ganadorBaza
-            });
-
-            mano.TurnoActual = ganadorBaza == "Parda" ? mano.ManoIniciadaPor : ganadorBaza;
-            mano.GanadorMano = JuegoServicio.ResolverGanadorMano(mano.Bazas, mano.ManoIniciadaPor);
-
-            if (mano.GanadorMano is "Humano" or "Maquina")
-            {
-                if (!mano.TrucoCantado)
-                    mano.EstadoTruco = "No se cantó truco. La mano vale 1 punto.";
-
-                int puntosMano = mano.PuntosTrucoMano > 0 ? mano.PuntosTrucoMano : 1;
-                JuegoServicio.SumarPuntos(
-                    mano, mano.GanadorMano, puntosMano, OrigenPuntos.TrucoMano, mano.CantorTruco);
-                mano.TrucoResuelto = true;
-            }
-            else
-            {
-                MaquinaServicio.AvanzarTurno(mano);
+                MaquinaServicio.ResolverBazaJugada(mano, cartaHumano, cartaMaquina);
             }
 
             PartidaMemoriaServicio.Actualizar(mano);

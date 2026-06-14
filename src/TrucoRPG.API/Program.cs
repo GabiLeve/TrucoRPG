@@ -87,6 +87,7 @@ builder.Services.AddScoped<HistoriaValidacionServicio>();
 builder.Services.AddScoped<ObtenerRivalesHistoriaUseCase>();
 builder.Services.AddScoped<ObtenerProgresoHistoriaUseCase>();
 builder.Services.AddScoped<PuedePelearConRivalUseCase>();
+builder.Services.AddScoped<RegistrarVictoriaHistoriaUseCase>();
 builder.Services.AddScoped<RegisterUseCase>();
 builder.Services.AddScoped<LoginUseCase>();
 builder.Services.AddScoped<ReglasUseCase>();
@@ -103,6 +104,7 @@ builder.Services.AddScoped<IrseAlMazoUseCase>();
 builder.Services.AddScoped<JugarCartaUseCase>();
 builder.Services.AddScoped<ActivarHabilidadUseCase>();
 builder.Services.AddScoped<ConfirmarSalpicaduraUseCase>();
+builder.Services.AddScoped<AvanzarMaquinaHistoriaUseCase>();
 
 // ── API ───────────────────────────────────────────────────────────
 builder.Services.AddControllers();

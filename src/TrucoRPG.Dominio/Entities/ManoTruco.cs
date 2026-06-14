@@ -27,6 +27,7 @@ namespace TrucoRPG.Dominio.Entities
         public int NumeroDeMano { get; set; } = 1;
         public string? GanadorMano { get; set; }
         public Carta? CartaMaquinaEnMesa { get; set; }
+        public Carta? CartaHumanoEnMesa { get; set; }
 
         public bool EnvidoCantado { get; set; } = false;
         public bool EnvidoResuelto { get; set; } = false;

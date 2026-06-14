@@ -33,6 +33,17 @@ namespace TrucoRPG.Infraestructura.Data.Configurations
                         "Cada 2 manos, cambia los palos de tus cartas (ej. Espada se ve/vuelve Copa).",
                     TipoRival = ClaseRival.Nahuelito,
                     TipoHabilidad = TipoHabilidadRival.Salpicadura
+                },
+                new Rival
+                {
+                    Id = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2"),
+                    Nivel = 2,
+                    Nombre = "El Pomberito",
+                    Descripcion = "Segundo jefe de la historia. Guarda la entrada de la cueva.",
+                    NombreHabilidad = "—",
+                    DescripcionHabilidad = "—",
+                    TipoRival = ClaseRival.Pomberito,
+                    TipoHabilidad = TipoHabilidadRival.Ninguna
                 });
         }
     }

@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using TrucoRPG.API.Models;
 using TrucoRPG.Dominio.Repositorios;
 using TrucoRPG.Dominio.UseCases;
 
@@ -11,17 +13,20 @@ namespace TrucoRPG.API.Controllers
         private readonly ObtenerRivalesHistoriaUseCase _obtenerRivales;
         private readonly ObtenerProgresoHistoriaUseCase _obtenerProgreso;
         private readonly PuedePelearConRivalUseCase _puedePelear;
+        private readonly RegistrarVictoriaHistoriaUseCase _registrarVictoria;
         private readonly IUsuarioActualServicio _usuarioActual;
 
         public HistoriaController(
             ObtenerRivalesHistoriaUseCase obtenerRivales,
             ObtenerProgresoHistoriaUseCase obtenerProgreso,
             PuedePelearConRivalUseCase puedePelear,
+            RegistrarVictoriaHistoriaUseCase registrarVictoria,
             IUsuarioActualServicio usuarioActual)
         {
             _obtenerRivales = obtenerRivales;
             _obtenerProgreso = obtenerProgreso;
             _puedePelear = puedePelear;
+            _registrarVictoria = registrarVictoria;
             _usuarioActual = usuarioActual;
         }
 
@@ -43,5 +48,18 @@ namespace TrucoRPG.API.Controllers
         [HttpGet("rivales/{nivel:int}/puede-pelear")]
         public async Task<IActionResult> PuedePelear(int nivel) =>
             Ok(await _puedePelear.EjecutarAsync(_usuarioActual.ObtenerId(), nivel));
+
+        [Authorize(Roles = "Jugador")]
+        [HttpPost("registrar-victoria")]
+        public async Task<IActionResult> RegistrarVictoria(
+            [FromBody] RegistrarVictoriaHistoriaRequest request)
+        {
+            await _registrarVictoria.EjecutarAsync(
+                _usuarioActual.ObtenerId(),
+                request.RivalNivel,
+                request.DiferenciaPuntos);
+
+            return Ok(await _obtenerProgreso.EjecutarAsync(_usuarioActual.ObtenerId()));
+        }
     }
 }

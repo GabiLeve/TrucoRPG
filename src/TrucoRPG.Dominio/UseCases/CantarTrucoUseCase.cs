@@ -54,7 +54,7 @@ namespace TrucoRPG.Dominio.UseCases
                 mano.EstadoTruco = "La máquina quiso el truco. Esta mano vale 2 puntos.";
                 HabilidadesTrucoServicio.NotificarTrucoAceptado(mano, IdJugador.Humano);
                 if (!mano.TrucoPendienteRespuestaHumano)
-                    MaquinaServicio.AvanzarTurno(mano);
+                    MaquinaServicio.AvanzarTurnoSiNoEsHistoria(mano);
             }
 
             PartidaMemoriaServicio.Actualizar(mano);

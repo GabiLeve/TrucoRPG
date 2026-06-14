@@ -2,6 +2,7 @@ namespace TrucoRPG.Dominio.Entities
 {
     public enum ClaseRival
     {
-        Nahuelito = 1
+        Nahuelito = 1,
+        Pomberito = 2
     }
 }
