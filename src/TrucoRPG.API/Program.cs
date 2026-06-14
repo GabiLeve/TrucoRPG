@@ -104,13 +104,12 @@ builder.Services.AddSignalR();
 builder.Services.AddCors(options =>
     options.AddPolicy("FrontPolicy", policy =>
         policy.WithOrigins("https://trucoymana.vercel.app")
-                  .AllowAnyHeader()
-                  .AllowAnyMethod()));
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials()));
 
 var app = builder.Build();
 
-
-// 1. LO PRIMERO: El middleware de excepciones debe envolver TODO lo demás
 app.UseMiddleware<ExceptionMiddleware>();
 
 app.UseSwagger();
@@ -122,26 +121,19 @@ if (!app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 }
 
-// 2. ENRUTAMIENTO Y CORS (Tienen que ir pegados y antes de autenticar)
 app.UseRouting();
 
-// Esto interceptará los comandos OPTIONS del navegador antes de que lleguen a Identity
 app.UseCors("FrontPolicy");
 
-// 3. SEGURIDAD
 app.UseAuthentication();
 app.UseAuthorization();
 
-// 4. ENDPOINTS
 app.MapControllers();
 app.MapHub<GameHub>("/gamehub");
 
-// 5. INICIALIZACIÓN DE DATOS (Fuera del pipeline de middlewares de peticiones)
 using (var scope = app.Services.CreateScope())
 {
-    // Es mucho más seguro inicializar roles usando un Scope limpio
     await InicializadorDatosIdentity.InicializarRolesAsync(scope.ServiceProvider);
 }
 
-// 6. ENCHUFAR EL SERVIDOR
 app.Run();
