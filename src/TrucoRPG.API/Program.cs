@@ -105,8 +105,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("FrontPolicy", policy =>
         policy.WithOrigins("https://trucoymana.vercel.app")
                   .AllowAnyHeader()
-                  .AllowAnyMethod()
-              .AllowCredentials()));
+                  .AllowAnyMethod()));
 
 var app = builder.Build();
 
