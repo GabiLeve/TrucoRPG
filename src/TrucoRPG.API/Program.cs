@@ -109,9 +109,6 @@ builder.Services.AddCors(options =>
               .AllowCredentials()));
 
 var app = builder.Build();
-
-app.UseMiddleware<ExceptionMiddleware>();
-
 app.UseSwagger();
 app.UseSwaggerUI();
 
@@ -124,6 +121,8 @@ if (!app.Environment.IsDevelopment())
 app.UseRouting();
 
 app.UseCors("FrontPolicy");
+
+app.UseMiddleware<ExceptionMiddleware>();
 
 app.UseAuthentication();
 app.UseAuthorization();
