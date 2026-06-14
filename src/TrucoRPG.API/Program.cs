@@ -103,12 +103,9 @@ builder.Services.AddSignalR();
 // ── CORS ──────────────────────────────────────────────────────────
 builder.Services.AddCors(options =>
     options.AddPolicy("FrontPolicy", policy =>
-        policy.WithOrigins(
-                "http://localhost:4200",
-                "http://192.168.1.45:4200"
-              )
-              .AllowAnyMethod()
-              .AllowAnyHeader()
+        policy.WithOrigins("https://trucoymana.vercel.app")
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
               .AllowCredentials()));
 
 var app = builder.Build();
