@@ -3,6 +3,7 @@ using System.Timers;
 using Microsoft.AspNetCore.SignalR;
 using Moq;
 using TrucoRPG.API.Hubs;
+using TrucoRPG.Dominio.Entities;
 
 namespace TrucoRPG.Tests.API.Hubs;
 
@@ -41,6 +42,10 @@ public class GameHubTests
         _mockClients
             .Setup(c => c.OthersInGroup(It.IsAny<string>()))
             .Returns(_mockClientProxy.Object);
+
+        _mockClientProxy
+            .Setup(p => p.SendCoreAsync(It.IsAny<string>(), It.IsAny<object[]>(), default))
+            .Returns(Task.CompletedTask);
 
         _hub = new GameHub
         {
@@ -234,5 +239,122 @@ public class GameHubTests
         Assert.Single(readySet);
     }
 
-   
+    [Fact]
+    public async Task IniciarTruco_RetornaInmediatamente_CuandoUsuarioNoTieneSalaAsignada()
+    {
+        _conexionASala.Clear();
+        _trucoGames.Clear();
+
+        await _hub.IniciarTruco();
+
+        Assert.Empty(_trucoGames);
+        _mockClients.Verify(c => c.Group(It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task IniciarTruco_RetornaInmediatamente_CuandoLaSalaNoExisteOLacksJugadores()
+    {
+        string salaInvalida = "SALA-FALLIDA";
+        _conexionASala.Clear();
+        _conexionASala[_conecxionIdFalsa] = salaInvalida;
+
+        _salas.Clear();
+        _trucoGames.Clear();
+
+        await _hub.IniciarTruco();
+
+        Assert.False(_trucoGames.ContainsKey(salaInvalida));
+        _mockClients.Verify(c => c.Group(It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task JugarCarta_RetornaInmediatamente_CuandoNoSeEncuentraSalaOEstadoActivo()
+    {
+        _conexionASala.Clear();
+        _trucoGames.Clear();
+
+        await _hub.JugarCarta(7, "Espadas");
+
+        _mockClients.Verify(c => c.Group(It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task JugarCarta_RetornaInmediatamente_CuandoLaManoYaFinalizo()
+    {
+        string salaId = "SALA-MANO-FINALIZADA";
+        var estado = CrearEstadoTrucoBase();
+        estado.Mano.GanadorMano = "Humano"; 
+        ConfigurarEscenarioDePartida(salaId, estado);
+
+        await _hub.JugarCarta(1, "Espadas");
+
+        _mockClients.Verify(c => c.Group(salaId), Times.Never);
+    }
+
+    [Fact]
+    public async Task JugarCarta_RetornaInmediatamente_CuandoHayEnvidoPendienteDeRespuesta()
+    {
+        string salaId = "SALA-CORT-ENVIDO";
+        var estado = CrearEstadoTrucoBase();
+        estado.Mano.EnvidoPendienteRespuestaHumano = true;
+        estado.Mano.Humano.Mano.Add(new Carta { Numero = 3, Palo = "Bastos" });
+        ConfigurarEscenarioDePartida(salaId, estado);
+
+        await _hub.JugarCarta(3, "Bastos");
+
+        _mockClients.Verify(c => c.Group(salaId), Times.Never);
+    }
+
+    [Fact]
+    public async Task JugarCarta_RetornaInmediatamente_CuandoHayTrucoPendienteDeRespuesta()
+    {
+        string salaId = "SALA-CORT-TRUCO";
+        var estado = CrearEstadoTrucoBase();
+        estado.Mano.TurnoActual = "Humano";
+        ConfigurarEscenarioDePartida(salaId, estado);
+
+        await _hub.JugarCarta(2, "Copas");
+
+        _mockClients.Verify(c => c.Group(salaId), Times.Never);
+    }
+
+    private TrucoMultiState CrearEstadoTrucoBase()
+    {
+        return new TrucoMultiState
+        {
+            Jugador1Id = _conecxionIdFalsa,
+            Jugador2Id = CrearConecxionIdFalsa(2),
+            Mano = new ManoTruco 
+            {
+                Humano = new Jugador
+                {
+                    Id = _conecxionIdFalsa,
+                    Nombre = "Jugador 1",
+                    EsMaquina = false,
+                    Mano = new List<Carta>(),
+                    Jugadas = new List<Carta>()
+                },
+                Maquina = new Jugador
+                {
+                    Id = CrearConecxionIdFalsa(2),
+                    Nombre = "Jugador 2",
+                    EsMaquina = false,
+                    Mano = new List<Carta>(),
+                    Jugadas = new List<Carta>()
+                },
+                TurnoActual = "Humano",
+                GanadorMano = null
+            }
+        };
+    }
+
+    private void ConfigurarEscenarioDePartida(string sala, TrucoMultiState state)
+    {
+        _conexionASala.Clear();
+        _conexionASala[_conecxionIdFalsa] = sala;
+
+        _trucoGames.Clear();
+        _trucoGames[sala] = state;
+    }
+
 }
