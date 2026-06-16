@@ -60,7 +60,7 @@ public class GameHubTests
         _conexionASala = (ConcurrentDictionary<string, string>)typeof(GameHub).GetField("_conexionASala", flags)!.GetValue(null)!;
         _trucoGames = (ConcurrentDictionary<string, TrucoMultiState>)typeof(GameHub).GetField("_trucoGames", flags)!.GetValue(null)!;
         _listos = (ConcurrentDictionary<string, ConcurrentDictionary<string, bool>>)typeof(GameHub).GetField("_listos", flags)!.GetValue(null)!;
-    
+
     }
 
     [Fact]
@@ -193,6 +193,10 @@ public class GameHubTests
         );
     }
 
+    // ─────────────────────────────────────────────────────────────
+    //  Tests: ListoParaJugar
+    // ─────────────────────────────────────────────────────────────
+
     [Fact]
     public async Task ListoParaJugar_RetornaInmediatamente_CuandoUsuarioNoTieneSalaAsignada()
     {
@@ -239,6 +243,9 @@ public class GameHubTests
         Assert.Single(readySet);
     }
 
+    // ─────────────────────────────────────────────────────────────
+    //  Tests: IniciarTruco
+    // ─────────────────────────────────────────────────────────────
     [Fact]
     public async Task IniciarTruco_RetornaInmediatamente_CuandoUsuarioNoTieneSalaAsignada()
     {
@@ -267,6 +274,9 @@ public class GameHubTests
         _mockClients.Verify(c => c.Group(It.IsAny<string>()), Times.Never);
     }
 
+    // ─────────────────────────────────────────────────────────────
+    //  Tests: JugarCarta
+    // ─────────────────────────────────────────────────────────────
     [Fact]
     public async Task JugarCarta_RetornaInmediatamente_CuandoNoSeEncuentraSalaOEstadoActivo()
     {
@@ -283,7 +293,7 @@ public class GameHubTests
     {
         string salaId = "SALA-MANO-FINALIZADA";
         var estado = CrearEstadoTrucoBase();
-        estado.Mano.GanadorMano = "Humano"; 
+        estado.Mano.GanadorMano = "Humano";
         ConfigurarEscenarioDePartida(salaId, estado);
 
         await _hub.JugarCarta(1, "Espadas");
@@ -318,13 +328,39 @@ public class GameHubTests
         _mockClients.Verify(c => c.Group(salaId), Times.Never);
     }
 
+    [Fact]
+    public async Task JugarCarta_RetornaInmediatamente_CuandoNoEsElTurnoDelJugador()
+    {
+        string salaId = "SALA-TURNO-INCORRECTO";
+        var estado = CrearEstadoTrucoBase();
+        estado.Mano.TurnoActual = "Maquina";
+        ConfigurarEscenarioDePartida(salaId, estado);
+
+        await _hub.JugarCarta(4, "Oros");
+
+        _mockClients.Verify(c => c.Group(salaId), Times.Never);
+    }
+
+    [Fact]
+    public async Task JugarCarta_RetornaInmediatamente_CuandoLaCartaNoExisteEnLaManoDelJugador()
+    {
+        string salaId = "SALA-SIN-CARTA";
+        var estado = CrearEstadoTrucoBase();
+        estado.Mano.Humano.Mano.Add(new Carta { Numero = 1, Palo = "Bastos" });
+        ConfigurarEscenarioDePartida(salaId, estado);
+
+        await _hub.JugarCarta(7, "Espadas");
+
+        _mockClients.Verify(c => c.Group(salaId), Times.Never);
+    }
+
     private TrucoMultiState CrearEstadoTrucoBase()
     {
         return new TrucoMultiState
         {
             Jugador1Id = _conecxionIdFalsa,
             Jugador2Id = CrearConecxionIdFalsa(2),
-            Mano = new ManoTruco 
+            Mano = new ManoTruco
             {
                 Humano = new Jugador
                 {
@@ -355,6 +391,223 @@ public class GameHubTests
 
         _trucoGames.Clear();
         _trucoGames[sala] = state;
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    //  Tests: SolicitarEnvido
+    // ─────────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task SolicitarEnvido_RetornaInmediatamente_CuandoNoSeEncuentraSalaOEstadoActivo()
+    {
+        _conexionASala.Clear();
+        _trucoGames.Clear();
+
+        await _hub.SolicitarEnvido("Envido");
+
+        _mockClients.Verify(c => c.Group(It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task SolicitarEnvido_RetornaInmediatamente_CuandoElEnvidoYaFueCantadoOResuelto()
+    {
+        string salaId = "SALA-ENVIDO-REPETIDO";
+        var estado = CrearEstadoTrucoBase();
+        estado.Mano.EnvidoCantado = true;
+        ConfigurarEscenarioDePartida(salaId, estado);
+
+        await _hub.SolicitarEnvido("Real Envido");
+
+        _mockClients.Verify(c => c.Group(salaId), Times.Never);
+    }
+
+    [Fact]
+    public async Task SolicitarEnvido_RetornaInmediatamente_CuandoYaSeJugaronCartasYHayBazasEnCurso()
+    {
+        string salaId = "SALA-BAZA-INICIADA";
+        var estado = CrearEstadoTrucoBase();
+        estado.Mano.Bazas.Add(new Baza());
+        ConfigurarEscenarioDePartida(salaId, estado);
+
+        await _hub.SolicitarEnvido("Envido");
+
+        _mockClients.Verify(c => c.Group(salaId), Times.Never);
+    }
+
+    [Fact]
+    public async Task SolicitarEnvido_RetornaInmediatamente_CuandoLaManoOElPartidoYaTermino()
+    {
+        string salaId = "SALA-MANO-FINALIZADA_ENVIDO";
+        var estado = CrearEstadoTrucoBase();
+        estado.Mano.GanadorMano = "Maquina";
+        ConfigurarEscenarioDePartida(salaId, estado);
+
+        await _hub.SolicitarEnvido("Falta Envido");
+
+        _mockClients.Verify(c => c.Group(salaId), Times.Never);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    //  Tests: ResponderEnvido
+    // ─────────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task ResponderEnvido_RetornaInmediatamente_CuandoNoSeEncuentraSalaOEstadoActivo()
+    {
+        _conexionASala.Clear();
+        _trucoGames.Clear();
+
+        await _hub.ResponderEnvido(aceptar: true);
+
+        _mockClients.Verify(c => c.Group(It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ResponderEnvido_RetornaInmediatamente_CuandoElEnvidoNoFueCantadoOYaFueResuelto()
+    {
+        string salaId = "SALA-ENV-RESUELTO";
+        var estado = CrearEstadoTrucoBase();
+        estado.Mano.EnvidoCantado = true;
+        estado.Mano.EnvidoResuelto = true;
+        ConfigurarEscenarioDePartida(salaId, estado);
+
+        await _hub.ResponderEnvido(aceptar: false);
+
+        _mockClients.Verify(c => c.Group(salaId), Times.Never);
+    }
+
+    [Fact]
+    public async Task ResponderEnvido_RetornaInmediatamente_CuandoJugador1RespondePeroNoTieneElPendiente()
+    {
+        string salaId = "SALA-PENDIENTE-J1-FALSO";
+        var estado = CrearEstadoTrucoBase();
+        estado.Jugador1Id = _conecxionIdFalsa;
+        estado.Mano.EnvidoCantado = true;
+        estado.Mano.EnvidoPendienteRespuestaHumano = false;
+
+        ConfigurarEscenarioDePartida(salaId, estado);
+
+        await _hub.ResponderEnvido(aceptar: true);
+
+        _mockClients.Verify(c => c.Group(salaId), Times.Never);
+    }
+
+    [Fact]
+    public async Task ResponderEnvido_RetornaInmediatamente_CuandoJugador2RespondePeroNoTieneElPendiente()
+    {
+        string salaId = "SALA-PENDIENTE-J2-FALSO";
+        var estado = CrearEstadoTrucoBase();
+        estado.Jugador1Id = "otro-usuario";
+        estado.Jugador2Id = _conecxionIdFalsa;
+        estado.Mano.EnvidoCantado = true;
+        estado.EnvidoPendienteRespuestaJ2 = false;
+        ConfigurarEscenarioDePartida(salaId, estado);
+
+        await _hub.ResponderEnvido(aceptar: true);
+
+        _mockClients.Verify(c => c.Group(salaId), Times.Never);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    //  Tests: EscalarEnvido
+    // ─────────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task EscalarEnvido_RetornaInmediatamente_CuandoNoSeEncuentraSalaOEstadoActivo()
+    {
+        _conexionASala.Clear();
+        _trucoGames.Clear();
+
+        await _hub.EscalarEnvido("RealEnvido");
+
+        _mockClients.Verify(c => c.Group(It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task EscalarEnvido_RetornaInmediatamente_CuandoElEnvidoNoFueCantadoOYaEstaResuelto()
+    {
+        string salaId = "SALA-ESC-RESUELTO";
+        var estado = CrearEstadoTrucoBase();
+        estado.Mano.EnvidoCantado = true;
+        estado.Mano.EnvidoResuelto = true;
+        ConfigurarEscenarioDePartida(salaId, estado);
+
+        await _hub.EscalarEnvido("FaltaEnvido");
+
+        _mockClients.Verify(c => c.Group(salaId), Times.Never);
+    }
+
+    [Fact]
+    public async Task EscalarEnvido_RetornaInmediatamente_CuandoElCantorOriginalIntentaEscalarSuPropioCanto()
+    {
+        string salaId = "SALA-ESC-AUTOCANTO";
+        var estado = CrearEstadoTrucoBase();
+        estado.Jugador1Id = _conecxionIdFalsa;
+        estado.Mano.EnvidoCantado = true;
+        estado.Mano.CantorEnvido = "Humano";
+        ConfigurarEscenarioDePartida(salaId, estado);
+
+        await _hub.EscalarEnvido("RealEnvido");
+
+        _mockClients.Verify(c => c.Group(salaId), Times.Never);
+    }
+
+    [Fact]
+    public async Task EscalarEnvido_RetornaInmediatamente_CuandoElTipoNuevoNoEsEstrictamenteMayorAlActual()
+    {
+        string salaId = "SALA-ESC-ORDINAL-MENOR";
+        var estado = CrearEstadoTrucoBase();
+        estado.Jugador1Id = _conecxionIdFalsa;
+        estado.Mano.EnvidoCantado = true;
+        estado.Mano.CantorEnvido = "Maquina";
+        estado.Mano.TipoEnvidoCantado = "RealEnvido";
+        ConfigurarEscenarioDePartida(salaId, estado);
+
+        await _hub.EscalarEnvido("Envido");
+
+        _mockClients.Verify(c => c.Group(salaId), Times.Never);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    //  Tests: SolicitarTruco
+    // ─────────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task SolicitarTruco_RetornaInmediatamente_CuandoNoSeEncuentraSalaOEstadoActivo()
+    {
+        _conexionASala.Clear();
+        _trucoGames.Clear();
+
+        await _hub.SolicitarTruco();
+
+        _mockClients.Verify(c => c.Group(It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task SolicitarTruco_RetornaInmediatamente_CuandoElTrucoYaFueCantadoOElPartidoFinalizo()
+    {
+        string salaId = "SALA-TRUCO-REPETIDO";
+        var estado = CrearEstadoTrucoBase();
+        estado.Mano.TrucoCantado = true;
+        ConfigurarEscenarioDePartida(salaId, estado);
+
+        await _hub.SolicitarTruco();
+
+        _mockClients.Verify(c => c.Group(salaId), Times.Never);
+    }
+
+    [Fact]
+    public async Task SolicitarTruco_RetornaInmediatamente_CuandoLaManoYaTieneUnGanadorDefinido()
+    {
+        string salaId = "SALA-TRUCO-MANO-FIN";
+        var estado = CrearEstadoTrucoBase();
+        estado.Mano.GanadorMano = "Humano";
+
+        ConfigurarEscenarioDePartida(salaId, estado);
+
+        await _hub.SolicitarTruco();
+
+        _mockClients.Verify(c => c.Group(salaId), Times.Never);
     }
 
 }
