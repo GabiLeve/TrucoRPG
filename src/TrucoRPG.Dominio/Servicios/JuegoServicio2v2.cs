@@ -217,10 +217,22 @@ namespace TrucoRPG.Dominio.Servicios
             }
             else
             {
-                // Vuelta en progreso → siguiente jugador en orden
-                var siguiente = TurnoServicio2v2.SiguienteJugador(mano, jugadorId);
-                if (siguiente != null)
-                    mano.TurnoActual = siguiente;
+                // Vuelta en progreso → siguiente jugador en orden CIRCULAR de mesa.
+                // No usamos SiguienteJugador (que parte de JugadorMano) porque cuando
+                // una máquina gana la vuelta y la abre desde una posición distinta al
+                // JugadorMano, el último en el orden fijo puede no ser el último en
+                // jugar, y SiguienteJugador devuelve null antes de tiempo (bug: doble carta).
+                var todos = mano.OrdenJugadores.Select(j => j.Id).ToList();
+                int idx   = todos.IndexOf(jugadorId);
+                for (int i = 1; i < todos.Count; i++)
+                {
+                    var cand = todos[(idx + i) % todos.Count];
+                    if (!mano.VueltaActual!.CartasJugadas.ContainsKey(cand))
+                    {
+                        mano.TurnoActual = cand;
+                        break;
+                    }
+                }
             }
 
             return false;
