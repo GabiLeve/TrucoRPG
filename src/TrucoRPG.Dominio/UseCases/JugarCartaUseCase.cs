@@ -30,14 +30,14 @@ namespace TrucoRPG.Dominio.UseCases
             if (mano.CartaMaquinaEnMesa != null)
             {
                 mano.Humano.Jugadas.Add(cartaHumano);
-                var cartaMaquina            = mano.CartaMaquinaEnMesa;
-                mano.CartaMaquinaEnMesa     = null;
+                var cartaMaquina        = mano.CartaMaquinaEnMesa;
+                mano.CartaMaquinaEnMesa = null;
                 MaquinaServicio.ResolverBazaJugada(mano, cartaHumano, cartaMaquina);
             }
             else if (MaquinaServicio.EsModoHistoriaPasoAPaso(mano))
             {
                 mano.CartaHumanoEnMesa = cartaHumano;
-                mano.TurnoActual         = "Maquina";
+                mano.TurnoActual       = "Maquina";
             }
             else
             {

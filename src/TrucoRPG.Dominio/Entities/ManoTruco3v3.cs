@@ -1,41 +1,35 @@
 namespace TrucoRPG.Dominio.Entities
 {
     /// <summary>
-    /// Estado completo del juego en modo 2v2.
-    /// EquipoA contiene jugadores en posiciones 1 y 3.
-    /// EquipoB contiene jugadores en posiciones 2 y 4.
-    /// Orden de turnos: posicion1 → posicion2 → posicion3 → posicion4 (horario).
+    /// Estado completo del juego en modo 3v3.
+    /// EquipoA contiene jugadores en posiciones 1, 3 y 5.
+    /// EquipoB contiene jugadores en posiciones 2, 4 y 6.
+    /// Orden de turnos (horario): Pos1 → Pos2 → Pos3 → Pos4 → Pos5 → Pos6.
     /// </summary>
-    public class ManoTruco2v2
+    public class ManoTruco3v3
     {
         public Guid Id { get; set; } = Guid.NewGuid();
         public int NumeroDeMano { get; set; } = 1;
 
         // ─── Jugadores (orden de mesa) ────────────────────────────────────
-        // Posicion1 y Posicion3 → EquipoA; Posicion2 y Posicion4 → EquipoB
         public Jugador Posicion1 { get; set; } = new();
         public Jugador Posicion2 { get; set; } = new();
         public Jugador Posicion3 { get; set; } = new();
         public Jugador Posicion4 { get; set; } = new();
+        public Jugador Posicion5 { get; set; } = new();
+        public Jugador Posicion6 { get; set; } = new();
 
-        public Equipo2v2 EquipoA { get; set; } = new() { Id = "EquipoA", Nombre = "Equipo A" };
-        public Equipo2v2 EquipoB { get; set; } = new() { Id = "EquipoB", Nombre = "Equipo B" };
+        public Equipo3v3 EquipoA { get; set; } = new() { Id = "EquipoA", Nombre = "Equipo A" };
+        public Equipo3v3 EquipoB { get; set; } = new() { Id = "EquipoB", Nombre = "Equipo B" };
 
         // ─── Turno ────────────────────────────────────────────────────────
-        /// <summary>Id del jugador que debe jugar ahora.</summary>
         public string TurnoActual { get; set; } = "";
-
-        /// <summary>Id del jugador que es "mano" en esta ronda (tiene la ventaja).</summary>
         public string JugadorMano { get; set; } = "";
-
-        /// <summary>Id del equipo que es "mano" ("EquipoA" o "EquipoB").</summary>
         public string EquipoMano { get; set; } = "";
 
         // ─── Vueltas ─────────────────────────────────────────────────────
-        public List<Vuelta2v2> Vueltas { get; set; } = new();
-
-        /// <summary>Vuelta actual en progreso (puede ser null si terminó).</summary>
-        public Vuelta2v2? VueltaActual { get; set; }
+        public List<Vuelta3v3> Vueltas { get; set; } = new();
+        public Vuelta3v3? VueltaActual { get; set; }
 
         public string? GanadorMano { get; set; }   // "EquipoA" o "EquipoB"
         public bool ManoTerminada { get; set; } = false;
@@ -43,70 +37,70 @@ namespace TrucoRPG.Dominio.Entities
         // ─── Envido ───────────────────────────────────────────────────────
         public bool EnvidoCantado { get; set; } = false;
         public bool EnvidoResuelto { get; set; } = false;
-        public string? CantorEnvido { get; set; }   // jugadorId del que cantó
+        public string? CantorEnvido { get; set; }
         public string? TipoEnvidoCantado { get; set; }
-        public string? GanadorEnvido { get; set; }  // "EquipoA" o "EquipoB"
+        public string? GanadorEnvido { get; set; }
         public int PuntosEnvido { get; set; } = 0;
-        /// <summary>Puntos que se pagan si el envido se rechaza ("no quiero"): el valor de la
-        /// apuesta ANTERIOR a la última (Envido→1, Envido Envido→2, etc.).</summary>
         public int PuntosEnvidoNoQuiero { get; set; } = 1;
         public string? EstadoEnvido { get; set; }
-
-        /// <summary>jugadorId del jugador que debe responder el envido.</summary>
         public string? EnvidoPendienteRespuestaDe { get; set; }
-
-        /// <summary>Fase del envido: null, "pendiente_respuesta", "declarando_tantos".</summary>
         public string? FaseEnvido { get; set; }
-
-        /// <summary>Índice del próximo jugador que debe declarar su tanto (en orden de turno empezando por el no-mano).</summary>
         public int IndiceDeclaracionTanto { get; set; } = 0;
-
-        /// <summary>Tantos declarados por cada jugador. Key = jugadorId.</summary>
         public Dictionary<string, int?> TantosDeclarados { get; set; } = new();
-
-        /// <summary>Tantos reales de cada jugador. Key = jugadorId.</summary>
         public Dictionary<string, int> TantosReales { get; set; } = new();
-
-        /// <summary>Si alguien dijo "son buenas", se resuelve inmediatamente.</summary>
         public bool SonBuenasDeclarado { get; set; } = false;
         public string? JugadorQueDijoSonBuenas { get; set; }
 
         // ─── Truco ────────────────────────────────────────────────────────
         public bool TrucoCantado { get; set; } = false;
         public bool TrucoResuelto { get; set; } = false;
-        public string? CantorTruco { get; set; }    // jugadorId
-        public string? EquipoCantorTruco { get; set; } // "EquipoA" o "EquipoB"
+        public string? CantorTruco { get; set; }
+        public string? EquipoCantorTruco { get; set; }
         public int NivelTruco { get; set; } = 0;
         public int PuntosTrucoMano { get; set; } = 1;
         public string? EstadoTruco { get; set; }
-
-        /// <summary>jugadorId del jugador que debe responder el truco.</summary>
         public string? TrucoPendienteRespuestaDe { get; set; }
-
-        /// <summary>Último jugador del equipo contrario que puede escalar el truco.</summary>
         public string? PuedeEscalarTruco { get; set; }
 
         // ─── Puntos partida ───────────────────────────────────────────────
         public int PuntosEquipoA { get; set; } = 0;
         public int PuntosEquipoB { get; set; } = 0;
         public bool PartidaTerminada { get; set; } = false;
-        public string? GanadorPartida { get; set; }  // "EquipoA" o "EquipoB"
+        public string? GanadorPartida { get; set; }
 
-        // ─── Consulta de envido del compañero (modo solo 2v2) ─────────────
+        // ─── Pica-Pica ─────────────────────────────────────────────────────
+        /// <summary>Jugadores que participan de esta mano (en orden de mesa). En 3v3 normal
+        /// son los 6; en Pica-Pica solo J1 y J4 (1 vs 1 contra el de enfrente).</summary>
+        public List<string> JugadoresActivos { get; set; } = new();
+
+        /// <summary>True cuando la mano se juega en modo Pica-Pica (1 vs 1).</summary>
+        public bool PicaPica { get; set; } = false;
+
+        /// <summary>
+        /// Posición dentro del ciclo Pica-Pica (0,1,2 = duelo; 3 = mano redonda).
+        /// -1 indica que el modo Pica-Pica aún no fue activado.
+        /// </summary>
+        public int PicaPicaSlot { get; set; } = -1;
+
+        // ─── Consulta de los compañeros bot (modo solo 3v3) ───────────────
         public bool CompaConsultaEnvido { get; set; } = false;
         public bool CompaEnvidoConsultado { get; set; } = false;
         public bool CompaConsultaTruco { get; set; } = false;
         public bool CompaTrucoConsultado { get; set; } = false;
-        public string? CompaPista { get; set; }  // pista de envido del compañero ("Tengo poco/algo/mucho")
+        /// <summary>Pista del tanto/fuerza de un compañero ("Tengo mucho/algo/poco").</summary>
+        public string? CompaPista { get; set; }
+        /// <summary>Id del compañero que está preguntando (J3 o J5).</summary>
+        public string? CompaConsultor { get; set; }
         /// <summary>
-        /// Si no es null, este jugador bot (el compañero del humano) debe jugar su carta de
-        /// mayor ValorTruco en su próximo turno (orden del humano vía botón Acciones).
-        /// Se limpia automáticamente al ejecutar la acción. Espejo del modo 3v3.
+        /// Si no es null, este jugador bot debe jugar su carta de mayor ValorTruco
+        /// en su próximo turno (orden del humano vía botón Acciones).
+        /// Se limpia automáticamente al ejecutar la acción.
         /// </summary>
         public string? OrdenJugarMayor { get; set; }
 
         // ─── Helpers ─────────────────────────────────────────────────────
-        public List<Jugador> OrdenJugadores => new() { Posicion1, Posicion2, Posicion3, Posicion4 };
+        public List<Jugador> OrdenJugadores =>
+            new() { Posicion1, Posicion2, Posicion3, Posicion4, Posicion5, Posicion6 };
 
         public Jugador? ObtenerJugador(string jugadorId) =>
             OrdenJugadores.FirstOrDefault(j => j.Id == jugadorId);
@@ -114,10 +108,10 @@ namespace TrucoRPG.Dominio.Entities
         public string ObtenerEquipoDeJugador(string jugadorId) =>
             EquipoA.ContieneJugador(jugadorId) ? "EquipoA" : "EquipoB";
 
-        public Equipo2v2 ObtenerEquipo(string equipoId) =>
+        public Equipo3v3 ObtenerEquipo(string equipoId) =>
             equipoId == "EquipoA" ? EquipoA : EquipoB;
 
-        public Equipo2v2 ObtenerEquipoContrario(string equipoId) =>
+        public Equipo3v3 ObtenerEquipoContrario(string equipoId) =>
             equipoId == "EquipoA" ? EquipoB : EquipoA;
 
         public int ObtenerPuntosEquipo(string equipoId) =>

@@ -72,7 +72,9 @@ namespace TrucoRPG.Dominio.UseCases
                 }
                 else
                 {
-                    int puntosNuevos = EnvidoServicio.ObtenerPuntosSegunTipo(mano.TipoEnvidoCantado);
+                    // Los cantos del envido se ACUMULAN: "Envido" (2) + "Real Envido" (3) = 5,
+                    // no solo el valor del último canto. La Falta se calcula en ResolverEnvido.
+                    int puntosNuevos = puntosAntes + EnvidoServicio.IncrementoPuntosTipo(mano.TipoEnvidoCantado);
                     EnvidoServicio.ResolverEnvido(mano, puntosNuevos, $"La máquina quiso tu {escalarA}");
                     MaquinaServicio.AvanzarTurnoSiNoEsHistoria(mano);
                 }
