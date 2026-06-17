@@ -1,4 +1,4 @@
-
+﻿
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TrucoRPG.API.Models;
@@ -8,7 +8,7 @@ using TrucoRPG.Dominio.UseCases;
 namespace TrucoRPG.API.Controllers
 {
     [ApiController]
-    //[Authorize(Roles = "Jugador")] <-- DESCOMENTAR CUANDO ESTÉ IMPLEMENTADA LA SESIÓN DE USUARIOS
+    [Authorize(Roles = "Jugador")]
     [Route("api/[controller]")]
     public class TrucoController : ControllerBase
     {
