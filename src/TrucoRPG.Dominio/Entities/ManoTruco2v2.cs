@@ -98,6 +98,12 @@ namespace TrucoRPG.Dominio.Entities
         public bool CompaConsultaTruco { get; set; } = false;
         public bool CompaTrucoConsultado { get; set; } = false;
         public string? CompaPista { get; set; }  // pista de envido del compañero ("Tengo poco/algo/mucho")
+        /// <summary>
+        /// Si no es null, este jugador bot (el compañero del humano) debe jugar su carta de
+        /// mayor ValorTruco en su próximo turno (orden del humano vía botón Acciones).
+        /// Se limpia automáticamente al ejecutar la acción. Espejo del modo 3v3.
+        /// </summary>
+        public string? OrdenJugarMayor { get; set; }
 
         // ─── Helpers ─────────────────────────────────────────────────────
         public List<Jugador> OrdenJugadores => new() { Posicion1, Posicion2, Posicion3, Posicion4 };

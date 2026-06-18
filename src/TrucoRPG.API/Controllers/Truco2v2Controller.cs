@@ -15,6 +15,7 @@ namespace TrucoRPG.API.Controllers
     public record Truco2v2NuevaPartidaRequest(int? NumeroDeMano = null, int? PuntosA = null, int? PuntosB = null);
     public record Truco2v2ConsultaEnvidoRequest(Guid ManoId, bool Aceptar);
     public record Truco2v2ConsultaTrucoRequest(Guid ManoId, bool Voy);
+    public record Truco2v2OrdenMayorRequest(Guid ManoId, string JugadorId);
 
     public record Truco2v2PasoResponse(ManoTruco2v2 Mano, EventoMaquina2v2? Evento);
 
@@ -260,6 +261,19 @@ namespace TrucoRPG.API.Controllers
             // El compañero juega (voy = carta baja / pongo = carta alta); la regla vive en el dominio.
             MaquinaServicio2v2.ResolverConsultaTruco(mano, req.Voy);
 
+            Truco2v2MemoriaServicio.Actualizar(mano);
+            return Ok(mano);
+        }
+
+        // ─────────────────────────────────────────────────────────
+        //  Orden del humano a su compañero bot (botón Acciones)
+        // ─────────────────────────────────────────────────────────
+        [HttpPost("ordenar-mayor")]
+        public ActionResult<ManoTruco2v2> OrdenarMayor([FromBody] Truco2v2OrdenMayorRequest req)
+        {
+            var mano = ObtenerMano(req.ManoId);
+            // La regla (quién puede recibir la orden) vive en el dominio.
+            MaquinaServicio2v2.OrdenarJugarMayor(mano, req.JugadorId);
             Truco2v2MemoriaServicio.Actualizar(mano);
             return Ok(mano);
         }
