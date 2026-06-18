@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.SignalR;
+﻿using Microsoft.AspNetCore.SignalR;
 using System.Collections.Concurrent;
 using TrucoRPG.Dominio.Entities;
 using TrucoRPG.Dominio.Servicios;
@@ -819,6 +819,46 @@ public class GameHub : Hub
                 countBelgrano
             });
         }
+    }
+
+    private string? ObtenerConnectionCompanero(TrucoMultiState2v2 state)
+    {
+        if (!state.Posiciones.TryGetValue(Context.ConnectionId, out var miPos))
+            return null;
+
+        int posCompanero = miPos switch
+        {
+            1 => 3,
+            3 => 1,
+            2 => 4,
+            4 => 2,
+            _ => 0
+        };
+
+        // Buscar el connectionId del compañero a partir de su posición
+        return state.Posiciones
+            .FirstOrDefault(x => x.Value == posCompanero)
+            .Key;
+    }
+
+    public async Task EnviarSenia2v2(string tipo)
+    {
+        //encontrar sala
+        if (!_conexionASala.TryGetValue(Context.ConnectionId, out var sala))
+            return;
+        //encontrar estado TrucoMultiState2v2
+        if (!_trucoGames2v2.TryGetValue(sala, out var state))
+            return;
+
+        //encontrar compañero
+        var companeroConnectionId = ObtenerConnectionCompanero(state);
+
+        if (string.IsNullOrEmpty(companeroConnectionId))
+            return;
+
+        //Ejecutar
+        await Clients.Client(companeroConnectionId)
+            .SendAsync("RecibirSenia2v2", tipo);
     }
 
     private async Task BroadcastTrucoEstado(string sala, TrucoMultiState state)
