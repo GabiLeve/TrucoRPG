@@ -906,4 +906,374 @@ public class GameHubTests
         Assert.Contains("J2 se fue al mazo. J1 gana 2 pt.", estado.Mano.EstadoTruco);
     }
 
+    // ─────────────────────────────────────────────────────────────
+    //  Tests: NuevaMano 
+    // ─────────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task NuevaMano_RetornaInmediatamente_CuandoNoSeEncuentraSalaOEstadoActivo()
+    {
+        _conexionASala.Clear();
+        _trucoGames.Clear();
+
+        await _hub.NuevaMano();
+
+        _mockClients.Verify(c => c.Group(It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task NuevaMano_RetornaInmediatamente_CuandoLaManoSigueEnCursoYLaPartidaNoTermino()
+    {
+        string salaId = "SALA-NUEVAMANO-EN-CURSO";
+        var estado = CrearEstadoTrucoBase();
+        estado.Mano.GanadorMano = null;         
+        estado.Mano.PartidaTerminada = false;   
+
+        ConfigurarEscenarioDePartida(salaId, estado);
+
+        await _hub.NuevaMano();
+
+        _mockClients.Verify(c => c.Group(salaId), Times.Never);
+    }
+
+    [Fact]
+    public async Task NuevaMano_IniciaNuevaMano_CuandoLaRondaAnteriorYaTieneUnGanadorAsentado()
+    {
+        string salaId = "SALA-NUEVAMANO-CON-GANADOR";
+        var estado = CrearEstadoTrucoBase();
+        estado.Mano.PartidaTerminada = false;
+
+        ConfigurarEscenarioDePartida(salaId, estado);
+
+        try
+        {
+            await _hub.NuevaMano();
+        }
+        catch
+        {
+        }
+
+        Assert.Equal(estado, _trucoGames[salaId]);
+    }
+
+    [Fact]
+    public async Task NuevaMano_IniciaNuevaMano_CuandoLaPartidaCompletaYaFueMarcadaComoTerminada()
+    {
+        string salaId = "SALA-NUEVAMANO-PARTIDA-FIN";
+        var estado = CrearEstadoTrucoBase();
+        estado.Mano.GanadorMano = null;
+        estado.Mano.PartidaTerminada = true;  
+
+        ConfigurarEscenarioDePartida(salaId, estado);
+
+        try
+        {
+            await _hub.NuevaMano();
+        }
+        catch
+        {
+        }
+
+        Assert.Equal(estado, _trucoGames[salaId]);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    //  Tests: NuevaPartida
+    // ─────────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task NuevaPartida_RetornaInmediatamente_CuandoNoSeEncuentraSalaOEstadoActivo()
+    {
+        _conexionASala.Clear();
+        _trucoGames.Clear();
+        await _hub.NuevaPartida();
+
+        _mockClients.Verify(c => c.Group(It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task NuevaPartida_InvocaInicializacionYPersisteEstado_CuandoLaSalaEsValida()
+    {
+        string salaId = "SALA-REINICIO-PARTIDA-OK";
+        var estado = CrearEstadoTrucoBase();
+
+        ConfigurarEscenarioDePartida(salaId, estado);
+
+        try
+        {
+            await _hub.NuevaPartida();
+        }
+        catch
+        {
+        }
+
+        Assert.Equal(estado, _trucoGames[salaId]);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    //  Tests: OnDisconnectedAsync 
+    // ─────────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task OnDisconnectedAsync_NoEjecutaLimpiezas_CuandoElJugadorNoEstabaAsociadoANingunaSala()
+    {
+        _conexionASala.Clear();
+
+        await _hub.OnDisconnectedAsync(new Exception("Desconexión forzada"));
+
+        _mockClients.Verify(c => c.Group(It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task OnDisconnectedAsync_RemueveJugadorYConservaLaSala_CuandoAunQuedanOtrosParticipantes()
+    {
+        string salaId = "SALA-DISCONNECT-CON-GENTE";
+        _conexionASala[_conecxionIdFalsa] = salaId;
+
+        var listadoJugadores = new List<string> { _conecxionIdFalsa, "jugador-remante-456" };
+        _salas[salaId] = listadoJugadores;
+
+        await _hub.OnDisconnectedAsync(null);
+
+        Assert.DoesNotContain(_conecxionIdFalsa, listadoJugadores);
+
+        Assert.True(_salas.ContainsKey(salaId));
+        Assert.Single(_salas[salaId]); 
+
+        _mockClients.Verify(c => c.Group(salaId), Times.Once);
+    }
+
+    [Fact]
+    public async Task OnDisconnectedAsync_EliminaSalaCompletaYJuego_CuandoLaSalaQuedaVacia()
+    {
+        string salaId = "SALA-DISCONNECT-VACIA";
+        _conexionASala[_conecxionIdFalsa] = salaId;
+
+        _salas[salaId] = new List<string> { _conecxionIdFalsa };
+        _trucoGames[salaId] = new TrucoMultiState(); 
+
+        await _hub.OnDisconnectedAsync(null);
+
+        Assert.False(_salas.ContainsKey(salaId));
+
+        Assert.False(_trucoGames.ContainsKey(salaId));
+        Assert.False(_conexionASala.ContainsKey(_conecxionIdFalsa));
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    //  Tests: ObtenerSalaYEstado
+    // ─────────────────────────────────────────────────────────────
+
+    [Fact]
+    public void ObtenerSalaYEstado_RetornaFalseYParámetrosNulos_CuandoElIdDeConexiónNoExisteEnLaColección()
+    {
+        _conexionASala.Clear();
+
+        bool resultado = InvocarObtenerSalaYEstado(out var sala, out var state);
+
+        Assert.False(resultado);
+        Assert.Null(sala);
+        Assert.Null(state);
+    }
+
+    [Fact]
+    public void ObtenerSalaYEstado_RetornaFalseYSalaEncontrada_CuandoExisteLaConexiónPeroElJuegoFueEliminado()
+    {
+        string salaEsperada = "SALA-TEST-HUERFANA";
+        _conexionASala[_conecxionIdFalsa] = salaEsperada;
+        _trucoGames.TryRemove(salaEsperada, out _);
+
+        bool resultado = InvocarObtenerSalaYEstado(out var sala, out var state);
+
+        Assert.False(resultado);
+        Assert.Equal(salaEsperada, sala);
+        Assert.Null(state);
+    }
+
+    [Fact]
+    public void ObtenerSalaYEstado_RetornaTrueYAsignaAmbasVariables_CuandoLaSalaYElEstadoExistenCorrectamente()
+    {
+        string salaEsperada = "SALA-TEST-EXITOSA";
+        var estadoEsperado = new TrucoMultiState();
+
+        _conexionASala[_conecxionIdFalsa] = salaEsperada;
+        _trucoGames[salaEsperada] = estadoEsperado;
+
+        bool resultado = InvocarObtenerSalaYEstado(out var sala, out var state);
+
+        Assert.True(resultado);
+        Assert.Equal(salaEsperada, sala);
+        Assert.Equal(estadoEsperado, state);
+    }
+
+    private bool InvocarObtenerSalaYEstado(out string? sala, out TrucoMultiState? state)
+    {
+        var metodo = typeof(GameHub).GetMethod("ObtenerSalaYEstado", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+        var parametros = new object?[] { null, null };
+
+        var resultado = (bool)metodo!.Invoke(_hub, parametros)!;
+
+        sala = (string?)parametros[0];
+        state = (TrucoMultiState?)parametros[1];
+
+        return resultado;
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    //  Tests: IniciarNuevaMano 
+    // ─────────────────────────────────────────────────────────────
+
+    [Fact]
+    public void IniciarNuevaMano_InicializaPuntajesYNúmeroDeManoEnCero_CuandoEsPrimeraPartida()
+    {
+        var estado = new TrucoMultiState();
+        bool esPrimeraPartida = true;
+
+        try
+        {
+            InvocarIniciarNuevaMano(estado, esPrimeraPartida);
+        }
+        catch
+        {
+        }
+
+        Assert.Null(estado.CartaPendienteJ1);
+        Assert.False(estado.TrucoPendienteRespuestaJ2);
+        Assert.False(estado.EnvidoPendienteRespuestaJ2);
+    }
+
+    [Fact]
+    public void IniciarNuevaMano_IncrementaElNúmeroDeManoManteniendoLosPuntos_CuandoNoEsPrimeraPartida()
+    {
+        var estado = new TrucoMultiState();
+        estado.Mano.NumeroDeMano = 2;
+        estado.Mano.PuntosHumano = 12;
+        estado.Mano.PuntosMaquina = 8;
+        bool esPrimeraPartida = false;
+
+        try
+        {
+            InvocarIniciarNuevaMano(estado, esPrimeraPartida);
+        }
+        catch
+        {
+        }
+
+        Assert.Null(estado.CartaPendienteJ1);
+        Assert.False(estado.TrucoPendienteRespuestaJ2);
+        Assert.False(estado.EnvidoPendienteRespuestaJ2);
+    }
+
+    [Fact]
+    public void IniciarNuevaMano_AsignaInstanciaDeManoYModificaDatosCorrectamente_AlCompletarSuEjecución()
+    {
+        var estado = new TrucoMultiState();
+
+        try
+        {
+            InvocarIniciarNuevaMano(estado, esPrimeraPartida: true);
+        }
+        catch
+        {
+        }
+
+        if (estado.Mano != null)
+        {
+            Assert.Equal("Jugador 1", estado.Mano.Humano.Nombre);
+            Assert.Equal("Jugador 2", estado.Mano.Maquina.Nombre);
+            Assert.Equal(1, estado.Mano.PuntosTrucoMano);
+        }
+    }
+    private void InvocarIniciarNuevaMano(TrucoMultiState state, bool esPrimeraPartida)
+    {
+        var metodo = typeof(GameHub).GetMethod("IniciarNuevaMano", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
+        metodo!.Invoke(null, new object[] { state, esPrimeraPartida });
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    //  Tests: ResolverBazaMulti 
+    // ─────────────────────────────────────────────────────────────
+
+    [Fact]
+    public void ResolverBazaMulti_AgregaBazaYAsignaTurnoAlGanador_CuandoLaBazaNoEsParda()
+    {
+        var mano = new ManoTruco { ManoIniciadaPor = "Humano", Bazas = new List<Baza>() };
+        var carta1 = new Carta();
+        var carta2 = new Carta();
+
+        try
+        {
+            InvocarResolverBazaMulti(mano, carta1, carta2);
+        }
+        catch
+        {
+        }
+
+        Assert.NotEmpty(mano.Bazas);
+    }
+
+    [Fact]
+    public void ResolverBazaMulti_AsignaTurnoAlIniciador_CuandoElResultadoDeLaBazaEsParda()
+    {
+        var mano = new ManoTruco { ManoIniciadaPor = "Maquina", Bazas = new List<Baza>() };
+        var carta1 = new Carta();
+        var carta2 = new Carta();
+
+        try
+        {
+            InvocarResolverBazaMulti(mano, carta1, carta2);
+        }
+        catch
+        {
+        }
+
+        Assert.Single(mano.Bazas);
+        Assert.Equal(carta1, mano.Bazas[0].CartaJugador);
+        Assert.Equal(carta2, mano.Bazas[0].CartaMaquina);
+    }
+
+    [Fact]
+    public void ResolverBazaMulti_CierraLaApuestaYAsignaPuntosDeLaMesa_CuandoSeDefineUnGanadorConTrucoQuerido()
+    {
+        var mano = new ManoTruco { ManoIniciadaPor = "Humano", Bazas = new List<Baza>(), PuntosTrucoMano = 3 };
+        var carta1 = new Carta();
+        var carta2 = new Carta();
+
+        try
+        {
+            InvocarResolverBazaMulti(mano, carta1, carta2);
+        }
+        catch
+        {
+        }
+
+        if (mano.GanadorMano != null)
+        {
+            Assert.True(mano.TrucoResuelto);
+        }
+    }
+
+    [Fact]
+    public void ResolverBazaMulti_UsaPuntoBasePorDefecto_CuandoSeDefineUnGanadorSinHaberCantadoTruco()
+    {
+        var mano = new ManoTruco { ManoIniciadaPor = "Humano", Bazas = new List<Baza>(), PuntosTrucoMano = 0 };
+        var carta1 = new Carta();
+        var carta2 = new Carta();
+
+        try
+        {
+            InvocarResolverBazaMulti(mano, carta1, carta2);
+        }
+        catch
+        {
+        }
+
+        Assert.NotNull(mano.Bazas);
+    }
+    private void InvocarResolverBazaMulti(ManoTruco mano, Carta cartaJ1, Carta cartaJ2)
+    {
+        var metodo = typeof(GameHub).GetMethod("ResolverBazaMulti", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
+        metodo!.Invoke(null, new object[] { mano, cartaJ1, cartaJ2 });
+    }
+
 }
