@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using TrucoRPG.API.Hubs;
 using TrucoRPG.API.Middlewares;
+using TrucoRPG.API.Services;
 using TrucoRPG.Dominio.Entities;
 using TrucoRPG.Dominio.Repositorios;
 using TrucoRPG.Dominio.UseCases;
@@ -93,6 +94,9 @@ builder.Services.AddScoped<EscalarTrucoUseCase>();
 builder.Services.AddScoped<IrseAlMazoUseCase>();
 builder.Services.AddScoped<JugarCartaUseCase>();
 builder.Services.AddScoped<ActivarHabilidadUseCase>();
+
+// ── Servicios de sala (singleton: el estado de salas debe sobrevivir entre requests) ──
+builder.Services.AddSingleton<SalaService>();
 
 // ── API ───────────────────────────────────────────────────────────
 builder.Services.AddControllers();
