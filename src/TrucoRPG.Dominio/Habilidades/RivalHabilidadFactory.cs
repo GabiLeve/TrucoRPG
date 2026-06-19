@@ -7,9 +7,11 @@ namespace TrucoRPG.Dominio.Habilidades
     {
         public static IHabilidadRival Crear(TipoHabilidadRival tipo) => tipo switch
         {
-            TipoHabilidadRival.Ninguna      => new NingunaHabilidad(),
-            TipoHabilidadRival.Salpicadura  => new SalpicaduraHabilidad(),
-            TipoHabilidadRival.Travesura    => new TravesuraHabilidad(),
+            TipoHabilidadRival.Ninguna       => new NingunaHabilidad(),
+            TipoHabilidadRival.Salpicadura   => new SalpicaduraHabilidad(),
+            TipoHabilidadRival.Travesura     => new TravesuraHabilidad(),
+            TipoHabilidadRival.Destello      => new NingunaHabilidad(),
+            TipoHabilidadRival.MandingaFases => new NingunaHabilidad(),
             _ => throw new ArgumentOutOfRangeException(nameof(tipo), tipo, "Habilidad de rival no implementada.")
         };
 
@@ -17,6 +19,9 @@ namespace TrucoRPG.Dominio.Habilidades
         {
             ClaseRival.Nahuelito => Crear(TipoHabilidadRival.Salpicadura),
             ClaseRival.Pomberito => Crear(TipoHabilidadRival.Travesura),
+            ClaseRival.Lobizon  => Crear(TipoHabilidadRival.Ninguna),
+            ClaseRival.LuzMala  => Crear(TipoHabilidadRival.Ninguna),
+            ClaseRival.Mandinga => Crear(TipoHabilidadRival.Ninguna),
             _ => throw new ArgumentOutOfRangeException(nameof(claseRival), claseRival, "Rival no implementado.")
         };
     }

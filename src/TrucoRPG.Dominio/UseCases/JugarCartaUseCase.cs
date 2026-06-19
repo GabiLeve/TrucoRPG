@@ -38,6 +38,7 @@ namespace TrucoRPG.Dominio.UseCases
             {
                 mano.CartaHumanoEnMesa = cartaHumano;
                 mano.TurnoActual       = "Maquina";
+                HabilidadesTurnoMaquinaServicio.Notificar(mano);
             }
             else
             {

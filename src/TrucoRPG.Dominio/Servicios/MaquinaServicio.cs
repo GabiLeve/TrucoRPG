@@ -118,6 +118,10 @@ namespace TrucoRPG.Dominio.Servicios
             {
                 AvanzarTurno(mano);
             }
+            else if (mano.TurnoActual == IdJugador.Maquina)
+            {
+                HabilidadesTurnoMaquinaServicio.Notificar(mano);
+            }
         }
 
         // ── Turno e iniciativa de la máquina (extraídos del Controller) ───────────

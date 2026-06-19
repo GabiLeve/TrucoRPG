@@ -10,6 +10,7 @@ namespace TrucoRPG.Dominio.Habilidades
         AntesDeSumarPuntos,
         TrucoAceptado,
         EnvidoAceptado,
-        ManoFinalizada
+        ManoFinalizada,
+        TurnoMaquina
     }
 }

@@ -109,7 +109,9 @@ builder.Services.AddScoped<AvanzarMaquinaHistoriaUseCase>();
 builder.Services.AddScoped<GanarAutomaticoDebugUseCase>();
 
 // ── API ───────────────────────────────────────────────────────────
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(opt =>
+        opt.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSignalR();
@@ -132,7 +134,30 @@ if (app.Environment.IsDevelopment())
     using (var scope = app.Services.CreateScope())
     {
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        await db.Database.MigrateAsync();
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+
+        try
+        {
+            var pendientes = await db.Database.GetPendingMigrationsAsync();
+            var listaPendientes = pendientes.ToList();
+            if (listaPendientes.Count > 0)
+            {
+                logger.LogInformation(
+                    "Aplicando {Count} migración(es) pendiente(s): {Migrations}",
+                    listaPendientes.Count,
+                    string.Join(", ", listaPendientes));
+            }
+
+            await db.Database.MigrateAsync();
+            logger.LogInformation("Base de datos actualizada correctamente.");
+        }
+        catch (Exception ex)
+        {
+            logger.LogCritical(
+                ex,
+                "Error al aplicar migraciones. Verificá que MySQL esté encendido y la connection string en appsettings.Development.json o appsettings.Local.json.");
+            throw;
+        }
     }
 
     app.UseSwagger();
