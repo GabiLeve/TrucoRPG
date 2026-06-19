@@ -7,6 +7,8 @@ namespace TrucoRPG.Dominio.Habilidades
         public bool SalpicaduraBloqueando { get; set; }
         public bool TravesuraActiva { get; set; }
         public bool TravesuraBloqueando { get; set; }
+        public bool RasgunoActivo { get; set; }
+        public bool RasgunoBloqueando { get; set; }
         public List<CartaReferencia> CartasOcultasTravesura { get; set; } = [];
         public string? UltimoMensajeHabilidad { get; set; }
     }

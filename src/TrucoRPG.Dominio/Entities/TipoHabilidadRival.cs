@@ -5,6 +5,7 @@ namespace TrucoRPG.Dominio.Entities
         Ninguna = 0,
         Salpicadura = 1,
         Travesura = 2,
+        Rasguno = 3,
         Destello = 5,
         MandingaFases = 6
     }

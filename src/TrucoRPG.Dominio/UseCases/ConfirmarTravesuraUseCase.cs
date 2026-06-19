@@ -20,7 +20,8 @@ namespace TrucoRPG.Dominio.UseCases
                 "¡Travesura! El Pomberito ocultó 2 de tus cartas. ¡Recordalas bien!";
 
             if (mano.ManoIniciadaPor == IdJugador.Maquina && mano.GanadorMano is null
-                && !MaquinaServicio.EsModoHistoriaPasoAPaso(mano))
+                && !MaquinaServicio.EsModoHistoriaPasoAPaso(mano)
+                && !mano.RasgunoBloqueando)
                 MaquinaServicio.ProcesarIniciativa(mano);
 
             HabilidadesOrquestador.ActualizarVistas(mano);

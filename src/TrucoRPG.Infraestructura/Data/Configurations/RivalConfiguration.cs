@@ -52,10 +52,12 @@ namespace TrucoRPG.Infraestructura.Data.Configurations
                     Nivel = 3,
                     Nombre = "El Lobizón",
                     Descripcion = "Tercer jefe de la historia. Acecha en las profundidades de la cueva.",
-                    NombreHabilidad = "Sin habilidad",
-                    DescripcionHabilidad = "Combate sin habilidades especiales.",
+                    NombreHabilidad = "Rasguño",
+                    DescripcionHabilidad =
+                        "Cada 2 manos, debilita 1 carta aleatoria bajando su valor en 1 " +
+                        "(ej. 1 de Espada pasa a 1 de Basto, un 3 pasa a un 2).",
                     TipoRival = ClaseRival.Lobizon,
-                    TipoHabilidad = TipoHabilidadRival.Ninguna
+                    TipoHabilidad = TipoHabilidadRival.Rasguno
                 },
                 new Rival
                 {

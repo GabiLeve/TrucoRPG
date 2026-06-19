@@ -24,6 +24,7 @@ namespace TrucoRPG.Dominio.UseCases
             mano.GanadorPartida = IdJugador.Humano;
             mano.SalpicaduraBloqueando = false;
             mano.TravesuraBloqueando = false;
+            mano.RasgunoBloqueando = false;
 
             PartidaMemoriaServicio.Actualizar(mano);
             return mano;

@@ -105,6 +105,7 @@ builder.Services.AddScoped<JugarCartaUseCase>();
 builder.Services.AddScoped<ActivarHabilidadUseCase>();
 builder.Services.AddScoped<ConfirmarSalpicaduraUseCase>();
 builder.Services.AddScoped<ConfirmarTravesuraUseCase>();
+builder.Services.AddScoped<ConfirmarRasgunoUseCase>();
 builder.Services.AddScoped<AvanzarMaquinaHistoriaUseCase>();
 builder.Services.AddScoped<GanarAutomaticoDebugUseCase>();
 

@@ -380,11 +380,11 @@ namespace TrucoRPG.Infraestructura.Migrations
                         {
                             Id = new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa3"),
                             Descripcion = "Tercer jefe de la historia. Acecha en las profundidades de la cueva.",
-                            DescripcionHabilidad = "Combate sin habilidades especiales.",
+                            DescripcionHabilidad = "Cada 2 manos, debilita 1 carta aleatoria bajando su valor en 1 (ej. 1 de Espada pasa a 1 de Basto, un 3 pasa a un 2).",
                             Nivel = 3,
                             Nombre = "El Lobizón",
-                            NombreHabilidad = "Sin habilidad",
-                            TipoHabilidad = 0,
+                            NombreHabilidad = "Rasguño",
+                            TipoHabilidad = 3,
                             TipoRival = 3
                         },
                         new

@@ -4,24 +4,24 @@ using TrucoRPG.Dominio.Servicios;
 
 namespace TrucoRPG.Dominio.UseCases
 {
-    public class ConfirmarSalpicaduraUseCase
+    public class ConfirmarRasgunoUseCase
     {
         public ManoTruco Ejecutar(Guid manoId)
         {
             var mano = PartidaMemoriaServicio.Obtener(manoId)
                 ?? throw new KeyNotFoundException("No se encontró la mano.");
 
-            if (!mano.SalpicaduraBloqueando)
+            if (!mano.RasgunoBloqueando)
                 return mano;
 
-            SalpicaduraServicio.ReemplazarCartasHumano(mano);
-            mano.SalpicaduraBloqueando = false;
+            RasgunoServicio.DebilitarCartaAleatoria(mano);
+            mano.RasgunoBloqueando = false;
             mano.UltimoMensajeHabilidadRival =
-                "¡Salpicadura! Nahuelito cambió el palo de 2 de tus cartas.";
+                "¡Rasguño! El Lobizón debilitó 1 de tus cartas.";
 
             if (mano.ManoIniciadaPor == IdJugador.Maquina && mano.GanadorMano is null
                 && !MaquinaServicio.EsModoHistoriaPasoAPaso(mano)
-                && !mano.TravesuraBloqueando && !mano.RasgunoBloqueando)
+                && !mano.TravesuraBloqueando)
                 MaquinaServicio.ProcesarIniciativa(mano);
 
             HabilidadesOrquestador.ActualizarVistas(mano);

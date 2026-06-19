@@ -26,6 +26,7 @@ namespace TrucoRPG.API.Controllers
         private readonly ActivarHabilidadUseCase       _activarHabilidad;
         private readonly ConfirmarSalpicaduraUseCase   _confirmarSalpicadura;
         private readonly ConfirmarTravesuraUseCase     _confirmarTravesura;
+        private readonly ConfirmarRasgunoUseCase       _confirmarRasguno;
         private readonly AvanzarMaquinaHistoriaUseCase _avanzarMaquinaHistoria;
         private readonly GanarAutomaticoDebugUseCase _ganarAutomaticoDebug;
         private readonly HistoriaValidacionServicio    _historiaValidacion;
@@ -44,6 +45,7 @@ namespace TrucoRPG.API.Controllers
             ActivarHabilidadUseCase       activarHabilidad,
             ConfirmarSalpicaduraUseCase   confirmarSalpicadura,
             ConfirmarTravesuraUseCase     confirmarTravesura,
+            ConfirmarRasgunoUseCase       confirmarRasguno,
             AvanzarMaquinaHistoriaUseCase avanzarMaquinaHistoria,
             GanarAutomaticoDebugUseCase   ganarAutomaticoDebug,
             HistoriaValidacionServicio    historiaValidacion,
@@ -61,6 +63,7 @@ namespace TrucoRPG.API.Controllers
             _activarHabilidad  = activarHabilidad;
             _confirmarSalpicadura = confirmarSalpicadura;
             _confirmarTravesura = confirmarTravesura;
+            _confirmarRasguno = confirmarRasguno;
             _avanzarMaquinaHistoria = avanzarMaquinaHistoria;
             _ganarAutomaticoDebug = ganarAutomaticoDebug;
             _historiaValidacion = historiaValidacion;
@@ -109,6 +112,10 @@ namespace TrucoRPG.API.Controllers
         [HttpPost("confirmar-travesura")]
         public ActionResult<ManoTruco> ConfirmarTravesura([FromBody] ConfirmarSalpicaduraRequest request) =>
             Ok(_confirmarTravesura.Ejecutar(request.ManoId));
+
+        [HttpPost("confirmar-rasguno")]
+        public ActionResult<ManoTruco> ConfirmarRasguno([FromBody] ConfirmarSalpicaduraRequest request) =>
+            Ok(_confirmarRasguno.Ejecutar(request.ManoId));
 
         // ── Configuración ─────────────────────────────────────────────
 

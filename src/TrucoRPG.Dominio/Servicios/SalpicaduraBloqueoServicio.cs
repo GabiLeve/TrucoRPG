@@ -10,6 +10,8 @@ namespace TrucoRPG.Dominio.Servicios
                 throw new InvalidOperationException("Esperá a que el rival termine Salpicadura.");
             if (mano.TravesuraBloqueando)
                 throw new InvalidOperationException("Esperá a que el rival termine Travesura.");
+            if (mano.RasgunoBloqueando)
+                throw new InvalidOperationException("Esperá a que el rival termine Rasguño.");
         }
     }
 }
