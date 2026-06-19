@@ -862,6 +862,8 @@ public class GameHub : Hub
         }
     }
 
+    //---------- SEÑAS 2VS2 ---------//
+
     private string? ObtenerConnectionCompanero(TrucoMultiState2v2 state)
     {
         if (!state.Posiciones.TryGetValue(Context.ConnectionId, out var miPos))
@@ -901,6 +903,68 @@ public class GameHub : Hub
         await Clients.Client(companeroConnectionId)
             .SendAsync("RecibirSenia2v2", tipo);
     }
+
+    //---------- SEÑAS 3VS3 ---------//
+
+
+    private bool PuedeEnviarSenias(TrucoMultiState3v3 state)
+    {
+        var mano = state.Mano;
+
+        // Mientras sea partida por equipos (3v3) se permiten señas.
+        if (mano.PicaPicaSlot < 0)
+            return true;
+
+        // En Pica-Pica solamente participan 2 jugadores.
+        // Ahí ya no existen compañeros.
+        return false;
+    }
+
+    private List<string> ObtenerConnectionsCompaneros3v3(TrucoMultiState3v3 state)
+    {
+        if (!state.Posiciones.TryGetValue(Context.ConnectionId, out var miPos))
+            return [];
+
+        int[] posicionesCompaneros = miPos switch
+        {
+            1 => [3, 5],
+            3 => [1, 5],
+            5 => [1, 3],
+
+            2 => [4, 6],
+            4 => [2, 6],
+            6 => [2, 4],
+
+            _ => []
+        };
+
+        return state.Posiciones
+            .Where(x => posicionesCompaneros.Contains(x.Value))
+            .Select(x => x.Key)
+            .ToList();
+    }
+
+    public async Task EnviarSenia3v3(string tipo)
+    {
+        if (!_conexionASala.TryGetValue(Context.ConnectionId, out var sala))
+            return;
+
+        if (!_trucoGames3v3.TryGetValue(sala, out var state))
+            return;
+
+        if (!PuedeEnviarSenias(state))
+            return;
+
+        var companeros = ObtenerConnectionsCompaneros3v3(state);
+
+        foreach (var connectionId in companeros)
+        {
+            await Clients.Client(connectionId)
+                .SendAsync("RecibirSenia3v3", tipo);
+        }
+    }
+
+    //---------- SEÑAS FIN ---------//
 
     private async Task BroadcastTrucoEstado(string sala, TrucoMultiState state)
     {
