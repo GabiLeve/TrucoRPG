@@ -69,15 +69,66 @@ public class GameHub : Hub
                         || _trucoGames3v3.ContainsKey(codigo);
             if (enJuego) continue;
 
-            int max = JugadoresRequeridos(modoSala);
+            // Filtrar conexiones que ya no están registradas (jugadores que se fueron sin limpiar)
             int cantidad;
-            lock (jugadores) { cantidad = jugadores.Count; }
-            if (cantidad <= 0 || cantidad >= max) continue; // vacía o llena → no se ofrece
+            lock (jugadores)
+            {
+                jugadores.RemoveAll(connId => !_conexionASala.ContainsKey(connId));
+                cantidad = jugadores.Count;
+            }
+            if (cantidad <= 0)
+            {
+                // Sala vacía → limpiar
+                _salas.TryRemove(codigo, out _);
+                _salasModo.TryRemove(codigo, out _);
+                _salasPublicas.TryRemove(codigo, out _);
+                continue;
+            }
+
+            int max = JugadoresRequeridos(modoSala);
+            if (cantidad >= max) continue; // llena → no se ofrece
 
             resultado.Add(new SalaPublicaInfo(codigo, modoSala, cantidad, max));
         }
 
         return Task.FromResult(resultado);
+    }
+
+    /// <summary>
+    /// Abandona explícitamente la sala actual antes de desconectarse.
+    /// Evita salas huérfanas cuando el cliente cierra el overlay sin pasar por OnDisconnectedAsync.
+    /// </summary>
+    public async Task AbandonarSala()
+    {
+        if (!_conexionASala.TryRemove(Context.ConnectionId, out var sala)) return;
+
+        await Groups.RemoveFromGroupAsync(Context.ConnectionId, sala);
+
+        if (_salas.TryGetValue(sala, out var jugadores))
+        {
+            bool salaVacia;
+            lock (jugadores)
+            {
+                jugadores.Remove(Context.ConnectionId);
+                salaVacia = jugadores.Count == 0;
+            }
+            if (salaVacia)
+            {
+                _salas.TryRemove(sala, out _);
+                _salasModo.TryRemove(sala, out _);
+                _salasPublicas.TryRemove(sala, out _);
+                _equiposJugadores.TryRemove(sala, out _);
+                _listos.TryRemove(sala, out _);
+            }
+            else
+            {
+                await Clients.Group(sala).SendAsync("JugadorDesconectado");
+            }
+        }
+
+        _trucoGames.TryRemove(sala, out _);
+        _trucoGames2v2.TryRemove(sala, out _);
+        _trucoGames3v3.TryRemove(sala, out _);
     }
 
     public async Task<bool> UnirseASala(string codigo)
