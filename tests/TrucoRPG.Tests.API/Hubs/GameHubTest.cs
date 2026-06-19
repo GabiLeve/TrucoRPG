@@ -610,4 +610,300 @@ public class GameHubTests
         _mockClients.Verify(c => c.Group(salaId), Times.Never);
     }
 
+    // ─────────────────────────────────────────────────────────────
+    //  Tests: ResponderTruco
+    // ─────────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task ResponderTruco_RetornaInmediatamente_CuandoNoSeEncuentraSalaOEstadoActivo()
+    {
+        _conexionASala.Clear();
+        _trucoGames.Clear();
+
+        await _hub.ResponderTruco(aceptar: true, escalarA: null);
+
+        _mockClients.Verify(c => c.Group(It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ResponderTruco_RetornaInmediatamente_CuandoJugador1RespondePeroNoTieneElPendiente()
+    {
+        string salaId = "SALA-RESP-TRUCO-J1-FAIL";
+        var estado = CrearEstadoTrucoBase();
+        estado.Jugador1Id = _conecxionIdFalsa;
+        estado.Mano.TrucoPendienteRespuestaHumano = false; 
+
+        ConfigurarEscenarioDePartida(salaId, estado);
+
+        await _hub.ResponderTruco(aceptar: true, escalarA: null);
+
+        _mockClients.Verify(c => c.Group(salaId), Times.Never);
+    }
+
+    [Fact]
+    public async Task ResponderTruco_RetornaInmediatamente_CuandoJugador2RespondePeroNoTieneElPendiente()
+    {
+        string salaId = "SALA-RESP-TRUCO-J2-FAIL";
+        var estado = CrearEstadoTrucoBase();
+        estado.Jugador1Id = "otro-id-usuario"; 
+        estado.Jugador2Id = _conecxionIdFalsa;
+        estado.TrucoPendienteRespuestaJ2 = false;
+
+        ConfigurarEscenarioDePartida(salaId, estado);
+
+        await _hub.ResponderTruco(aceptar: true, escalarA: null);
+
+        _mockClients.Verify(c => c.Group(salaId), Times.Never);
+    }
+    [Fact]
+    public async Task ResponderTruco_RetornaInmediatamente_CuandoElJugadorEsJ1PeroLaManoYaNoTienePendienteElTruco()
+    {
+        string salaId = "SALA-GUARDIA-J1";
+        var estado = CrearEstadoTrucoBase();
+        estado.Jugador1Id = _conecxionIdFalsa; 
+        estado.Mano.TrucoPendienteRespuestaHumano = false;
+
+        ConfigurarEscenarioDePartida(salaId, estado);
+
+        await _hub.ResponderTruco(aceptar: true, escalarA: null);
+
+        _mockClients.Verify(c => c.Group(salaId), Times.Never);
+    }
+
+    [Fact]
+    public async Task ResponderTruco_RetornaInmediatamente_CuandoElJugadorEsJ2PeroLaSalaNoEsperaRespuestaDeJ2()
+    {
+        string salaId = "SALA-GUARDIA-J2";
+        var estado = CrearEstadoTrucoBase();
+        estado.Jugador1Id = "otro-id-distinto"; 
+        estado.Jugador2Id = _conecxionIdFalsa;
+        estado.TrucoPendienteRespuestaJ2 = false;
+
+        ConfigurarEscenarioDePartida(salaId, estado);
+
+        await _hub.ResponderTruco(aceptar: true, escalarA: null);
+
+        _mockClients.Verify(c => c.Group(salaId), Times.Never);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    //  Tests: EscalarTruco 
+    // ─────────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task EscalarTruco_RetornaInmediatamente_CuandoNoSeEncuentraSalaOEstadoActivo()
+    {
+        _conexionASala.Clear();
+        _trucoGames.Clear();
+
+        await _hub.EscalarTruco();
+
+        _mockClients.Verify(c => c.Group(It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task EscalarTruco_RetornaInmediatamente_CuandoElTrucoNoFueCantadoAun()
+    {
+        string salaId = "SALA-ESC-GUARDIA-CANTADO";
+        var estado = CrearEstadoTrucoBase();
+        estado.Mano.TrucoCantado = false; 
+
+        ConfigurarEscenarioDePartida(salaId, estado);
+
+        await _hub.EscalarTruco();
+
+        _mockClients.Verify(c => c.Group(salaId), Times.Never);
+    }
+
+    [Fact]
+    public async Task EscalarTruco_RetornaInmediatamente_CuandoHayRespuestasPendientesEnLaMesa()
+    {
+        string salaId = "SALA-ESC-GUARDIA-PENDIENTE";
+        var estado = CrearEstadoTrucoBase();
+        estado.Mano.TrucoCantado = true;
+        estado.Mano.NivelTruco = 1;
+        estado.Mano.TrucoPendienteRespuestaHumano = true;
+
+        ConfigurarEscenarioDePartida(salaId, estado);
+
+        await _hub.EscalarTruco();
+
+        _mockClients.Verify(c => c.Group(salaId), Times.Never);
+    }
+
+    [Fact]
+    public async Task EscalarTruco_RetornaInmediatamente_CuandoElMismoJugadorIntentaEscalarSuPropioCanto()
+    {
+        string salaId = "SALA-ESC-GUARDIA-AUTOCANTO";
+        var estado = CrearEstadoTrucoBase();
+        estado.Jugador1Id = _conecxionIdFalsa;
+        estado.Mano.TrucoCantado = true;
+        estado.Mano.NivelTruco = 1;
+        estado.Mano.CantorTruco = "Humano";
+
+        ConfigurarEscenarioDePartida(salaId, estado);
+
+        await _hub.EscalarTruco();
+
+        _mockClients.Verify(c => c.Group(salaId), Times.Never);
+    }
+
+    [Fact]
+    public async Task EscalarTruco_MutasDatosYTransmite_CuandoElCantoEsValidoYSeProtegeLaEjecucion()
+    {
+        string salaId = "SALA-ESC-OK-PROTEGIDO";
+        var estado = CrearEstadoTrucoBase();
+        estado.Jugador1Id = _conecxionIdFalsa; 
+        estado.Mano.TrucoCantado = true;
+        estado.Mano.NivelTruco = 1;
+        estado.Mano.CantorTruco = "Maquina";
+        estado.Mano.TrucoPendienteRespuestaHumano = false;
+        estado.TrucoPendienteRespuestaJ2 = false;
+        estado.Mano.GanadorMano = null;
+        estado.Mano.PartidaTerminada = false;
+
+        ConfigurarEscenarioDePartida(salaId, estado);
+
+        try
+        {
+            await _hub.EscalarTruco();
+        }
+        catch
+        {
+        }
+
+        Assert.Equal(2, estado.Mano.NivelTruco);
+        Assert.False(estado.Mano.TrucoResuelto);
+        Assert.Equal("Humano", estado.Mano.CantorTruco);
+        Assert.Equal(3, estado.Mano.PuntosTrucoMano);
+        Assert.Equal("J1 cantó Retruco!", estado.Mano.EstadoTruco);
+        Assert.True(estado.TrucoPendienteRespuestaJ2);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    //  Tests: IrseAlMazo 
+    // ─────────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task IrseAlMazo_RetornaInmediatamente_CuandoNoSeEncuentraSalaOEstadoActivo()
+    {
+        _conexionASala.Clear();
+        _trucoGames.Clear();
+
+        await _hub.IrseAlMazo();
+
+        _mockClients.Verify(c => c.Group(It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task IrseAlMazo_RetornaInmediatamente_CuandoLaManoYaTieneUnGanadorDefinido()
+    {
+        string salaId = "SALA-MAZO-GUARDIA-GANADOR";
+        var estado = CrearEstadoTrucoBase();
+        estado.Mano.GanadorMano = "Maquina"; 
+
+        ConfigurarEscenarioDePartida(salaId, estado);
+
+        await _hub.IrseAlMazo();
+
+        _mockClients.Verify(c => c.Group(salaId), Times.Never);
+    }
+
+    [Fact]
+    public async Task IrseAlMazo_AsignaPuntoBaseAMaquina_CuandoElJugador1SeVaAlMazoSinTrucoQuerido()
+    {
+        string salaId = "SALA-MAZO-J1-SIMPLE";
+        var estado = CrearEstadoTrucoBase();
+        estado.Jugador1Id = _conecxionIdFalsa; 
+        estado.Mano.TrucoCantado = false;   
+        estado.Mano.GanadorMano = null;
+        estado.Mano.PartidaTerminada = false;
+
+        ConfigurarEscenarioDePartida(salaId, estado);
+
+        try
+        {
+            await _hub.IrseAlMazo();
+        }
+        catch
+        {
+        }
+
+        Assert.Equal("Maquina", estado.Mano.GanadorMano);
+        Assert.True(estado.Mano.TrucoResuelto);
+        Assert.Contains("J1 se fue al mazo. J2 gana 1 pt.", estado.Mano.EstadoTruco);
+    }
+
+    [Fact]
+    public async Task IrseAlMazo_AsignaPuntoBaseAHumano_CuandoElJugador2SeVaAlMazoSinTrucoQuerido()
+    {
+        string salaId = "SALA-MAZO-J2-SIMPLE";
+        var estado = CrearEstadoTrucoBase();
+        estado.Jugador1Id = "otro-id-jugador";
+        estado.Jugador2Id = _conecxionIdFalsa;
+        estado.Mano.TrucoCantado = false; 
+
+        ConfigurarEscenarioDePartida(salaId, estado);
+
+        try
+        {
+            await _hub.IrseAlMazo();
+        }
+        catch
+        {
+        }
+
+        Assert.Equal("Humano", estado.Mano.GanadorMano);
+        Assert.Contains("J2 se fue al mazo. J1 gana 1 pt.", estado.Mano.EstadoTruco);
+    }
+
+    [Fact]
+    public async Task IrseAlMazo_OtorgaPuntosAcumulados_CuandoElJugador1SeVaConUnTrucoNoResuelto()
+    {
+        string salaId = "SALA-MAZO-J1-CON-TRUCO";
+        var estado = CrearEstadoTrucoBase();
+        estado.Jugador1Id = _conecxionIdFalsa;
+        estado.Mano.TrucoCantado = true;
+        estado.Mano.TrucoResuelto = false; 
+        estado.Mano.PuntosTrucoMano = 3; 
+
+        ConfigurarEscenarioDePartida(salaId, estado);
+
+        try
+        {
+            await _hub.IrseAlMazo();
+        }
+        catch
+        {
+        }
+
+        Assert.Equal("Maquina", estado.Mano.GanadorMano);
+        Assert.Contains("J1 se fue al mazo. J2 gana 3 pt.", estado.Mano.EstadoTruco);
+    }
+
+    [Fact]
+    public async Task IrseAlMazo_OtorgaPuntosAcumulados_CuandoElJugador2SeVaConUnTrucoNoResuelto()
+    {
+        string salaId = "SALA-MAZO-J2-CON-TRUCO";
+        var estado = CrearEstadoTrucoBase();
+        estado.Jugador1Id = "otro-id-jugador";
+        estado.Jugador2Id = _conecxionIdFalsa;
+        estado.Mano.TrucoCantado = true;
+        estado.Mano.TrucoResuelto = false;
+        estado.Mano.PuntosTrucoMano = 2;
+
+        ConfigurarEscenarioDePartida(salaId, estado);
+
+        try
+        {
+            await _hub.IrseAlMazo();
+        }
+        catch
+        {
+        }
+
+        Assert.Equal("Humano", estado.Mano.GanadorMano);
+        Assert.Contains("J2 se fue al mazo. J1 gana 2 pt.", estado.Mano.EstadoTruco);
+    }
+
 }
