@@ -17,6 +17,9 @@ public class GameHub : Hub
     private static readonly ConcurrentDictionary<string, TrucoMultiState3v3> _trucoGames3v3 = new();
     private static readonly ConcurrentDictionary<string, ConcurrentDictionary<string, bool>> _listos = new();
 
+    // sala -> true si es pública (aparece en "Buscar partida"); las privadas solo por código.
+    private static readonly ConcurrentDictionary<string, bool> _salasPublicas = new();
+
     // ─── 2v2 ─────────────────────────────────────────────────────
     private static readonly ConcurrentDictionary<string, string> _salasModo = new();
     // sala -> connectionId -> "sanMartin" | "belgrano"
@@ -25,7 +28,7 @@ public class GameHub : Hub
     // ─────────────────────────────────────────────────────────────
     //  SALA — crear / unirse
     // ─────────────────────────────────────────────────────────────
-    public async Task<string> CrearSala(string modo = "1v1")
+    public async Task<string> CrearSala(string modo = "1v1", bool publica = false)
     {
         // TryAdd en loop: evita pisar una sala existente si el código (6 chars) colisiona.
         string codigo;
@@ -35,9 +38,46 @@ public class GameHub : Hub
         } while (!_salas.TryAdd(codigo, new List<string> { Context.ConnectionId }));
 
         _salasModo[codigo] = modo;
+        _salasPublicas[codigo] = publica;
         _conexionASala[Context.ConnectionId] = codigo;
         await Groups.AddToGroupAsync(Context.ConnectionId, codigo);
         return codigo;
+    }
+
+    /// <summary>Resumen de una sala pública disponible para unirse.</summary>
+    public record SalaPublicaInfo(string Codigo, string Modo, int Jugadores, int MaxJugadores);
+
+    /// <summary>
+    /// Lista las salas públicas que todavía tienen lugar y no empezaron la partida.
+    /// Por ahora solo 1v1 (el front filtra por modo); el resto se sumará después.
+    /// </summary>
+    public Task<List<SalaPublicaInfo>> ListarSalasPublicas(string modo = "1v1")
+    {
+        var resultado = new List<SalaPublicaInfo>();
+
+        foreach (var (codigo, esPublica) in _salasPublicas)
+        {
+            if (!esPublica) continue;
+            if (!_salas.TryGetValue(codigo, out var jugadores)) continue;
+
+            var modoSala = _salasModo.TryGetValue(codigo, out var ms) ? ms : "1v1";
+            if (modoSala != modo) continue;
+
+            // No listar salas con la partida ya iniciada.
+            bool enJuego = _trucoGames.ContainsKey(codigo)
+                        || _trucoGames2v2.ContainsKey(codigo)
+                        || _trucoGames3v3.ContainsKey(codigo);
+            if (enJuego) continue;
+
+            int max = JugadoresRequeridos(modoSala);
+            int cantidad;
+            lock (jugadores) { cantidad = jugadores.Count; }
+            if (cantidad <= 0 || cantidad >= max) continue; // vacía o llena → no se ofrece
+
+            resultado.Add(new SalaPublicaInfo(codigo, modoSala, cantidad, max));
+        }
+
+        return Task.FromResult(resultado);
     }
 
     public async Task<bool> UnirseASala(string codigo)
@@ -668,6 +708,7 @@ public class GameHub : Hub
                 {
                     _salas.TryRemove(sala, out _);
                     _salasModo.TryRemove(sala, out _);
+                    _salasPublicas.TryRemove(sala, out _);
                     _equiposJugadores.TryRemove(sala, out _);
                     _listos.TryRemove(sala, out _);
                 }

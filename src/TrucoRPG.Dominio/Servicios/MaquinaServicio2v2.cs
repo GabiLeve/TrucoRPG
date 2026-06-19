@@ -261,7 +261,17 @@ namespace TrucoRPG.Dominio.Servicios
             }
 
             // ── Jugar carta ───────────────────────────────────────────────
-            var carta = ElegirCartaEnEquipo(mano, jugadorId, jugador.Mano);
+            Carta? carta;
+            if (mano.OrdenJugarMayor == jugadorId)
+            {
+                // El humano ordenó jugar la más alta → respetamos la orden y limpiamos el flag.
+                mano.OrdenJugarMayor = null;
+                carta = jugador.Mano.OrderByDescending(c => c.ValorTruco).FirstOrDefault();
+            }
+            else
+            {
+                carta = ElegirCartaEnEquipo(mano, jugadorId, jugador.Mano);
+            }
             if (carta == null) return; // mano vacía, guard defensivo
             JuegoServicio2v2.JugarCarta(mano, jugadorId, carta);
         }
@@ -450,9 +460,19 @@ namespace TrucoRPG.Dominio.Servicios
             // ── Responder envido ──
             if (mano.FaseEnvido == "pendiente_respuesta" && mano.EnvidoPendienteRespuestaDe == actor)
             {
+                int ordinalAntes = EnvidoServicio.OrdinalTipo(mano.TipoEnvidoCantado);
                 ResponderEnvido(mano, actor);
+                // Si la máquina subió la apuesta (envido envido / real / falta), lo cantó.
+                if (mano.FaseEnvido == "pendiente_respuesta"
+                    && EnvidoServicio.OrdinalTipo(mano.TipoEnvidoCantado) > ordinalAntes)
+                    return new EventoMaquina2v2(actor, "envido", "¡" + (mano.TipoEnvidoCantado ?? "Envido") + "!");
+
                 bool quiso = mano.FaseEnvido == "declarando_tantos" || mano.FaseEnvido == "aceptado";
-                return new EventoMaquina2v2(actor, "envido-resp", quiso ? "¡Quiero!" : "¡No quiero!");
+                string textoEnvido = quiso ? "¡Quiero!" : "¡No quiero!";
+                // Si el envido se rechazó y el truco sigue pendiente, recordar al humano.
+                if (!quiso && mano.TrucoPendienteRespuestaDe != null && mano.TrucoPendienteRespuestaDe != actor)
+                    textoEnvido = "¡No quiero! ¿Y el truco?";
+                return new EventoMaquina2v2(actor, "envido-resp", textoEnvido);
             }
 
             // ── Declarar tanto ──
@@ -606,6 +626,22 @@ namespace TrucoRPG.Dominio.Servicios
             }
 
             JuegoServicio2v2.JugarCarta(mano, J3, carta);
+        }
+
+        /// <summary>
+        /// Orden del humano a su compañero bot: jugar su carta más alta en su próximo
+        /// turno. Valida que sea un bot del equipo del humano (EquipoA) y que tenga cartas.
+        /// Espejo de <see cref="MaquinaServicio3v3.OrdenarJugarMayor"/>.
+        /// </summary>
+        public static void OrdenarJugarMayor(ManoTruco2v2 mano, string jugadorId)
+        {
+            var jugador = mano.ObtenerJugador(jugadorId)
+                ?? throw new InvalidOperationException($"Jugador {jugadorId} no encontrado.");
+            if (!jugador.EsMaquina || mano.ObtenerEquipoDeJugador(jugadorId) != "EquipoA")
+                throw new InvalidOperationException("Solo podés ordenar a tu compañero bot.");
+            if (jugador.Mano.Count == 0)
+                throw new InvalidOperationException($"{jugadorId} no tiene cartas en mano.");
+            mano.OrdenJugarMayor = jugadorId;
         }
 
         /// <summary>Próximo jugador que debe actuar (el envido va primero).</summary>
