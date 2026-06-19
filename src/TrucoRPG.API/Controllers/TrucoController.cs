@@ -1,3 +1,4 @@
+﻿
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TrucoRPG.API.Models;
@@ -7,7 +8,7 @@ using TrucoRPG.Dominio.UseCases;
 namespace TrucoRPG.API.Controllers
 {
     [ApiController]
-    //[Authorize(Roles = "Jugador")] <-- DESCOMENTAR CUANDO ESTÉ IMPLEMENTADA LA SESIÓN DE USUARIOS
+    [Authorize(Roles = "Jugador")]
     [Route("api/[controller]")]
     public class TrucoController : ControllerBase
     {
@@ -114,6 +115,16 @@ namespace TrucoRPG.API.Controllers
             
                 return Ok(_responderEnvido.Ejecutar(request.ManoId, request.Aceptar, request.EscalarA));
             
+        }
+
+        /// <summary>
+        /// "Son buenas" en 1v1: el humano reconoce que la máquina tiene más tantos y pierde el envido.
+        /// Solo válido cuando la máquina cantó el envido y el humano ya lo aceptó (quiero).
+        /// </summary>
+        [HttpPost("son-buenas")]
+        public ActionResult<ManoTruco> SonBuenas([FromBody] CantarEnvidoRequest request)
+        {
+            return Ok(_responderEnvido.EjecutarSonBuenas(request.ManoId));
         }
 
         // ── Truco ─────────────────────────────────────────────────────

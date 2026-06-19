@@ -1,0 +1,202 @@
+<div class="root">
+
+  <!-- ── PANEL IZQ — botones ───────────────────────────────────── -->
+  <aside class="side-panel left-panel">
+    <div class="btn-list">
+      @for (b of btns; track b.label) {
+        <button class="action-btn" [class.disabled]="!b.enabled"
+                [style.--btn-color]="b.color"
+                [disabled]="!b.enabled" (click)="b.action()">
+          {{ b.label }}
+        </button>
+      }
+      @if (btns.length === 0 && st && !st.estado.manoTerminada && !st.estado.partidaTerminada) {
+        <div class="esperando-ia">Esperando a los otros jugadores...</div>
+      }
+    </div>
+  </aside>
+
+  <!-- ── ARENA ──────────────────────────────────────────────────── -->
+  <main class="arena-2v2">
+
+    <!-- Compañero (arriba) -->
+    <div class="player-top">
+      <div class="player-card compa-card">
+        <div class="player-cards-top">
+          @for (k of reversos(rolCompa); track k) {
+            <img class="card-back" src="assets/cards/back.PNG" alt="reverso" />
+          }
+        </div>
+        <div class="player-portrait-row">
+          <img src="assets/2v2/gaucho_compañero.png" class="avatar-top avatar-gaucho" alt="compañero" />
+          <div class="player-tag">
+            <span class="player-tag-role">COMPA</span>
+            <span class="player-tag-name">Compañero</span>
+            @if (esMano(rolCompa)) { <span class="mano-badge">MANO</span> }
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fila media: rival izq + mesa + rival der -->
+    <div class="row-middle">
+
+      <!-- Rival izquierda -->
+      <div class="player-side player-left">
+        <div class="side-cards">
+          @for (k of reversos(rolIzq); track k) {
+            <img class="card-back card-back-side" src="assets/cards/back.PNG" alt="reverso" />
+          }
+        </div>
+        <div class="side-info">
+          <img src="assets/2v2/gaucho_izquierda.png" class="avatar-side avatar-rival" alt="rival" />
+          <span class="player-tag-name rival-tag">Rival</span>
+          @if (esMano(rolIzq)) { <span class="mano-badge">MANO</span> }
+        </div>
+      </div>
+
+      <!-- Mesa -->
+      <div class="table-wrap-2v2">
+        <div class="table-surface-2v2">
+          <div class="mesa-cruz">
+            <div class="pila pila-top">
+              @for (c of mesa.compa; track $index) {
+                <img class="mesa-card" [style.--i]="$index" [src]="cardImg(c)" alt="" />
+              }
+            </div>
+            <div class="pila-medio">
+              <div class="pila pila-left">
+                @for (c of mesa.izq; track $index) {
+                  <img class="mesa-card" [style.--i]="$index" [src]="cardImg(c)" alt="" />
+                }
+              </div>
+              <div class="pila-centro"></div>
+              <div class="pila pila-right">
+                @for (c of mesa.der; track $index) {
+                  <img class="mesa-card" [style.--i]="$index" [src]="cardImg(c)" alt="" />
+                }
+              </div>
+            </div>
+            <div class="pila pila-bottom">
+              @for (c of mesa.yo; track $index) {
+                <img class="mesa-card" [style.--i]="$index" [src]="cardImg(c)" alt="" />
+              }
+            </div>
+          </div>
+          @if (turnoBadge) {
+            <div class="turno-badge-2v2">{{ turnoBadge }}</div>
+          }
+        </div>
+      </div>
+
+      <!-- Rival derecha -->
+      <div class="player-side player-right">
+        <div class="side-info">
+          <img src="assets/2v2/gaucho_derecha.png" class="avatar-side avatar-rival" alt="rival" />
+          <span class="player-tag-name rival-tag">Rival</span>
+          @if (esMano(rolDer)) { <span class="mano-badge">MANO</span> }
+        </div>
+        <div class="side-cards side-cards-right">
+          @for (k of reversos(rolDer); track k) {
+            <img class="card-back card-back-side" src="assets/cards/back.PNG" alt="reverso" />
+          }
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Fila inferior: yo + mis cartas -->
+    <div class="player-bottom">
+      <div class="yo-info">
+        <img src="assets/gaucho.png" class="avatar-yo" alt="yo" />
+        <span class="yo-nombre">VOS</span>
+        @if (esMano(miRol)) { <span class="mano-badge">MANO</span> }
+      </div>
+      <div class="fan-wrap-2v2">
+        @for (carta of miMano; track $index) {
+          <div class="fan-card-2v2"
+               [style.--ang]="fanAngles[$index] + 'deg'"
+               [style.--xoff]="fanXOff[$index] + 'px'"
+               (click)="jugarCarta(carta)">
+            <img class="fan-img" [src]="cardImg(carta)" [alt]="carta.numero + ' ' + carta.palo" />
+          </div>
+        }
+        @if (miMano.length === 0 && st && !st.estado.manoTerminada) {
+          <div class="sin-cartas">Sin cartas</div>
+        }
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ── PANEL DER — tanteador ──────────────────────────────────── -->
+  <aside class="side-panel right-panel">
+    <div class="scoreboard-2v2">
+      <div class="score-title-2v2">TANTEADOR</div>
+      <div class="score-equipo nosotros-row">
+        <span class="score-label nosotros-label">NOSOTROS</span>
+        <span class="score-pts nosotros-pts">{{ puntosNosotros }}</span>
+      </div>
+      <svg class="tally-svg" viewBox="0 0 130 52" xmlns="http://www.w3.org/2000/svg">
+        <line x1="65" y1="0" x2="65" y2="52" stroke="#5a3a10" stroke-width="1" />
+        @for (s of tallySticksNosotros; track $index) {
+          <line [attr.x1]="s.x1" [attr.y1]="s.y1" [attr.x2]="s.x2" [attr.y2]="s.y2"
+                [attr.stroke]="s.color" stroke-width="1.8" />
+        }
+      </svg>
+      <div class="score-sep-2v2"></div>
+      <div class="score-equipo ellos-row">
+        <span class="score-label ellos-label">ELLOS</span>
+        <span class="score-pts ellos-pts">{{ puntosEllos }}</span>
+      </div>
+      <svg class="tally-svg" viewBox="0 0 130 52" xmlns="http://www.w3.org/2000/svg">
+        <line x1="65" y1="0" x2="65" y2="52" stroke="#5a3a10" stroke-width="1" />
+        @for (s of tallySticksEllos; track $index) {
+          <line [attr.x1]="s.x1" [attr.y1]="s.y1" [attr.x2]="s.x2" [attr.y2]="s.y2"
+                [attr.stroke]="s.color" stroke-width="1.8" />
+        }
+      </svg>
+    </div>
+
+    <div class="state-section">
+      <div class="state-title envido-title">ENVIDO</div>
+      <div class="state-text">{{ estadoEnvido }}</div>
+    </div>
+    <div class="state-section">
+      <div class="state-title truco-title">TRUCO</div>
+      <div class="state-text">{{ estadoTruco }}</div>
+    </div>
+
+    <a class="back-btn" (click)="salirPartida()">← Volver</a>
+  </aside>
+
+  <!-- Toast -->
+  @if (toastMsg) { <div class="toast-2v2">{{ toastMsg }}</div> }
+
+  <!-- Confirmar salir -->
+  @if (mostrarConfirmSalir) {
+    <div class="game-over-overlay">
+      <div class="game-over-box">
+        <div class="go-title">¿Salir de la partida?</div>
+        <div class="go-btn-row">
+          <button class="go-btn go-btn-exit" (click)="confirmarSalir()">SALIR</button>
+          <button class="go-btn go-btn-play" (click)="cancelarSalir()">SEGUIR</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Game over -->
+  @if (gameOver) {
+    <div class="game-over-overlay">
+      <div class="game-over-box">
+        <div class="go-title" [class.go-win]="gameOverGanamos" [class.go-lose]="!gameOverGanamos">
+          {{ gameOverGanamos ? '¡GANARON LA PARTIDA!' : 'Perdieron la partida.' }}
+        </div>
+        <div class="go-btn-row">
+          <button class="go-btn go-btn-exit" (click)="confirmarSalir()">SALIR</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>
