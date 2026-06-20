@@ -10,6 +10,8 @@ namespace TrucoRPG.Dominio.UseCases
             var mano = PartidaMemoriaServicio.Obtener(manoId)
                 ?? throw new KeyNotFoundException("No se encontró la mano.");
 
+            SalpicaduraBloqueoServicio.ValidarNoBloqueado(mano);
+
             if (mano.PartidaTerminada)
                 throw new InvalidOperationException("La partida ya terminó. El primero en llegar a 30 gana.");
             if (!mano.EnvidoCantado)
@@ -27,7 +29,7 @@ namespace TrucoRPG.Dominio.UseCases
                 mano.EstadoEnvido   = "No quisiste el envido. La máquina ganó 1 punto.";
                 JuegoServicio.SumarPuntos(mano, mano.GanadorEnvido, mano.PuntosEnvido);
                 EnvidoServicio.LimpiarDatosDeEnvido(mano);
-                MaquinaServicio.AvanzarTurno(mano);
+                MaquinaServicio.AvanzarTurnoSiNoEsHistoria(mano);
                 PartidaMemoriaServicio.Actualizar(mano);
                 return mano;
             }
@@ -66,7 +68,7 @@ namespace TrucoRPG.Dominio.UseCases
                     mano.EstadoEnvido   = $"La máquina no quiso {escalarA}. Ganaste {mano.PuntosEnvido} punto(s).";
                     JuegoServicio.SumarPuntos(mano, mano.GanadorEnvido, mano.PuntosEnvido);
                     EnvidoServicio.LimpiarDatosDeEnvido(mano);
-                    MaquinaServicio.AvanzarTurno(mano);
+                    MaquinaServicio.AvanzarTurnoSiNoEsHistoria(mano);
                 }
                 else
                 {
@@ -74,7 +76,7 @@ namespace TrucoRPG.Dominio.UseCases
                     // no solo el valor del último canto. La Falta se calcula en ResolverEnvido.
                     int puntosNuevos = puntosAntes + EnvidoServicio.IncrementoPuntosTipo(mano.TipoEnvidoCantado);
                     EnvidoServicio.ResolverEnvido(mano, puntosNuevos, $"La máquina quiso tu {escalarA}");
-                    MaquinaServicio.AvanzarTurno(mano);
+                    MaquinaServicio.AvanzarTurnoSiNoEsHistoria(mano);
                 }
 
                 PartidaMemoriaServicio.Actualizar(mano);
@@ -85,7 +87,7 @@ namespace TrucoRPG.Dominio.UseCases
             mano.EnvidoPendienteRespuestaHumano = false;
             int puntosEnJuego = EnvidoServicio.ObtenerPuntosSegunTipo(mano.TipoEnvidoCantado ?? "Envido");
             EnvidoServicio.ResolverEnvido(mano, puntosEnJuego, "Aceptaste el envido de la máquina");
-            MaquinaServicio.AvanzarTurno(mano);
+            MaquinaServicio.AvanzarTurnoSiNoEsHistoria(mano);
             PartidaMemoriaServicio.Actualizar(mano);
             return mano;
         }
@@ -99,6 +101,8 @@ namespace TrucoRPG.Dominio.UseCases
         {
             var mano = PartidaMemoriaServicio.Obtener(manoId)
                 ?? throw new KeyNotFoundException("No se encontró la mano.");
+
+            SalpicaduraBloqueoServicio.ValidarNoBloqueado(mano);
 
             if (mano.PartidaTerminada)
                 throw new InvalidOperationException("La partida ya terminó.");
@@ -123,7 +127,7 @@ namespace TrucoRPG.Dominio.UseCases
 
             JuegoServicio.SumarPuntos(mano, "Maquina", puntosEnJuego);
             EnvidoServicio.LimpiarDatosDeEnvido(mano);
-            MaquinaServicio.AvanzarTurno(mano);
+            MaquinaServicio.AvanzarTurnoSiNoEsHistoria(mano);
             PartidaMemoriaServicio.Actualizar(mano);
             return mano;
         }

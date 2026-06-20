@@ -3,6 +3,8 @@
 using Microsoft.AspNetCore.Mvc;
 using TrucoRPG.API.Models;
 using TrucoRPG.Dominio.Entities;
+using TrucoRPG.Dominio.Repositorios;
+using TrucoRPG.Dominio.Servicios;
 using TrucoRPG.Dominio.UseCases;
 
 namespace TrucoRPG.API.Controllers
@@ -22,6 +24,13 @@ namespace TrucoRPG.API.Controllers
         private readonly IrseAlMazoUseCase             _irseAlMazo;
         private readonly JugarCartaUseCase             _jugarCarta;
         private readonly ActivarHabilidadUseCase       _activarHabilidad;
+        private readonly ConfirmarSalpicaduraUseCase   _confirmarSalpicadura;
+        private readonly ConfirmarTravesuraUseCase     _confirmarTravesura;
+        private readonly ConfirmarRasgunoUseCase       _confirmarRasguno;
+        private readonly AvanzarMaquinaHistoriaUseCase _avanzarMaquinaHistoria;
+        private readonly GanarAutomaticoDebugUseCase _ganarAutomaticoDebug;
+        private readonly HistoriaValidacionServicio    _historiaValidacion;
+        private readonly IUsuarioActualServicio        _usuarioActual;
 
         public TrucoController(
             NuevaManoUseCase              nuevaMano,
@@ -33,7 +42,14 @@ namespace TrucoRPG.API.Controllers
             EscalarTrucoUseCase           escalarTruco,
             IrseAlMazoUseCase             irseAlMazo,
             JugarCartaUseCase             jugarCarta,
-            ActivarHabilidadUseCase       activarHabilidad)
+            ActivarHabilidadUseCase       activarHabilidad,
+            ConfirmarSalpicaduraUseCase   confirmarSalpicadura,
+            ConfirmarTravesuraUseCase     confirmarTravesura,
+            ConfirmarRasgunoUseCase       confirmarRasguno,
+            AvanzarMaquinaHistoriaUseCase avanzarMaquinaHistoria,
+            GanarAutomaticoDebugUseCase   ganarAutomaticoDebug,
+            HistoriaValidacionServicio    historiaValidacion,
+            IUsuarioActualServicio        usuarioActual)
         {
             _nuevaMano         = nuevaMano;
             _configurarMentira = configurarMentira;
@@ -45,6 +61,13 @@ namespace TrucoRPG.API.Controllers
             _irseAlMazo        = irseAlMazo;
             _jugarCarta        = jugarCarta;
             _activarHabilidad  = activarHabilidad;
+            _confirmarSalpicadura = confirmarSalpicadura;
+            _confirmarTravesura = confirmarTravesura;
+            _confirmarRasguno = confirmarRasguno;
+            _avanzarMaquinaHistoria = avanzarMaquinaHistoria;
+            _ganarAutomaticoDebug = ganarAutomaticoDebug;
+            _historiaValidacion = historiaValidacion;
+            _usuarioActual      = usuarioActual;
         }
 
         // ── Partida / Mano ────────────────────────────────────────────
@@ -58,7 +81,7 @@ namespace TrucoRPG.API.Controllers
         }
 
         [HttpPost("nueva-partida")]
-        public ActionResult<ManoTruco> NuevaPartida([FromBody] NuevaPartidaRequest? request)
+        public async Task<ActionResult<ManoTruco>> NuevaPartida([FromBody] NuevaPartidaRequest? request)
         {
             var configuracion = request == null
                 ? new ConfiguracionPartida()
@@ -68,8 +91,31 @@ namespace TrucoRPG.API.Controllers
                     HeroeDelHumano = request.ClaseHeroe
                 };
 
+            if (request?.Modo == ModoJuego.Historia && request.RivalNivel.HasValue)
+            {
+                await _historiaValidacion.ValidarPuedeIniciarPartidaAsync(
+                    _usuarioActual.ObtenerId(),
+                    request.RivalNivel.Value);
+
+                var rival = await _historiaValidacion.ObtenerRivalOErrorAsync(request.RivalNivel.Value);
+                configuracion.RivalNivel = rival.Nivel;
+                configuracion.RivalDeLaMaquina = rival.TipoRival;
+            }
+
             return Ok(_nuevaMano.EjecutarNuevaPartida(configuracion));
         }
+
+        [HttpPost("confirmar-salpicadura")]
+        public ActionResult<ManoTruco> ConfirmarSalpicadura([FromBody] ConfirmarSalpicaduraRequest request) =>
+            Ok(_confirmarSalpicadura.Ejecutar(request.ManoId));
+
+        [HttpPost("confirmar-travesura")]
+        public ActionResult<ManoTruco> ConfirmarTravesura([FromBody] ConfirmarSalpicaduraRequest request) =>
+            Ok(_confirmarTravesura.Ejecutar(request.ManoId));
+
+        [HttpPost("confirmar-rasguno")]
+        public ActionResult<ManoTruco> ConfirmarRasguno([FromBody] ConfirmarSalpicaduraRequest request) =>
+            Ok(_confirmarRasguno.Ejecutar(request.ManoId));
 
         // ── Configuración ─────────────────────────────────────────────
 
@@ -179,5 +225,17 @@ namespace TrucoRPG.API.Controllers
                     request.ManoId, request.NumeroCarta, request.PaloCarta));
             
         }
+
+        [HttpPost("avanzar-maquina")]
+        public ActionResult<Truco1v1PasoResponse> AvanzarMaquina([FromBody] CantarEnvidoRequest request)
+        {
+            var (mano, evento) = _avanzarMaquinaHistoria.Ejecutar(request.ManoId);
+            return Ok(new Truco1v1PasoResponse { Mano = mano, Evento = evento });
+        }
+
+        // SOLO PRUEBAS — Botón debug de victoria automática en historia. Eliminar antes de producción.
+        [HttpPost("ganar-automatico-debug")]
+        public ActionResult<ManoTruco> GanarAutomaticoDebug([FromBody] CantarEnvidoRequest request) =>
+            Ok(_ganarAutomaticoDebug.Ejecutar(request.ManoId));
     }
 }

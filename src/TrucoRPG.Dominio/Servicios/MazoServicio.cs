@@ -27,7 +27,7 @@ namespace TrucoRPG.Dominio.Servicios
             return mazo;
         }
 
-        private static int ObtenerValorTruco(int numero, string palo)
+        public static int ObtenerValorTruco(int numero, string palo)
         {
             if (numero == 1 && palo == "Espada") return 14;
             if (numero == 1 && palo == "Basto") return 13;

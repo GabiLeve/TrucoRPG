@@ -8,6 +8,7 @@ using TrucoRPG.API.Middlewares;
 using TrucoRPG.API.Services;
 using TrucoRPG.Dominio.Entities;
 using TrucoRPG.Dominio.Repositorios;
+using TrucoRPG.Dominio.Servicios;
 using TrucoRPG.Dominio.UseCases;
 using TrucoRPG.Infraestructura.Data;
 using TrucoRPG.Infraestructura.Provider;
@@ -77,8 +78,17 @@ builder.Services.AddAuthentication(opt =>
 });
 
 // ── Inyección de dependencias (Infrastructure → Domain) ───────────
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IUsuarioRepositorio, UsuarioRepositorio>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IUsuarioActualServicio, UsuarioActualServicio>();
+builder.Services.AddScoped<IRivalRepositorio, RivalRepositorio>();
+builder.Services.AddScoped<IProgresoPartidaRepositorio, ProgresoPartidaRepositorio>();
+builder.Services.AddScoped<HistoriaValidacionServicio>();
+builder.Services.AddScoped<ObtenerRivalesHistoriaUseCase>();
+builder.Services.AddScoped<ObtenerProgresoHistoriaUseCase>();
+builder.Services.AddScoped<PuedePelearConRivalUseCase>();
+builder.Services.AddScoped<RegistrarVictoriaHistoriaUseCase>();
 builder.Services.AddScoped<RegisterUseCase>();
 builder.Services.AddScoped<LoginUseCase>();
 builder.Services.AddScoped<ReglasUseCase>();
@@ -94,12 +104,19 @@ builder.Services.AddScoped<EscalarTrucoUseCase>();
 builder.Services.AddScoped<IrseAlMazoUseCase>();
 builder.Services.AddScoped<JugarCartaUseCase>();
 builder.Services.AddScoped<ActivarHabilidadUseCase>();
+builder.Services.AddScoped<ConfirmarSalpicaduraUseCase>();
+builder.Services.AddScoped<ConfirmarTravesuraUseCase>();
+builder.Services.AddScoped<ConfirmarRasgunoUseCase>();
+builder.Services.AddScoped<AvanzarMaquinaHistoriaUseCase>();
+builder.Services.AddScoped<GanarAutomaticoDebugUseCase>();
 
 // ── Servicios de sala (singleton: el estado de salas debe sobrevivir entre requests) ──
 builder.Services.AddSingleton<SalaService>();
 
 // ── API ───────────────────────────────────────────────────────────
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(opt =>
+        opt.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSignalR();
@@ -119,6 +136,35 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
+    using (var scope = app.Services.CreateScope())
+    {
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+
+        try
+        {
+            var pendientes = await db.Database.GetPendingMigrationsAsync();
+            var listaPendientes = pendientes.ToList();
+            if (listaPendientes.Count > 0)
+            {
+                logger.LogInformation(
+                    "Aplicando {Count} migración(es) pendiente(s): {Migrations}",
+                    listaPendientes.Count,
+                    string.Join(", ", listaPendientes));
+            }
+
+            await db.Database.MigrateAsync();
+            logger.LogInformation("Base de datos actualizada correctamente.");
+        }
+        catch (Exception ex)
+        {
+            logger.LogCritical(
+                ex,
+                "Error al aplicar migraciones. Verificá que MySQL esté encendido y la connection string en appsettings.Development.json o appsettings.Local.json.");
+            throw;
+        }
+    }
+
     app.UseSwagger();
     app.UseSwaggerUI();
 }
