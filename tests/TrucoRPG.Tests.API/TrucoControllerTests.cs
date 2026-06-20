@@ -2,6 +2,7 @@
 using TrucoRPG.API.Controllers;
 using TrucoRPG.Dominio.Entities;
 using TrucoRPG.API.Models;
+using TrucoRPG.Dominio.Repositorios;
 using TrucoRPG.Dominio.Servicios;
 using TrucoRPG.Dominio.UseCases;
 
@@ -9,6 +10,37 @@ namespace TrucoRPG.Tests.API;
 
 public class TrucoControllerTests
 {
+    // ─── Fakes (solo para satisfacer el constructor en estos tests) ──
+
+    private class RivalRepositorioFake : IRivalRepositorio
+    {
+        public Task<IReadOnlyList<Rival>> ObtenerTodosAsync() =>
+            Task.FromResult<IReadOnlyList<Rival>>(Array.Empty<Rival>());
+
+        public Task<Rival?> ObtenerPorNivelAsync(int nivel) =>
+            Task.FromResult<Rival?>(null);
+
+        public Task<Rival?> ObtenerPorTipoAsync(ClaseRival tipo) =>
+            Task.FromResult<Rival?>(null);
+    }
+
+    private class ProgresoPartidaRepositorioFake : IProgresoPartidaRepositorio
+    {
+        public Task<ProgresoPartida?> ObtenerPorUsuarioIdAsync(string usuarioId) =>
+            Task.FromResult<ProgresoPartida?>(null);
+
+        public Task<ProgresoPartida> ObtenerOCrearAsync(string usuarioId) =>
+            Task.FromResult(new ProgresoPartida());
+
+        public Task RegistrarVictoriaAsync(string usuarioId, int rivalNivelDerrotado, int diferenciaPuntos) =>
+            Task.CompletedTask;
+    }
+
+    private class UsuarioActualServicioFake : IUsuarioActualServicio
+    {
+        public string? ObtenerId() => null;
+    }
+
     private static TrucoController CrearController() => new(
         new NuevaManoUseCase(),
         new ConfigurarNivelMentiraUseCase(),
@@ -19,7 +51,16 @@ public class TrucoControllerTests
         new EscalarTrucoUseCase(),
         new IrseAlMazoUseCase(),
         new JugarCartaUseCase(),
-        new ActivarHabilidadUseCase());
+        new ActivarHabilidadUseCase(),
+        new ConfirmarSalpicaduraUseCase(),
+        new ConfirmarTravesuraUseCase(),
+        new ConfirmarRasgunoUseCase(),
+        new AvanzarMaquinaHistoriaUseCase(),
+        new GanarAutomaticoDebugUseCase(),
+        new HistoriaValidacionServicio(
+            new RivalRepositorioFake(),
+            new ProgresoPartidaRepositorioFake()),
+        new UsuarioActualServicioFake());
 
     private readonly TrucoController _controller = CrearController();
 
@@ -27,7 +68,7 @@ public class TrucoControllerTests
 
     private ManoTruco ObtenerManoNueva()
     {
-        var result = _controller.NuevaPartida(null);
+        var result = _controller.NuevaPartida(null).GetAwaiter().GetResult();
         var ok = (OkObjectResult)result.Result!;
         return (ManoTruco)ok.Value!;
     }
@@ -37,7 +78,7 @@ public class TrucoControllerTests
     [Fact]
     public void NuevaPartida_DevuelveOk_ConManoValida()
     {
-        var result = _controller.NuevaPartida(null);
+        var result = _controller.NuevaPartida(null).GetAwaiter().GetResult();
         var ok = Assert.IsType<OkObjectResult>(result.Result);
         var mano = Assert.IsType<ManoTruco>(ok.Value);
         Assert.NotEqual(Guid.Empty, mano.Id);
