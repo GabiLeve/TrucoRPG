@@ -42,7 +42,8 @@ namespace TrucoRPG.Dominio.UseCases
                 HabilidadesTurnoMaquinaServicio.Notificar(mano);
 
             if (mano.ManoIniciadaPor == IdJugador.Maquina && !mano.SalpicaduraBloqueando
-                && !mano.TravesuraBloqueando && !mano.RasgunoBloqueando && mano.GanadorMano == null
+                && !mano.TravesuraBloqueando && !mano.RasgunoBloqueando
+                && !mano.AullidoBloqueando && mano.GanadorMano == null
                 && !MaquinaServicio.EsModoHistoriaPasoAPaso(mano))
                 MaquinaServicio.ProcesarIniciativa(mano);
 
@@ -64,7 +65,8 @@ namespace TrucoRPG.Dominio.UseCases
                 HabilidadesTurnoMaquinaServicio.Notificar(mano);
 
             if (mano.ManoIniciadaPor == IdJugador.Maquina && !mano.SalpicaduraBloqueando
-                && !mano.TravesuraBloqueando && !mano.RasgunoBloqueando && mano.GanadorMano == null
+                && !mano.TravesuraBloqueando && !mano.RasgunoBloqueando
+                && !mano.AullidoBloqueando && mano.GanadorMano == null
                 && !MaquinaServicio.EsModoHistoriaPasoAPaso(mano))
                 MaquinaServicio.ProcesarIniciativa(mano);
 

@@ -55,6 +55,7 @@ public class TrucoControllerTests
         new ConfirmarSalpicaduraUseCase(),
         new ConfirmarTravesuraUseCase(),
         new ConfirmarRasgunoUseCase(),
+        new ConfirmarAullidoUseCase(),
         new AvanzarMaquinaHistoriaUseCase(),
         new GanarAutomaticoDebugUseCase(),
         new HistoriaValidacionServicio(

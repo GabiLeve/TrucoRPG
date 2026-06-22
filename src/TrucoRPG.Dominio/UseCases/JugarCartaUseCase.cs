@@ -38,6 +38,8 @@ namespace TrucoRPG.Dominio.UseCases
             {
                 mano.CartaHumanoEnMesa = cartaHumano;
                 mano.TurnoActual       = "Maquina";
+                RemolinoServicio.IntentarEnPrimeraBaza(mano, cartaHumano);
+                HabilidadesRivalOrquestador.ActualizarVista(mano);
                 HabilidadesTurnoMaquinaServicio.Notificar(mano);
             }
             else

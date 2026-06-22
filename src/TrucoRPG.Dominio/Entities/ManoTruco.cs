@@ -18,6 +18,9 @@ namespace TrucoRPG.Dominio.Entities
         public bool TravesuraBloqueando { get; set; }
         public bool RasgunoActivo { get; set; }
         public bool RasgunoBloqueando { get; set; }
+        public bool LunaLlenaUsadaEnMano { get; set; }
+        public bool AullidoBloqueando { get; set; }
+        public bool AullidoUsadoEnMano { get; set; }
         public List<Carta> CartasOcultasTravesura { get; set; } = new();
 
         public List<Carta> CartasRestantesMazo { get; set; } = new();

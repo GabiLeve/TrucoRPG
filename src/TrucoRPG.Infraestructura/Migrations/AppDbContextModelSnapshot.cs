@@ -358,7 +358,7 @@ namespace TrucoRPG.Infraestructura.Migrations
                         {
                             Id = new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1"),
                             Descripcion = "Primer jefe de la historia. Habita las orillas del lago.",
-                            DescripcionHabilidad = "Cada 2 manos, cambia los palos de tus cartas (ej. Espada se ve/vuelve Copa).",
+                            DescripcionHabilidad = "Cada 2 manos, cambia el palo de 2 cartas. Pasiva Remolino: 50% de cambiar el palo de tu primera carta en la 1.ª baza.",
                             Nivel = 1,
                             Nombre = "Nahuelito",
                             NombreHabilidad = "Salpicadura",
@@ -369,7 +369,7 @@ namespace TrucoRPG.Infraestructura.Migrations
                         {
                             Id = new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2"),
                             Descripcion = "Segundo jefe de la historia. Guarda la entrada de la cueva.",
-                            DescripcionHabilidad = "Cada 2 manos, te muestra tus 3 cartas 5 segundos y luego oculta 2 al azar.",
+                            DescripcionHabilidad = "Cada 2 manos, muestra tus cartas 5s y oculta 2. Pasiva Trampa del monte: +1 pt si nadie cantó envido ni truco.",
                             Nivel = 2,
                             Nombre = "El Pomberito",
                             NombreHabilidad = "Travesura",
@@ -380,7 +380,7 @@ namespace TrucoRPG.Infraestructura.Migrations
                         {
                             Id = new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa3"),
                             Descripcion = "Tercer jefe de la historia. Acecha en las profundidades de la cueva.",
-                            DescripcionHabilidad = "Cada 2 manos, debilita 1 carta aleatoria bajando su valor en 1 (ej. 1 de Espada pasa a 1 de Basto, un 3 pasa a un 2).",
+                            DescripcionHabilidad = "Cada 2 manos, debilita 1 carta. Pasivas: Luna llena al aceptar truco de la máquina; Aullido 20% tras ganar la 1.ª baza.",
                             Nivel = 3,
                             Nombre = "El Lobizón",
                             NombreHabilidad = "Rasguño",

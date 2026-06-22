@@ -30,7 +30,7 @@ namespace TrucoRPG.Infraestructura.Data.Configurations
                     Descripcion = "Primer jefe de la historia. Habita las orillas del lago.",
                     NombreHabilidad = "Salpicadura",
                     DescripcionHabilidad =
-                        "Cada 2 manos, cambia los palos de tus cartas (ej. Espada se ve/vuelve Copa).",
+                        "Cada 2 manos, cambia el palo de 2 cartas. Pasiva Remolino: 50% de cambiar el palo de tu primera carta en la 1.ª baza.",
                     TipoRival = ClaseRival.Nahuelito,
                     TipoHabilidad = TipoHabilidadRival.Salpicadura
                 },
@@ -42,7 +42,7 @@ namespace TrucoRPG.Infraestructura.Data.Configurations
                     Descripcion = "Segundo jefe de la historia. Guarda la entrada de la cueva.",
                     NombreHabilidad = "Travesura",
                     DescripcionHabilidad =
-                        "Cada 2 manos, te muestra tus 3 cartas 5 segundos y luego oculta 2 al azar.",
+                        "Cada 2 manos, muestra tus cartas 5s y oculta 2. Pasiva Trampa del monte: +1 pt si nadie cantó envido ni truco.",
                     TipoRival = ClaseRival.Pomberito,
                     TipoHabilidad = TipoHabilidadRival.Travesura
                 },
@@ -54,8 +54,7 @@ namespace TrucoRPG.Infraestructura.Data.Configurations
                     Descripcion = "Tercer jefe de la historia. Acecha en las profundidades de la cueva.",
                     NombreHabilidad = "Rasguño",
                     DescripcionHabilidad =
-                        "Cada 2 manos, debilita 1 carta aleatoria bajando su valor en 1 " +
-                        "(ej. 1 de Espada pasa a 1 de Basto, un 3 pasa a un 2).",
+                        "Cada 2 manos, debilita 1 carta. Pasivas: Luna llena al aceptar truco de la máquina; Aullido 20% tras ganar la 1.ª baza.",
                     TipoRival = ClaseRival.Lobizon,
                     TipoHabilidad = TipoHabilidadRival.Rasguno
                 },
