@@ -92,6 +92,8 @@ builder.Services.AddScoped<RegistrarVictoriaHistoriaUseCase>();
 builder.Services.AddScoped<RegisterUseCase>();
 builder.Services.AddScoped<LoginUseCase>();
 builder.Services.AddScoped<ReglasUseCase>();
+builder.Services.AddScoped<IItemTiendaRepositorio, ItemTiendaRepositorio>();
+builder.Services.AddScoped<ObtenerTiendaUseCase>();
 
 // ── Use Cases de Truco (vs. Máquina) ─────────────────────────────
 builder.Services.AddScoped<NuevaManoUseCase>();
