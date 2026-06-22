@@ -13,6 +13,7 @@ using TrucoRPG.Dominio.UseCases;
 using TrucoRPG.Infraestructura.Data;
 using TrucoRPG.Infraestructura.Provider;
 using TrucoRPG.Infraestructura.Repositorios;
+using TrucoRPG.Infraestructura.Servicios;
 using TrucoRPG.Logica.UseCases;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -91,6 +92,17 @@ builder.Services.AddScoped<PuedePelearConRivalUseCase>();
 builder.Services.AddScoped<RegistrarVictoriaHistoriaUseCase>();
 builder.Services.AddScoped<RegisterUseCase>();
 builder.Services.AddScoped<LoginUseCase>();
+builder.Services.AddScoped<CambiarPasswordUseCase>();
+builder.Services.AddScoped<ResetPasswordUseCase>();
+builder.Services.AddSingleton<IEmailService, EmailService>();
+builder.Services.AddScoped<SolicitarResetPasswordUseCase>(sp =>
+{
+    var repo       = sp.GetRequiredService<IUsuarioRepositorio>();
+    var email      = sp.GetRequiredService<IEmailService>();
+    var config     = sp.GetRequiredService<IConfiguration>();
+    var frontendUrl = config["Email:FrontendUrl"] ?? "http://localhost:4200";
+    return new SolicitarResetPasswordUseCase(repo, email, frontendUrl);
+});
 builder.Services.AddScoped<ReglasUseCase>();
 
 // ── Use Cases de Truco (vs. Máquina) ─────────────────────────────
