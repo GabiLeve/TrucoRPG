@@ -21,6 +21,8 @@ public class HabilidadesActivasTests
 
         Assert.NotNull(actualizada.VistaHabilidadesHumano?.CartaReveladaRival);
         Assert.False(actualizada.VistaHabilidadesHumano!.ActivaDisponible);
+        Assert.Contains("revelaste", actualizada.UltimoMensajeHabilidad ?? "", StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("(Truco", actualizada.UltimoMensajeHabilidad ?? "", StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

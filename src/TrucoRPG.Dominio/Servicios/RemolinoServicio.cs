@@ -19,8 +19,7 @@ namespace TrucoRPG.Dominio.Servicios
 
             SalpicaduraServicio.CambiarPaloCarta(cartaEnMesa);
             mano.UltimoMensajeHabilidadRival =
-                $"¡Remolino! Nahuelito cambió el palo de tu carta a {cartaEnMesa.Palo} " +
-                $"(Truco {cartaEnMesa.ValorTruco}).";
+                $"¡Remolino! Nahuelito cambió el palo de tu carta a {cartaEnMesa.Palo}.";
             return true;
         }
 
