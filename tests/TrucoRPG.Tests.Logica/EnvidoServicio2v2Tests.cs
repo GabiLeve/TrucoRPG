@@ -1,4 +1,4 @@
-using TrucoRPG.Dominio.Entities;
+﻿using TrucoRPG.Dominio.Entities;
 using TrucoRPG.Dominio.Servicios;
 
 namespace TrucoRPG.Tests.Logica;
@@ -117,7 +117,8 @@ public class EnvidoServicio2v2Tests
         // Where
         Assert.False(terminado);
         Assert.Equal("J2", mano.EnvidoPendienteRespuestaDe);
-        Assert.Equal(25, mano.TantosDeclarados["J1"]);
+        // Declara 25 pero el sistema limita al tanto real
+        Assert.Equal(3, mano.TantosDeclarados["J1"]);
     }
 
     [Fact]
@@ -146,6 +147,27 @@ public class EnvidoServicio2v2Tests
         // Do - Empate → gana el equipo mano (EquipoA, J1 es mano). Orden: J1, J2, J3, J4.
         var mano = CrearMano("J1");
         AsignarCartasBasicas(mano);
+        mano.EquipoA.Jugador1.Mano = new List<Carta>
+        {
+            C(7, "Oro"),
+            C(1, "Oro"),
+            C(5, "Copa")
+        };
+
+        mano.EquipoB.Jugador1.Mano = new List<Carta>
+        {
+            C(7, "Basto"),
+            C(1, "Basto"),
+            C(5, "Espada")
+        };
+
+        mano.EquipoB.Jugador2.Mano = new List<Carta>
+        {
+            C(7, "Copa"),
+            C(1, "Copa"),
+            C(5, "Oro")
+        };
+
         mano.PuntosEnvido = 2;
         EnvidoServicio2v2.IniciarDeclaracionTantos(mano);
 
@@ -240,6 +262,13 @@ public class EnvidoServicio2v2Tests
         // (J3) NO necesita cantar; tras J2 el pendiente pasa directo a J4.
         var mano = CrearMano("J1");
         AsignarCartasBasicas(mano);
+        mano.EquipoA.Jugador1.Mano = new List<Carta>
+        {
+            C(7, "Oro"),
+            C(6, "Oro"),
+            C(10, "Copa")
+        };
+
         mano.PuntosEnvido = 2;
         EnvidoServicio2v2.IniciarDeclaracionTantos(mano);
 
@@ -265,6 +294,14 @@ public class EnvidoServicio2v2Tests
         var mano = CrearMano("J2");
         mano.EquipoMano = "EquipoB";
         AsignarCartasBasicas(mano);
+
+        mano.EquipoA.Jugador2.Mano = new List<Carta>
+        {
+            C(7, "Oro"),
+            C(6, "Oro"),
+            C(4, "Copa")
+        };
+
         mano.PuntosEnvido = 2;
         EnvidoServicio2v2.IniciarDeclaracionTantos(mano);
 

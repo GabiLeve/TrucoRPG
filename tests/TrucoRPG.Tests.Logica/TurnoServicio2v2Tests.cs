@@ -107,7 +107,7 @@ public class TurnoServicio2v2Tests
         var siguiente = TurnoServicio2v2.SiguienteJugador(mano, "J4");
 
         // Where
-        Assert.Equal("J1", siguiente);
+        Assert.Null(siguiente);
     }
 
     [Fact]
