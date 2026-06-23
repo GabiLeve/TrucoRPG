@@ -27,6 +27,7 @@ namespace TrucoRPG.API.Controllers
         private readonly ConfirmarSalpicaduraUseCase   _confirmarSalpicadura;
         private readonly ConfirmarTravesuraUseCase     _confirmarTravesura;
         private readonly ConfirmarRasgunoUseCase       _confirmarRasguno;
+        private readonly ConfirmarAullidoUseCase       _confirmarAullido;
         private readonly AvanzarMaquinaHistoriaUseCase _avanzarMaquinaHistoria;
         private readonly GanarAutomaticoDebugUseCase _ganarAutomaticoDebug;
         private readonly HistoriaValidacionServicio    _historiaValidacion;
@@ -46,6 +47,7 @@ namespace TrucoRPG.API.Controllers
             ConfirmarSalpicaduraUseCase   confirmarSalpicadura,
             ConfirmarTravesuraUseCase     confirmarTravesura,
             ConfirmarRasgunoUseCase       confirmarRasguno,
+            ConfirmarAullidoUseCase       confirmarAullido,
             AvanzarMaquinaHistoriaUseCase avanzarMaquinaHistoria,
             GanarAutomaticoDebugUseCase   ganarAutomaticoDebug,
             HistoriaValidacionServicio    historiaValidacion,
@@ -64,6 +66,7 @@ namespace TrucoRPG.API.Controllers
             _confirmarSalpicadura = confirmarSalpicadura;
             _confirmarTravesura = confirmarTravesura;
             _confirmarRasguno = confirmarRasguno;
+            _confirmarAullido = confirmarAullido;
             _avanzarMaquinaHistoria = avanzarMaquinaHistoria;
             _ganarAutomaticoDebug = ganarAutomaticoDebug;
             _historiaValidacion = historiaValidacion;
@@ -116,6 +119,10 @@ namespace TrucoRPG.API.Controllers
         [HttpPost("confirmar-rasguno")]
         public ActionResult<ManoTruco> ConfirmarRasguno([FromBody] ConfirmarSalpicaduraRequest request) =>
             Ok(_confirmarRasguno.Ejecutar(request.ManoId));
+
+        [HttpPost("confirmar-aullido")]
+        public ActionResult<ManoTruco> ConfirmarAullido([FromBody] ConfirmarSalpicaduraRequest request) =>
+            Ok(_confirmarAullido.Ejecutar(request.ManoId));
 
         // ── Configuración ─────────────────────────────────────────────
 

@@ -31,7 +31,8 @@ namespace TrucoRPG.Dominio.Servicios
         public static Truco1v1EventoMaquina? AvanzarUnPaso(ManoTruco mano)
         {
             if (!EsModoHistoriaPasoAPaso(mano)) return null;
-            if (mano.SalpicaduraBloqueando || mano.TravesuraBloqueando || mano.RasgunoBloqueando) return null;
+            if (mano.SalpicaduraBloqueando || mano.TravesuraBloqueando
+                || mano.RasgunoBloqueando || mano.AullidoBloqueando) return null;
             if (mano.GanadorMano != null || mano.PartidaTerminada) return null;
             if (mano.EnvidoPendienteRespuestaHumano || mano.TrucoPendienteRespuestaHumano) return null;
             if (mano.CartaMaquinaEnMesa != null) return null;
@@ -100,6 +101,12 @@ namespace TrucoRPG.Dominio.Servicios
                 CartaMaquina = cartaMaquina,
                 Ganador      = ganadorBaza
             });
+
+            if (AullidoServicio.IntentarTrasPrimeraBaza(mano, ganadorBaza))
+            {
+                HabilidadesRivalOrquestador.ActualizarVista(mano);
+                return;
+            }
 
             mano.TurnoActual = ganadorBaza == "Parda" ? mano.ManoIniciadaPor : ganadorBaza;
             mano.GanadorMano = JuegoServicio.ResolverGanadorMano(mano.Bazas, mano.ManoIniciadaPor);

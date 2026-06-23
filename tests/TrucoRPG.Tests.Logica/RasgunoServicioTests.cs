@@ -53,5 +53,29 @@ namespace TrucoRPG.Tests.Logica
 
             Assert.All(mano.Humano.Mano, c => Assert.Equal(1, c.ValorTruco));
         }
+
+        [Fact]
+        public void DebilitarCartaAleatoria_NuncaDuplicaCartaYaPresenteEnMano()
+        {
+            //Given
+            var plantilla = new (int numero, string palo, int valor)[]
+            {
+                (3, "Copa", 10),
+                (2, "Copa", 9),
+                (7, "Oro", 11),
+            };
+
+            for (var intento = 0; intento < 500; intento++)
+            {
+                var mano = ManoConCartas(plantilla);
+
+                //When
+                RasgunoServicio.DebilitarCartaAleatoria(mano);
+
+                //Then
+                var claves = mano.Humano.Mano.Select(c => (c.Numero, c.Palo)).ToList();
+                Assert.Equal(claves.Count, claves.Distinct().Count());
+            }
+        }
     }
 }

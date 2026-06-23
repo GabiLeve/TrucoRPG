@@ -6,5 +6,7 @@ namespace TrucoRPG.Dominio.Habilidades
         public const string TrucoMano = "TrucoMano";
         public const string TrucoRechazo = "TrucoRechazo";
         public const string PasivaTimbero = "PasivaTimbero";
+        public const string PasivaPomberito = "PasivaPomberito";
+        public const string AullidoLobizon = "AullidoLobizon";
     }
 }

@@ -25,6 +25,7 @@ namespace TrucoRPG.Dominio.UseCases
             mano.SalpicaduraBloqueando = false;
             mano.TravesuraBloqueando = false;
             mano.RasgunoBloqueando = false;
+            mano.AullidoBloqueando = false;
 
             PartidaMemoriaServicio.Actualizar(mano);
             return mano;

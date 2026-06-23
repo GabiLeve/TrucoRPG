@@ -14,6 +14,7 @@ namespace TrucoRPG.Dominio.Habilidades
                 TravesuraBloqueando = mano.TravesuraBloqueando,
                 RasgunoActivo = mano.RasgunoActivo,
                 RasgunoBloqueando = mano.RasgunoBloqueando,
+                AullidoBloqueando = mano.AullidoBloqueando,
                 CartasOcultasTravesura = mano.CartasOcultasTravesura
                     .Select(c => new CartaReferencia { Numero = c.Numero, Palo = c.Palo })
                     .ToList(),

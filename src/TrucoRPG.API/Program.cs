@@ -119,6 +119,7 @@ builder.Services.AddScoped<ActivarHabilidadUseCase>();
 builder.Services.AddScoped<ConfirmarSalpicaduraUseCase>();
 builder.Services.AddScoped<ConfirmarTravesuraUseCase>();
 builder.Services.AddScoped<ConfirmarRasgunoUseCase>();
+builder.Services.AddScoped<ConfirmarAullidoUseCase>();
 builder.Services.AddScoped<AvanzarMaquinaHistoriaUseCase>();
 builder.Services.AddScoped<GanarAutomaticoDebugUseCase>();
 
