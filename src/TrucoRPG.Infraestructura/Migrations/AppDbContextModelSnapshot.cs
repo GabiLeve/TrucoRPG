@@ -380,7 +380,7 @@ namespace TrucoRPG.Infraestructura.Migrations
                         {
                             Id = new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa3"),
                             Descripcion = "Tercer jefe de la historia. Acecha en las profundidades de la cueva.",
-                            DescripcionHabilidad = "Cada 2 manos, debilita 1 carta. Pasivas: Luna llena al aceptar truco de la máquina; Aullido 20% tras ganar la 1.ª baza.",
+                            DescripcionHabilidad = "Rasguño: te cambia una carta aleatoria por una de menor valor (puede ocurrir en cualquier momento de la ronda).\nAullido: su aullido te asusta y te manda al mazo.",
                             Nivel = 3,
                             Nombre = "El Lobizón",
                             NombreHabilidad = "Rasguño",
