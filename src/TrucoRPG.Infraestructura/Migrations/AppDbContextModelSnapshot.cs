@@ -286,6 +286,124 @@ namespace TrucoRPG.Infraestructura.Migrations
                         });
                 });
 
+            modelBuilder.Entity("TrucoRPG.Dominio.Entities.ItemTienda", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Categoria")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("Descripcion")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("Img")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<int>("Precio")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SpriteKey")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("items", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Categoria = "HABILIDADES",
+                            Descripcion = "Te otorga la habilidad del manipulador en una partida",
+                            Img = "/assets/objetos/objeto.png",
+                            Nombre = "BOLEADORAS",
+                            Precio = 150
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Categoria = "HABILIDADES",
+                            Descripcion = "Te otorga la habilidad del timbero en una partida",
+                            Img = "/assets/objetos/objeto.png",
+                            Nombre = "BOLEADORAS",
+                            Precio = 150
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Categoria = "HABILIDADES",
+                            Descripcion = "Te otorga la habilidad del fanfarron en una partida",
+                            Img = "/assets/objetos/objeto.png",
+                            Nombre = "BOLEADORAS",
+                            Precio = 150
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Categoria = "HABILIDADES",
+                            Descripcion = "Te otorga la habilidad del mentiroso en una partida",
+                            Img = "/assets/objetos/objeto.png",
+                            Nombre = "BOLEADORAS",
+                            Precio = 150
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Categoria = "ARMARIO",
+                            Descripcion = "Cambia el color de tu Poncho a rosa",
+                            Img = "/assets/objetos/GotaRosa.png",
+                            Nombre = "Poncho rosa",
+                            Precio = 150,
+                            SpriteKey = "personaje1rosa"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Categoria = "ARMARIO",
+                            Descripcion = "Cambia el color de tu Poncho a marrón",
+                            Img = "/assets/objetos/GotaMarron.png",
+                            Nombre = "Poncho marrón",
+                            Precio = 150,
+                            SpriteKey = "personaje1rosa"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            Categoria = "ARMARIO",
+                            Descripcion = "Cambia el color de tu Poncho a rojo",
+                            Img = "/assets/objetos/GotaRoja.png",
+                            Nombre = "Poncho rojo",
+                            Precio = 150,
+                            SpriteKey = "personaje1rosa"
+                        },
+                        new
+                        {
+                            Id = 8,
+                            Categoria = "ARMARIO",
+                            Descripcion = "Cambia el color de tu Poncho a azul",
+                            Img = "/assets/objetos/GotaAzul.png",
+                            Nombre = "Poncho azul",
+                            Precio = 150,
+                            SpriteKey = "personaje1rosa"
+                        });
+                });
+
             modelBuilder.Entity("TrucoRPG.Dominio.Entities.ProgresoPartida", b =>
                 {
                     b.Property<Guid>("Id")

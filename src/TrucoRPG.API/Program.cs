@@ -104,6 +104,8 @@ builder.Services.AddScoped<SolicitarResetPasswordUseCase>(sp =>
     return new SolicitarResetPasswordUseCase(repo, email, frontendUrl);
 });
 builder.Services.AddScoped<ReglasUseCase>();
+builder.Services.AddScoped<IItemTiendaRepositorio, ItemTiendaRepositorio>();
+builder.Services.AddScoped<ObtenerTiendaUseCase>();
 
 // ── Use Cases de Truco (vs. Máquina) ─────────────────────────────
 builder.Services.AddScoped<NuevaManoUseCase>();
