@@ -99,8 +99,12 @@ namespace TrucoRPG.Dominio.Servicios
 
             int ptsAntes = mano.PuntosEnvido;
             mano.TipoEnvidoCantado    = tipoNuevo;
-            mano.PuntosEnvido         = ObtenerPuntosEnJuego(tipoNuevo);
-            mano.PuntosEnvidoNoQuiero = ptsAntes; // rechazar la escalada paga lo de la apuesta anterior
+            // Los cantos se ACUMULAN: Envido (2) + Real Envido (3) = 5. La Falta no suma acá:
+            // su valor es dinámico y se calcula al resolver (FinalizarEnvido).
+            mano.PuntosEnvido         = tipoNuevo == "FaltaEnvido"
+                ? 0
+                : ptsAntes + EnvidoServicio.IncrementoPuntosTipo(tipoNuevo);
+            mano.PuntosEnvidoNoQuiero = Math.Max(1, ptsAntes); // rechazar la escalada paga lo de la apuesta anterior
             mano.CantorEnvido         = jugadorId;
             mano.EnvidoPendienteRespuestaDe = responsable(mano, jugadorId);
             mano.EstadoEnvido = $"{jugadorId} cantó {tipo}.";
@@ -150,6 +154,15 @@ namespace TrucoRPG.Dominio.Servicios
             }
             else
             {
+                // Nadie puede declarar MÁS tanto del que realmente tiene (eso es trampa);
+                // declarar de menos sí está permitido. Se capea al tanto real.
+                if (tanto.HasValue)
+                {
+                    int declarado = Math.Max(0, tanto.Value);
+                    if (mano.TantosReales.TryGetValue(jugadorId, out var real) && declarado > real)
+                        declarado = real;
+                    tanto = declarado;
+                }
                 mano.TantosDeclarados[jugadorId] = tanto;
             }
 
@@ -243,6 +256,16 @@ namespace TrucoRPG.Dominio.Servicios
             mano.EnvidoPendienteRespuestaDe = null;
 
             int puntosEnJuego = mano.PuntosEnvido;
+
+            // Falta Envido: vale lo que le falta al equipo que VA GANANDO la partida
+            // para llegar a 30 (antes quedaba en 0 y no se sumaba nada).
+            if (mano.TipoEnvidoCantado == "FaltaEnvido")
+            {
+                int puntosLider = Math.Max(mano.PuntosEquipoA, mano.PuntosEquipoB);
+                puntosEnJuego   = EnvidoServicio.CalcularPuntosFalta(puntosLider);
+                mano.PuntosEnvido = puntosEnJuego;
+            }
+
             mano.EstadoEnvido = descripcion + $". Vale {puntosEnJuego} pt.";
 
             JuegoServicio2v2.SumarPuntos(mano, equipoGanador, puntosEnJuego);

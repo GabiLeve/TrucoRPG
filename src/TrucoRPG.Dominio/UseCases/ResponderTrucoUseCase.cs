@@ -11,6 +11,8 @@ namespace TrucoRPG.Dominio.UseCases
             var mano = PartidaMemoriaServicio.Obtener(manoId)
                 ?? throw new KeyNotFoundException("No se encontró la mano.");
 
+            SalpicaduraBloqueoServicio.ValidarNoBloqueado(mano);
+
             if (!mano.TrucoPendienteRespuestaHumano)
                 throw new InvalidOperationException("No hay respuesta pendiente para truco.");
 
@@ -111,7 +113,7 @@ namespace TrucoRPG.Dominio.UseCases
             }
 
             if (!mano.TrucoPendienteRespuestaHumano)
-                MaquinaServicio.AvanzarTurno(mano);
+                MaquinaServicio.AvanzarTurnoSiNoEsHistoria(mano);
 
             PartidaMemoriaServicio.Actualizar(mano);
             return mano;

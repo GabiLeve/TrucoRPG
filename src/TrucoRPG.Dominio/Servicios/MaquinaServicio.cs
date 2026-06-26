@@ -1,4 +1,5 @@
 using TrucoRPG.Dominio.Entities;
+using TrucoRPG.Dominio.Habilidades;
 
 namespace TrucoRPG.Dominio.Servicios
 {
@@ -24,7 +25,119 @@ namespace TrucoRPG.Dominio.Servicios
             return manoMaquina.OrderBy(c => c.ValorTruco).First();
         }
 
+        public static bool EsModoHistoriaPasoAPaso(ManoTruco mano) =>
+            mano.Configuracion.Modo == ModoJuego.Historia;
+
+        public static Truco1v1EventoMaquina? AvanzarUnPaso(ManoTruco mano)
+        {
+            if (!EsModoHistoriaPasoAPaso(mano)) return null;
+            if (mano.SalpicaduraBloqueando || mano.TravesuraBloqueando
+                || mano.RasgunoBloqueando || mano.AullidoBloqueando) return null;
+            if (mano.GanadorMano != null || mano.PartidaTerminada) return null;
+            if (mano.EnvidoPendienteRespuestaHumano || mano.TrucoPendienteRespuestaHumano) return null;
+            if (mano.CartaMaquinaEnMesa != null) return null;
+
+            if (mano.CartaHumanoEnMesa != null)
+                return CompletarBazaConCartaHumanoEnMesa(mano);
+
+            if (!mano.EnvidoCantado && !mano.EnvidoResuelto && mano.Bazas.Count == 0)
+            {
+                if (IntentarCantarEnvidoIniciativa(mano))
+                    return new Truco1v1EventoMaquina("envido", "¡Envido!");
+            }
+
+            if (mano.TurnoActual != "Maquina") return null;
+            if (mano.Maquina.Mano.Count == 0) return null;
+
+            bool teniaTrucoPendiente = mano.TrucoPendienteRespuestaHumano;
+            AvanzarTurno(mano);
+
+            if (mano.TrucoPendienteRespuestaHumano && !teniaTrucoPendiente)
+                return new Truco1v1EventoMaquina("truco", "¡Truco!");
+            if (mano.CartaMaquinaEnMesa != null)
+                return new Truco1v1EventoMaquina("carta", "");
+
+            return null;
+        }
+
+        private static bool IntentarCantarEnvidoIniciativa(ManoTruco mano)
+        {
+            if (mano.EnvidoCantado || mano.EnvidoResuelto || mano.Bazas.Count > 0)
+                return false;
+
+            bool cantaEnvido = IniciativaMaquinaEnvidoServicio.DebeCantarEnvido(
+                mano.Maquina.Mano,
+                mano.NivelMentiraEnvidoMaquina);
+
+            if (!cantaEnvido) return false;
+
+            mano.EnvidoCantado                = true;
+            mano.CantorEnvido                 = "Maquina";
+            mano.TipoEnvidoCantado            = "Envido";
+            mano.EnvidoPendienteRespuestaHumano = true;
+            mano.EstadoEnvido                 = "La máquina cantó Envido.";
+            return true;
+        }
+
+        private static Truco1v1EventoMaquina CompletarBazaConCartaHumanoEnMesa(ManoTruco mano)
+        {
+            var cartaHumano = mano.CartaHumanoEnMesa!;
+            mano.CartaHumanoEnMesa = null;
+
+            var cartaMaquina = ElegirCarta(mano.Maquina.Mano, cartaHumano);
+            mano.Maquina.Mano.Remove(cartaMaquina);
+            mano.Maquina.Jugadas.Add(cartaMaquina);
+
+            ResolverBazaJugada(mano, cartaHumano, cartaMaquina);
+            return new Truco1v1EventoMaquina("carta", "");
+        }
+
+        public static void ResolverBazaJugada(ManoTruco mano, Carta cartaHumano, Carta cartaMaquina)
+        {
+            var ganadorBaza = JuegoServicio.ResolverBaza(cartaHumano, cartaMaquina);
+            mano.Bazas.Add(new Baza
+            {
+                CartaJugador = cartaHumano,
+                CartaMaquina = cartaMaquina,
+                Ganador      = ganadorBaza
+            });
+
+            if (AullidoServicio.IntentarTrasPrimeraBaza(mano, ganadorBaza))
+            {
+                HabilidadesRivalOrquestador.ActualizarVista(mano);
+                return;
+            }
+
+            mano.TurnoActual = ganadorBaza == "Parda" ? mano.ManoIniciadaPor : ganadorBaza;
+            mano.GanadorMano = JuegoServicio.ResolverGanadorMano(mano.Bazas, mano.ManoIniciadaPor);
+
+            if (mano.GanadorMano is "Humano" or "Maquina")
+            {
+                if (!mano.TrucoCantado)
+                    mano.EstadoTruco = "No se cantó truco. La mano vale 1 punto.";
+
+                int puntosMano = mano.PuntosTrucoMano > 0 ? mano.PuntosTrucoMano : 1;
+                JuegoServicio.SumarPuntos(
+                    mano, mano.GanadorMano, puntosMano, OrigenPuntos.TrucoMano, mano.CantorTruco);
+                mano.TrucoResuelto = true;
+            }
+            else if (!EsModoHistoriaPasoAPaso(mano))
+            {
+                AvanzarTurno(mano);
+            }
+            else if (mano.TurnoActual == IdJugador.Maquina)
+            {
+                HabilidadesTurnoMaquinaServicio.Notificar(mano);
+            }
+        }
+
         // ── Turno e iniciativa de la máquina (extraídos del Controller) ───────────
+        public static void AvanzarTurnoSiNoEsHistoria(ManoTruco mano)
+        {
+            if (!EsModoHistoriaPasoAPaso(mano))
+                AvanzarTurno(mano);
+        }
+
         public static void ProcesarIniciativa(ManoTruco mano)
         {
             if (!mano.EnvidoCantado && !mano.EnvidoResuelto && mano.Bazas.Count == 0)

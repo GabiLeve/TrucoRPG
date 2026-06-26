@@ -128,6 +128,41 @@ namespace TrucoRPG.Dominio.Servicios
         }
 
         /// <summary>
+        /// Valida que el jugador indicado puede realizar una acción en este momento.
+        /// Lanza <see cref="InvalidOperationException"/> si no (espejo del 3v3;
+        /// antes vivía en Truco2v2Controller).
+        /// </summary>
+        public static void ValidarAccionJugador(ManoTruco2v2 mano, string jugadorId)
+        {
+            if (mano.PartidaTerminada || mano.ManoTerminada)
+                throw new InvalidOperationException("La mano/partida ya terminó.");
+            if (mano.TrucoPendienteRespuestaDe == jugadorId)
+                throw new InvalidOperationException("Debés responder el truco antes de jugar.");
+            if (mano.EnvidoPendienteRespuestaDe == jugadorId)
+                throw new InvalidOperationException("Debés responder el envido antes de jugar.");
+            if (mano.TurnoActual != jugadorId)
+                throw new InvalidOperationException("No es tu turno.");
+        }
+
+        /// <summary>
+        /// Variante de <see cref="JugarCarta(ManoTruco2v2, string, Carta)"/> que busca la
+        /// carta por número y palo. Devuelve false si la jugada no es válida ahora
+        /// (mano terminada, canto pendiente, no es su turno o no tiene esa carta).
+        /// </summary>
+        public static bool JugarCartaPorValor(ManoTruco2v2 mano, string jugadorId, int numero, string palo)
+        {
+            if (mano.GanadorMano != null || mano.ManoTerminada || mano.PartidaTerminada) return false;
+            if (mano.TrucoPendienteRespuestaDe != null || mano.EnvidoPendienteRespuestaDe != null) return false;
+            if (mano.TurnoActual != jugadorId) return false;
+
+            var carta = mano.ObtenerJugador(jugadorId)?.Mano.FirstOrDefault(c =>
+                c.Numero == numero && c.Palo.Equals(palo, StringComparison.OrdinalIgnoreCase));
+            if (carta == null) return false;
+            JugarCarta(mano, jugadorId, carta);
+            return true;
+        }
+
+        /// <summary>
         /// Procesa que un jugador juegue su carta en la vuelta actual.
         /// Si la vuelta se completa, la resuelve y verifica si la mano terminó.
         /// Devuelve true si la mano terminó.
@@ -182,10 +217,22 @@ namespace TrucoRPG.Dominio.Servicios
             }
             else
             {
-                // Vuelta en progreso → siguiente jugador en orden
-                var siguiente = TurnoServicio2v2.SiguienteJugador(mano, jugadorId);
-                if (siguiente != null)
-                    mano.TurnoActual = siguiente;
+                // Vuelta en progreso → siguiente jugador en orden CIRCULAR de mesa.
+                // No usamos SiguienteJugador (que parte de JugadorMano) porque cuando
+                // una máquina gana la vuelta y la abre desde una posición distinta al
+                // JugadorMano, el último en el orden fijo puede no ser el último en
+                // jugar, y SiguienteJugador devuelve null antes de tiempo (bug: doble carta).
+                var todos = mano.OrdenJugadores.Select(j => j.Id).ToList();
+                int idx   = todos.IndexOf(jugadorId);
+                for (int i = 1; i < todos.Count; i++)
+                {
+                    var cand = todos[(idx + i) % todos.Count];
+                    if (!mano.VueltaActual!.CartasJugadas.ContainsKey(cand))
+                    {
+                        mano.TurnoActual = cand;
+                        break;
+                    }
+                }
             }
 
             return false;

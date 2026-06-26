@@ -6,5 +6,6 @@ namespace TrucoRPG.API.Models
     {
         public ModoJuego Modo { get; set; } = ModoJuego.Tradicional;
         public ClaseHeroe? ClaseHeroe { get; set; }
+        public int? RivalNivel { get; set; }
     }
 }

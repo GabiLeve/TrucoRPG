@@ -52,7 +52,9 @@ namespace TrucoRPG.Dominio.Habilidades
             return resolucion.GanadorFinal;
         }
 
-        private static void ActualizarVistaHumano(ManoTruco mano) =>
+        public static void ActualizarVistaHumano(ManoTruco mano) =>
             mano.VistaHabilidadesHumano = HabilidadesConsultaServicio.ObtenerVista(mano, IdJugador.Humano);
+
+        public static void ActualizarVistas(ManoTruco mano) => ActualizarVistaHumano(mano);
     }
 }

@@ -8,5 +8,8 @@ namespace TrucoRPG.Dominio.Repositorios
         Task<bool>     ExisteEmailAsync(string email);
         Task           CrearAsync(string userName, string email, string password);
         Task<bool>     ValidarPasswordAsync(string email, string password);
+        Task           CambiarPasswordAsync(string userId, string passwordActual, string passwordNueva);
+        Task<string>   GenerarTokenResetPasswordAsync(string email);
+        Task           ResetPasswordConTokenAsync(string email, string token, string nuevaPassword);
     }
 }
