@@ -22,7 +22,10 @@ namespace TrucoRPG.Infraestructura.Repositorios
             {
                 Id       = appUser.Id,
                 UserName = appUser.UserName ?? string.Empty,
-                Email    = appUser.Email    ?? string.Empty
+                Email    = appUser.Email    ?? string.Empty,
+                Monedas = appUser.Monedas,
+                SpriteKey = appUser.SpriteKey,
+                HeroeSeleccionadoId = appUser.HeroeSeleccionadoId
             };
         }
 
@@ -95,6 +98,30 @@ namespace TrucoRPG.Infraestructura.Repositorios
                 var errores = string.Join(", ", result.Errors.Select(e => e.Description));
                 throw new InvalidOperationException(errores);
             }
+        }
+
+        public async Task CrearPersonaje(string userId, string spriteKey, Guid idHabilidad)
+        {
+            var appUser = await _userManager.FindByIdAsync(userId)
+                ?? throw new InvalidOperationException("Usuario no encontrado.");
+
+            if (appUser.HeroeSeleccionadoId != null || appUser.SpriteKey != null) {
+                throw new InvalidOperationException("El usuario ya tiene personaje");
+            }
+
+            appUser.SpriteKey = spriteKey;
+            appUser.HeroeSeleccionadoId = idHabilidad;
+
+
+            await _userManager.UpdateAsync(appUser);
+        }
+
+        public async Task<bool> PersonajeExistente(string userId)
+        {
+            var appUser = await _userManager.FindByIdAsync(userId)
+                ?? throw new InvalidOperationException("Usuario no encontrado.");
+
+            return appUser.HeroeSeleccionadoId != null && !string.IsNullOrEmpty(appUser.SpriteKey);
         }
     }
 }

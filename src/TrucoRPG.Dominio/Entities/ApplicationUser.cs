@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 
 namespace TrucoRPG.Dominio.Entities
 {
@@ -7,5 +7,10 @@ namespace TrucoRPG.Dominio.Entities
         public Guid? HeroeSeleccionadoId { get; set; }
 
         public Heroe? HeroeSeleccionado { get; set; }
+
+        public int Monedas { get; set; } = 500;
+
+        public string? SpriteKey { get; set; }
+
     }
 }
