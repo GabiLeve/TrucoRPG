@@ -1,4 +1,5 @@
 using TrucoRPG.Dominio.DTOs;
+using TrucoRPG.Dominio.Mapeos;
 using TrucoRPG.Dominio.Repositorios;
 
 namespace TrucoRPG.Dominio.UseCases
@@ -13,15 +14,10 @@ namespace TrucoRPG.Dominio.UseCases
         public async Task<ProgresoPartidaDto> EjecutarAsync(string? usuarioId)
         {
             if (string.IsNullOrWhiteSpace(usuarioId))
-                return new ProgresoPartidaDto(0, 0);
+                return ProgresoPartidaMapper.VacioDto();
 
             var progreso = await _progreso.ObtenerPorUsuarioIdAsync(usuarioId);
-            if (progreso is null)
-                return new ProgresoPartidaDto(0, 0);
-
-            return new ProgresoPartidaDto(
-                progreso.UltimoRivalDerrotadoNivel,
-                progreso.PuntosAcumulados);
+            return progreso?.ToDto() ?? ProgresoPartidaMapper.VacioDto();
         }
     }
 }

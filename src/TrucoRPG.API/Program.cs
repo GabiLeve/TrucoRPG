@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Serilog;
 using TrucoRPG.API.Hubs;
 using TrucoRPG.API.Middlewares;
 using TrucoRPG.API.Services;
@@ -17,6 +18,21 @@ using TrucoRPG.Infraestructura.Servicios;
 using TrucoRPG.Logica.UseCases;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// ── Logging estructurado (Serilog) ───────────────────────────────
+// Reemplaza el logger por defecto. Escribe a consola (con plantilla legible)
+// y a un archivo rotativo diario en logs/trucorpg-YYYYMMDD.log.
+builder.Host.UseSerilog((context, services, configuration) => configuration
+    .ReadFrom.Configuration(context.Configuration)   // permite ajustar niveles desde appsettings
+    .ReadFrom.Services(services)
+    .Enrich.FromLogContext()
+    .WriteTo.Console(
+        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}")
+    .WriteTo.File(
+        path: "logs/trucorpg-.log",
+        rollingInterval: RollingInterval.Day,
+        retainedFileCountLimit: 7,
+        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}"));
 
 // Escuchar en todas las interfaces de red (permite acceso desde la red local)
 builder.WebHost.UseUrls("http://0.0.0.0:5001");
@@ -132,8 +148,48 @@ builder.Services.AddSingleton<SalaService>();
 builder.Services.AddControllers()
     .AddJsonOptions(opt =>
         opt.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase);
+
+// Genera respuestas ProblemDetails (RFC 7807) también para los errores
+// automáticos del framework (validación de modelo, 401/403, etc.).
+builder.Services.AddProblemDetails();
+
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(opt =>
+{
+    opt.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Title = "TrucoRPG API",
+        Version = "v1",
+        Description = "API del Truco RPG. Los errores se devuelven en formato ProblemDetails (RFC 7807)."
+    });
+
+    // Botón "Authorize" en Swagger UI para mandar el JWT (Bearer).
+    var jwtScheme = new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Description = "Pegá el token JWT (sin el prefijo 'Bearer ').",
+        Reference = new Microsoft.OpenApi.Models.OpenApiReference
+        {
+            Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+            Id = "Bearer"
+        }
+    };
+    opt.AddSecurityDefinition("Bearer", jwtScheme);
+    opt.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        { jwtScheme, Array.Empty<string>() }
+    });
+
+    // Incluye los comentarios XML (/// <summary>) en la documentación de Swagger.
+    var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    if (File.Exists(xmlPath))
+        opt.IncludeXmlComments(xmlPath);
+});
 builder.Services.AddSignalR();
 
 // ── CORS ──────────────────────────────────────────────────────────
@@ -191,6 +247,9 @@ else
 
 // ── Inicialización de Roles ──────────────────────────────────────────────────────
 await InicializadorDatosIdentity.InicializarRolesAsync(app.Services);
+
+// Log estructurado de cada request HTTP (método, ruta, status, duración).
+app.UseSerilogRequestLogging();
 
 app.UseRouting();
 app.UseCors("FrontPolicy");

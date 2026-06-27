@@ -18,8 +18,14 @@ namespace TrucoRPG.API.Controllers
 
     public record Truco3v3PasoResponse(ManoTruco3v3 Mano, EventoMaquina3v3? Evento);
 
+    /// <summary>
+    /// Partida de Truco 3v3 contra la máquina (modo solo). Cada endpoint es una acción de
+    /// juego (cantar, responder, jugar carta, avanzar a la máquina, etc.) y devuelve el
+    /// estado actualizado de la mano.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
+    [Produces("application/json")]
     public class Truco3v3Controller : ControllerBase
     {
         // ── IDs fijos de jugadores ─────────────────────────────────
@@ -54,6 +60,8 @@ namespace TrucoRPG.API.Controllers
         }
 
         // ─────────────────────────────────────────────────────────
+        /// <summary>Crea una nueva partida 3v3 (vos + dos compañeros bot vs. tres rivales bot) y reparte la primera mano.</summary>
+        /// <param name="req">Opcional: número de mano y puntos iniciales de cada equipo.</param>
         [HttpPost("nueva-partida")]
         public ActionResult<ManoTruco3v3> NuevaPartida([FromBody] Truco3v3NuevaPartidaRequest? req)
         {
@@ -62,6 +70,7 @@ namespace TrucoRPG.API.Controllers
             return Ok(mano);
         }
 
+        /// <summary>El humano (J1) juega una carta (número y palo) sobre la mesa.</summary>
         [HttpPost("jugar-carta")]
         public ActionResult<ManoTruco3v3> JugarCarta([FromBody] Truco3v3CartaRequest req)
         {
@@ -75,6 +84,7 @@ namespace TrucoRPG.API.Controllers
             return Ok(mano);
         }
 
+        /// <summary>El humano canta el envido (Envido, Real Envido, Falta Envido, etc.).</summary>
         [HttpPost("cantar-envido")]
         public ActionResult<ManoTruco3v3> CantarEnvido([FromBody] Truco3v3EnvidoRequest req)
         {
@@ -85,6 +95,7 @@ namespace TrucoRPG.API.Controllers
             return Ok(mano);
         }
 
+        /// <summary>Responde el envido por el equipo del humano (quiero / no quiero), con opción de escalar.</summary>
         [HttpPost("responder-envido")]
         public ActionResult<ManoTruco3v3> ResponderEnvido([FromBody] Truco3v3ResponderEnvidoRequest req)
         {
@@ -99,6 +110,7 @@ namespace TrucoRPG.API.Controllers
             return Ok(mano);
         }
 
+        /// <summary>Declara los tantos del humano durante la fase de declaración del envido.</summary>
         [HttpPost("declarar-tanto")]
         public ActionResult<ManoTruco3v3> DeclararTanto([FromBody] Truco3v3TantoRequest req)
         {
@@ -112,6 +124,7 @@ namespace TrucoRPG.API.Controllers
             return Ok(mano);
         }
 
+        /// <summary>El humano dice "son buenas": reconoce que el rival tiene más tantos y no declara los suyos.</summary>
         [HttpPost("son-buenas")]
         public ActionResult<ManoTruco3v3> SonBuenas([FromBody] Truco3v3Request req)
         {
@@ -123,6 +136,7 @@ namespace TrucoRPG.API.Controllers
             return Ok(mano);
         }
 
+        /// <summary>El humano canta Truco.</summary>
         [HttpPost("cantar-truco")]
         public ActionResult<ManoTruco3v3> CantarTruco([FromBody] Truco3v3Request req)
         {
@@ -133,6 +147,7 @@ namespace TrucoRPG.API.Controllers
             return Ok(mano);
         }
 
+        /// <summary>Sube la apuesta del truco (Retruco / Vale Cuatro) cuando tu equipo tiene la palabra.</summary>
         [HttpPost("escalar-truco")]
         public ActionResult<ManoTruco3v3> EscalarTruco([FromBody] Truco3v3Request req)
         {
@@ -143,6 +158,7 @@ namespace TrucoRPG.API.Controllers
             return Ok(mano);
         }
 
+        /// <summary>Responde el truco por el equipo del humano (quiero / no quiero), con opción de escalar.</summary>
         [HttpPost("responder-truco")]
         public ActionResult<ManoTruco3v3> ResponderTruco([FromBody] Truco3v3ResponderTrucoRequest req)
         {
@@ -153,6 +169,7 @@ namespace TrucoRPG.API.Controllers
             return Ok(mano);
         }
 
+        /// <summary>El humano se va al mazo y abandona la mano para su equipo.</summary>
         [HttpPost("irse-al-mazo")]
         public ActionResult<ManoTruco3v3> IrseAlMazo([FromBody] Truco3v3Request req)
         {
@@ -163,6 +180,7 @@ namespace TrucoRPG.API.Controllers
             return Ok(mano);
         }
 
+        /// <summary>Reparte una nueva mano dentro de la partida en curso (arrastra el puntaje). Falla si la mano actual no terminó o la partida ya terminó.</summary>
         [HttpPost("nueva-mano")]
         public ActionResult<ManoTruco3v3> NuevaMano([FromBody] Truco3v3Request req)
         {
@@ -180,6 +198,7 @@ namespace TrucoRPG.API.Controllers
         // ─────────────────────────────────────────────────────────
         //  Compañero pregunta: ¿canto los tantos? / ¿voy o pongo?
         // ─────────────────────────────────────────────────────────
+        /// <summary>Responde la consulta de un compañero bot sobre cantar el envido (acepta o no).</summary>
         [HttpPost("responder-consulta-envido")]
         public ActionResult<ManoTruco3v3> ResponderConsultaEnvido([FromBody] Truco3v3ConsultaEnvidoRequest req)
         {
@@ -189,6 +208,7 @@ namespace TrucoRPG.API.Controllers
             return Ok(mano);
         }
 
+        /// <summary>Responde la consulta de un compañero bot sobre el truco ("voy" carta baja / "pongo" carta alta).</summary>
         [HttpPost("responder-consulta-truco")]
         public ActionResult<ManoTruco3v3> ResponderConsultaTruco([FromBody] Truco3v3ConsultaTrucoRequest req)
         {
@@ -201,6 +221,7 @@ namespace TrucoRPG.API.Controllers
         // ─────────────────────────────────────────────────────────
         //  Órdenes del humano a sus compañeros bot
         // ─────────────────────────────────────────────────────────
+        /// <summary>El humano ordena a un compañero bot que juegue su carta más alta.</summary>
         [HttpPost("ordenar-mayor")]
         public ActionResult<ManoTruco3v3> OrdenarMayor([FromBody] Truco3v3OrdenMayorRequest req)
         {
@@ -214,6 +235,7 @@ namespace TrucoRPG.API.Controllers
         // ─────────────────────────────────────────────────────────
         //  Avanzar UNA sola acción de máquina (delay/diálogos en el front)
         // ─────────────────────────────────────────────────────────
+        /// <summary>Avanza UNA sola acción de máquina y devuelve la mano más el evento (para delays/diálogos en el front).</summary>
         [HttpPost("avanzar-maquina")]
         public ActionResult<Truco3v3PasoResponse> AvanzarMaquina([FromBody] Truco3v3Request req)
         {
