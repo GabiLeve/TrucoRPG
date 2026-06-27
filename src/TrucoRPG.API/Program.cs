@@ -175,25 +175,20 @@ using (var scope = app.Services.CreateScope())
     }
     catch (Exception ex)
     {
-        logger.LogError(
+        logger.LogCritical(
             ex,
-            "Error al aplicar migraciones. Verificá la conexión con la base de datos en el entorno correspondiente.");
-
-        if (app.Environment.IsDevelopment())
-        {
-            throw;
-        }
+            "Error al aplicar migraciones. Verificá la configuración de la base de datos.");
+        throw;
     }
 }
 
+// ── CONFIGURACIÓN POR ENTORNO ──
 if (app.Environment.IsDevelopment())
 {
- 
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 else
-
 {
     app.UseHsts();
     app.UseHttpsRedirection();

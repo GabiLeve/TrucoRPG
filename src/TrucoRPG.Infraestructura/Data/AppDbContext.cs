@@ -38,6 +38,29 @@ namespace TrucoRPG.Infraestructura.Data
                    .WithMany()
                    .HasForeignKey(u => u.HeroeSeleccionadoId)
                    .OnDelete(DeleteBehavior.SetNull);
+
+            // ── EL TRUCO PARA LINUX: Forzar todo a minúsculas automáticamente ──
+            foreach (var entity in builder.Model.GetEntityTypes())
+            {
+                // 1. Modificar nombre de la tabla
+                var tableName = entity.GetTableName();
+                if (!string.IsNullOrEmpty(tableName))
+                {
+                    entity.SetTableName(tableName.ToLowerInvariant());
+                }
+
+                // 2. Modificar nombre de las columnas de forma directa
+                foreach (var property in entity.GetProperties())
+                {
+                    // Se usa la sobrecarga por defecto (para el mapeo relacional básico)
+                    var columnName = property.GetColumnName();
+                    if (!string.IsNullOrEmpty(columnName))
+                    {
+                        property.SetColumnName(columnName.ToLowerInvariant());
+                    }
+                }
+            }
         }
+
     }
 }
