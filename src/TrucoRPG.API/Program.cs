@@ -153,37 +153,42 @@ var app = builder.Build();
 
 app.UseMiddleware<ExceptionMiddleware>();
 
-if (app.Environment.IsDevelopment())
+using (var scope = app.Services.CreateScope())
 {
-    using (var scope = app.Services.CreateScope())
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+
+    try
     {
-        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-
-        try
+        var pendientes = await db.Database.GetPendingMigrationsAsync();
+        var listaPendientes = pendientes.ToList();
+        if (listaPendientes.Count > 0)
         {
-            var pendientes = await db.Database.GetPendingMigrationsAsync();
-            var listaPendientes = pendientes.ToList();
-            if (listaPendientes.Count > 0)
-            {
-                logger.LogInformation(
-                    "Aplicando {Count} migración(es) pendiente(s): {Migrations}",
-                    listaPendientes.Count,
-                    string.Join(", ", listaPendientes));
-            }
-
-            await db.Database.MigrateAsync();
-            logger.LogInformation("Base de datos actualizada correctamente.");
+            logger.LogInformation(
+                "Aplicando {Count} migración(es) pendiente(s): {Migrations}",
+                listaPendientes.Count,
+                string.Join(", ", listaPendientes));
         }
-        catch (Exception ex)
+
+        await db.Database.MigrateAsync();
+        logger.LogInformation("Base de datos actualizada correctamente.");
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(
+            ex,
+            "Error al aplicar migraciones. Verificá la conexión con la base de datos en el entorno correspondiente.");
+
+        if (app.Environment.IsDevelopment())
         {
-            logger.LogCritical(
-                ex,
-                "Error al aplicar migraciones. Verificá que MySQL esté encendido y la connection string en appsettings.Development.json o appsettings.Local.json.");
             throw;
         }
     }
+}
 
+if (app.Environment.IsDevelopment())
+{
+ 
     app.UseSwagger();
     app.UseSwaggerUI();
 }
