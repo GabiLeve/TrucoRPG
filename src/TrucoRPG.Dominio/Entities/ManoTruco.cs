@@ -1,4 +1,4 @@
-﻿using TrucoRPG.Dominio.Habilidades;
+using TrucoRPG.Dominio.Habilidades;
 
 namespace TrucoRPG.Dominio.Entities
 {
@@ -9,7 +9,19 @@ namespace TrucoRPG.Dominio.Entities
         public ConfiguracionPartida Configuracion { get; set; } = new();
         public EstadoHabilidadesPartida EstadoHabilidades { get; set; } = new();
         public VistaHabilidadesJugador? VistaHabilidadesHumano { get; set; }
+        public VistaHabilidadesRival? VistaHabilidadesRival { get; set; }
         public string? UltimoMensajeHabilidad { get; set; }
+        public string? UltimoMensajeHabilidadRival { get; set; }
+        public bool SalpicaduraActiva { get; set; }
+        public bool SalpicaduraBloqueando { get; set; }
+        public bool TravesuraActiva { get; set; }
+        public bool TravesuraBloqueando { get; set; }
+        public bool RasgunoActivo { get; set; }
+        public bool RasgunoBloqueando { get; set; }
+        public bool LunaLlenaUsadaEnMano { get; set; }
+        public bool AullidoBloqueando { get; set; }
+        public bool AullidoUsadoEnMano { get; set; }
+        public List<Carta> CartasOcultasTravesura { get; set; } = new();
 
         public List<Carta> CartasRestantesMazo { get; set; } = new();
 
@@ -23,6 +35,7 @@ namespace TrucoRPG.Dominio.Entities
         public int NumeroDeMano { get; set; } = 1;
         public string? GanadorMano { get; set; }
         public Carta? CartaMaquinaEnMesa { get; set; }
+        public Carta? CartaHumanoEnMesa { get; set; }
 
         public bool EnvidoCantado { get; set; } = false;
         public bool EnvidoResuelto { get; set; } = false;
@@ -55,5 +68,23 @@ namespace TrucoRPG.Dominio.Entities
         public int PuntosMaquina { get; set; } = 0;
         public bool PartidaTerminada { get; set; } = false;
         public string? GanadorPartida { get; set; }
+
+        // ── Son Buenas (1v1) ──────────────────────────────────────────
+        /// <summary>
+        /// Indica que el humano dijo "son buenas" durante la declaración de tantos.
+        /// El oponente gana el envido sin revelar su tanto.
+        /// </summary>
+        public bool SonBuenasDeclarado { get; set; } = false;
+
+        /// <summary>
+        /// Tanto declarado por el humano durante la fase de envido (si aplica).
+        /// </summary>
+        public int? TantoDeclaradoHumano { get; set; }
+
+        /// <summary>
+        /// Fase del envido: null, "pendiente_respuesta", "declarando_tanto", "resuelto".
+        /// Usado para soportar la mecánica de "son buenas".
+        /// </summary>
+        public string? FaseEnvido { get; set; }
     }
 }

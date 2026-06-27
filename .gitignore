@@ -35,3 +35,4 @@ frontend/obj/
 
 src/TrucoRPG.API/appsettings.Local.json
 src/TrucoRPG.API/.Development.json
+src/TrucoRPG.API/appsettings.Development.json

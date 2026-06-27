@@ -47,7 +47,7 @@ namespace TrucoRPG.Dominio.Habilidades.Heroes
             estado.ActivaDisponible = false;
 
             var msg =
-                $"Mentiroso: revelaste {revelada.Numero} de {revelada.Palo} (Truco {revelada.ValorTruco}) del rival.";
+                $"Mentiroso: revelaste {revelada.Numero} de {revelada.Palo} del rival.";
             contexto.Mano.UltimoMensajeHabilidad = msg;
 
             return ResultadoActivarHabilidad.Ok(msg);

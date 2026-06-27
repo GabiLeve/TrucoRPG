@@ -96,6 +96,12 @@ namespace TrucoRPG.Dominio.Servicios
                 if (rival != null)
                     AplicarPuntos(mano, rival, modificador.BonusAlRival);
             }
+
+            if (mano.GanadorMano != null
+                && origen is OrigenPuntos.TrucoMano or OrigenPuntos.TrucoRechazo or OrigenPuntos.AullidoLobizon)
+            {
+                PomberitoPasivaServicio.AplicarSiManoSilenciosa(mano);
+            }
         }
 
         private static void AplicarPuntos(ManoTruco mano, string ganador, int puntos)

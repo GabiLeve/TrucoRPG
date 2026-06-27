@@ -36,8 +36,15 @@ namespace TrucoRPG.Dominio.UseCases
             mano.NivelMentiraTrucoMaquina  = nivelMentiraTruco;
 
             HabilidadesOrquestador.Disparar(mano, EventoPartida.ManoIniciada);
+            HabilidadesRivalOrquestador.Disparar(mano, EventoPartida.ManoIniciada);
 
-            if (mano.ManoIniciadaPor == IdJugador.Maquina)
+            if (mano.GanadorMano == null)
+                HabilidadesTurnoMaquinaServicio.Notificar(mano);
+
+            if (mano.ManoIniciadaPor == IdJugador.Maquina && !mano.SalpicaduraBloqueando
+                && !mano.TravesuraBloqueando && !mano.RasgunoBloqueando
+                && !mano.AullidoBloqueando && mano.GanadorMano == null
+                && !MaquinaServicio.EsModoHistoriaPasoAPaso(mano))
                 MaquinaServicio.ProcesarIniciativa(mano);
 
             PartidaMemoriaServicio.Guardar(mano);
@@ -50,9 +57,17 @@ namespace TrucoRPG.Dominio.UseCases
             var mano = PartidaServicio.CrearManoNueva(configuracion: config);
 
             HabilidadesOrquestador.Disparar(mano, EventoPartida.PartidaIniciada);
+            HabilidadesRivalOrquestador.Disparar(mano, EventoPartida.PartidaIniciada);
             HabilidadesOrquestador.Disparar(mano, EventoPartida.ManoIniciada);
+            HabilidadesRivalOrquestador.Disparar(mano, EventoPartida.ManoIniciada);
 
-            if (mano.ManoIniciadaPor == IdJugador.Maquina)
+            if (mano.GanadorMano == null)
+                HabilidadesTurnoMaquinaServicio.Notificar(mano);
+
+            if (mano.ManoIniciadaPor == IdJugador.Maquina && !mano.SalpicaduraBloqueando
+                && !mano.TravesuraBloqueando && !mano.RasgunoBloqueando
+                && !mano.AullidoBloqueando && mano.GanadorMano == null
+                && !MaquinaServicio.EsModoHistoriaPasoAPaso(mano))
                 MaquinaServicio.ProcesarIniciativa(mano);
 
             PartidaMemoriaServicio.Guardar(mano);
@@ -63,7 +78,9 @@ namespace TrucoRPG.Dominio.UseCases
             new()
             {
                 Modo = origen.Modo,
-                HeroeDelHumano = origen.HeroeDelHumano
+                HeroeDelHumano = origen.HeroeDelHumano,
+                RivalDeLaMaquina = origen.RivalDeLaMaquina,
+                RivalNivel = origen.RivalNivel
             };
     }
 }

@@ -7,6 +7,7 @@ namespace TrucoRPG.Dominio.Servicios
     {
         public static int CalcularTanto(List<Carta> cartas)
         {
+            if (!cartas.Any()) return 0;
             var gruposPorPalo = cartas.GroupBy(c => c.Palo).ToList();
 
             int mejorTanto = 0;
@@ -40,11 +41,41 @@ namespace TrucoRPG.Dominio.Servicios
             return numero;
         }
 
+        /// <summary>
+        /// Tanto calculado con las 3 cartas originales del jugador (las que tiene en mano
+        /// más las que ya jugó). El envido SIEMPRE se cuenta con las cartas repartidas,
+        /// aunque alguna ya se haya tirado en la primera vuelta.
+        /// </summary>
+        public static int CalcularTantoOriginal(Jugador jugador) =>
+            CalcularTanto(jugador.Mano.Concat(jugador.Jugadas).ToList());
+
+        /// <summary>
+        /// Puntos de la Falta Envido: lo que le falta al equipo/jugador que VA GANANDO
+        /// la partida para llegar a 30 (regla clásica de la falta).
+        /// </summary>
+        public static int CalcularPuntosFalta(int puntosDelQueVaGanando) =>
+            Math.Max(30 - puntosDelQueVaGanando, 1);
+
+        /// <summary>
+        /// Cuánto SUMA cada canto a la cadena del envido cuando se acepta.
+        /// (Envido +2, Envido Envido +2, Real Envido +3; la Falta se calcula aparte.)
+        /// </summary>
+        public static int IncrementoPuntosTipo(string? tipo) =>
+            NormalizarTipo(tipo) switch
+            {
+                "EnvidoEnvido" => 2,
+                "RealEnvido"   => 3,
+                "FaltaEnvido"  => 0,
+                _              => 2
+            };
+
         // ── Resolución completa de envido (extraída del Controller) ───────────────
         public static void ResolverEnvido(ManoTruco mano, int puntosEnJuego, string prefijoEstado)
         {
-            mano.TantoHumano  = CalcularTanto(mano.Humano.Mano);
-            mano.TantoMaquina = CalcularTanto(mano.Maquina.Mano);
+            // El tanto se calcula con las cartas ORIGINALES (mano + jugadas):
+            // si alguien ya tiró una carta en la primera vuelta, igual cuenta para el envido.
+            mano.TantoHumano  = CalcularTantoOriginal(mano.Humano);
+            mano.TantoMaquina = CalcularTantoOriginal(mano.Maquina);
 
             mano.TantoCantadoMaquina = MentiraEnvidoServicio.ObtenerTantoCantado(
                 mano.TantoMaquina.Value,
@@ -64,9 +95,10 @@ namespace TrucoRPG.Dominio.Servicios
 
             if (mano.TipoEnvidoCantado == "FaltaEnvido")
             {
-                int puntosActualesGanador = mano.GanadorEnvido == "Humano"
-                    ? mano.PuntosHumano : mano.PuntosMaquina;
-                puntosEnJuego = Math.Max(30 - puntosActualesGanador, 1);
+                // La falta vale lo que le falta al que VA GANANDO la partida (no al que
+                // ganó el envido): si el que pierde la quiere y la gana, no salta a 30.
+                int puntosLider = Math.Max(mano.PuntosHumano, mano.PuntosMaquina);
+                puntosEnJuego = CalcularPuntosFalta(puntosLider);
             }
 
             mano.PuntosEnvido   = puntosEnJuego;

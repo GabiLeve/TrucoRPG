@@ -11,6 +11,8 @@ namespace TrucoRPG.Dominio.UseCases
             var mano = PartidaMemoriaServicio.Obtener(manoId)
                 ?? throw new KeyNotFoundException("No se encontró la mano.");
 
+            SalpicaduraBloqueoServicio.ValidarNoBloqueado(mano);
+
             if (mano.PartidaTerminada)
                 throw new InvalidOperationException("La partida ya terminó. El primero en llegar a 30 gana.");
             if (mano.GanadorMano != null)
@@ -52,7 +54,7 @@ namespace TrucoRPG.Dominio.UseCases
                 mano.EstadoTruco = "La máquina quiso el truco. Esta mano vale 2 puntos.";
                 HabilidadesTrucoServicio.NotificarTrucoAceptado(mano, IdJugador.Humano);
                 if (!mano.TrucoPendienteRespuestaHumano)
-                    MaquinaServicio.AvanzarTurno(mano);
+                    MaquinaServicio.AvanzarTurnoSiNoEsHistoria(mano);
             }
 
             PartidaMemoriaServicio.Actualizar(mano);

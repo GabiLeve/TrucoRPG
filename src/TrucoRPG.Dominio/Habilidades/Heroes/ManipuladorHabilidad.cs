@@ -81,7 +81,7 @@ namespace TrucoRPG.Dominio.Habilidades.Heroes
 
             var msg =
                 $"Manipulador: cambiaste {cartaDescartada.Numero} de {cartaDescartada.Palo} " +
-                $"por {cartaNueva.Numero} de {cartaNueva.Palo} (Truco {cartaNueva.ValorTruco}).";
+                $"por {cartaNueva.Numero} de {cartaNueva.Palo}.";
             mano.UltimoMensajeHabilidad = msg;
 
             return ResultadoActivarHabilidad.Ok(msg);
