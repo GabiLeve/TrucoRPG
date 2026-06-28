@@ -17,7 +17,7 @@ namespace TrucoRPG.Dominio.UseCases
             _repositorio = repositorio;
         }
 
-        public async Task<bool> VerificarPersonaje(string userId)
+        public async Task<bool> Ejecutar(string userId)
         {
             return await _repositorio.PersonajeExistente(userId);
         }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using TrucoRPG.Dominio.DTOs;
 using TrucoRPG.Dominio.Entities;
 using TrucoRPG.Dominio.Repositorios;
 
@@ -122,6 +123,25 @@ namespace TrucoRPG.Infraestructura.Repositorios
                 ?? throw new InvalidOperationException("Usuario no encontrado.");
 
             return appUser.HeroeSeleccionadoId != null && !string.IsNullOrEmpty(appUser.SpriteKey);
+        }
+
+        public async Task<Personaje> ObtenerPersonajeDelUsuario(string userId)
+        {
+            var appUser = await _userManager.FindByIdAsync(userId)
+                ?? throw new InvalidOperationException("Usuario no encontrado.");
+
+            if (appUser.HeroeSeleccionadoId == null || string.IsNullOrEmpty(appUser.SpriteKey))
+            {
+                throw new InvalidOperationException("El usuario no tiene un personaje creado.");
+            }
+
+            var personaje = new Personaje
+            {
+                SpriteKey = appUser.SpriteKey,
+                HeroeId = appUser.HeroeSeleccionadoId.Value
+            };
+
+            return personaje;
         }
     }
 }
