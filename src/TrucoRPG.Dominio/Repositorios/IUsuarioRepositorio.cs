@@ -1,3 +1,4 @@
+﻿using TrucoRPG.Dominio.DTOs;
 using TrucoRPG.Dominio.Entities;
 
 namespace TrucoRPG.Dominio.Repositorios
@@ -11,5 +12,8 @@ namespace TrucoRPG.Dominio.Repositorios
         Task           CambiarPasswordAsync(string userId, string passwordActual, string passwordNueva);
         Task<string>   GenerarTokenResetPasswordAsync(string email);
         Task           ResetPasswordConTokenAsync(string email, string token, string nuevaPassword);
+        Task CrearPersonaje(string userId, string spriteKey, Guid habilidad);
+        Task<bool> PersonajeExistente(string userId);
+        Task<Personaje> ObtenerPersonajeDelUsuario(string userId);
     }
 }

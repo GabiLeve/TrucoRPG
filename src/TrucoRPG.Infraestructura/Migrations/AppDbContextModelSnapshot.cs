@@ -182,6 +182,9 @@ namespace TrucoRPG.Infraestructura.Migrations
                     b.Property<DateTimeOffset?>("LockoutEnd")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<int>("Monedas")
+                        .HasColumnType("int");
+
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
                         .HasColumnType("varchar(256)");
@@ -200,6 +203,9 @@ namespace TrucoRPG.Infraestructura.Migrations
                         .HasColumnType("tinyint(1)");
 
                     b.Property<string>("SecurityStamp")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("SpriteKey")
                         .HasColumnType("longtext");
 
                     b.Property<bool>("TwoFactorEnabled")
