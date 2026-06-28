@@ -12,8 +12,8 @@ using TrucoRPG.Infraestructura.Data;
 namespace TrucoRPG.Infraestructura.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260627185228_ForzarMinusculasEnTablas")]
-    partial class ForzarMinusculasEnTablas
+    [Migration("20260628005940_ResetMinusculas")]
+    partial class ResetMinusculas
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
