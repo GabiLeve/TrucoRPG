@@ -6,6 +6,9 @@ namespace TrucoRPG.Dominio.Habilidades.Heroes
     {
         public override ClaseHeroe Tipo => ClaseHeroe.Manipulador;
 
+        /// <summary>Manos de espera tras usar la activa (recién entonces empieza a contar).</summary>
+        private const int CooldownManos = 3;
+
         public override void OnEvento(ContextoPartida contexto, EventoPartida evento, object? datos = null)
         {
             var estado = contexto.EstadoDe(IdJugador.Humano, ClaseHeroe.Manipulador);
@@ -13,7 +16,7 @@ namespace TrucoRPG.Dominio.Habilidades.Heroes
             if (evento == EventoPartida.ManoIniciada)
             {
                 ReglasHabilidadActiva.ReiniciarUsoEnMano(estado);
-                estado.ActivaDisponible = contexto.Mano.NumeroDeMano % 3 == 1;
+                ReglasHabilidadActiva.ActualizarDisponibilidadPorCooldown(estado, CooldownManos);
                 return;
             }
 
@@ -33,7 +36,7 @@ namespace TrucoRPG.Dominio.Habilidades.Heroes
                 $"Pasiva: 10% de mejorar cada carta al repartir. Fuerza de tu mano: {suma}. " +
                 (estado.ActivaDisponible
                     ? "Activa disponible: podés cambiar 1 carta."
-                    : $"Activa en la mano {((contexto.Mano.NumeroDeMano / 3) * 3) + 1}.");
+                    : $"Activa en {Math.Max(0, CooldownManos - estado.ManosDesdeUltimaActiva)} mano(s).");
         }
 
         public override ResultadoActivarHabilidad? IntentarActivar(
@@ -76,8 +79,7 @@ namespace TrucoRPG.Dominio.Habilidades.Heroes
             mano.CartasRestantesMazo.Add(cartaDescartada);
             humano.Mano.Add(cartaNueva);
 
-            estado.ActivaUsadaEnEstaMano = true;
-            estado.ActivaDisponible = false;
+            ReglasHabilidadActiva.RegistrarUsoActiva(estado);
 
             var msg =
                 $"Manipulador: cambiaste {cartaDescartada.Numero} de {cartaDescartada.Palo} " +

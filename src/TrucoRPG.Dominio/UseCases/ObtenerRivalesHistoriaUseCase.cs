@@ -1,4 +1,5 @@
 using TrucoRPG.Dominio.DTOs;
+using TrucoRPG.Dominio.Mapeos;
 using TrucoRPG.Dominio.Repositorios;
 
 namespace TrucoRPG.Dominio.UseCases
@@ -14,32 +15,13 @@ namespace TrucoRPG.Dominio.UseCases
             var rivales = await _rivales.ObtenerTodosAsync();
             return rivales
                 .OrderBy(r => r.Nivel)
-                .Select(r => new RivalDto(
-                    r.Id,
-                    r.Nivel,
-                    r.Nombre,
-                    r.Descripcion,
-                    r.NombreHabilidad,
-                    r.DescripcionHabilidad,
-                    r.TipoRival,
-                    r.TipoHabilidad))
-                .ToList();
+                .ToDto();
         }
 
         public async Task<RivalDto?> EjecutarPorNivelAsync(int nivel)
         {
             var rival = await _rivales.ObtenerPorNivelAsync(nivel);
-            if (rival is null) return null;
-
-            return new RivalDto(
-                rival.Id,
-                rival.Nivel,
-                rival.Nombre,
-                rival.Descripcion,
-                rival.NombreHabilidad,
-                rival.DescripcionHabilidad,
-                rival.TipoRival,
-                rival.TipoHabilidad);
+            return rival?.ToDto();
         }
     }
 }

@@ -10,6 +10,9 @@ namespace TrucoRPG.Dominio.Habilidades
         public int ManosDesdeUltimaActiva { get; set; }
         public bool ActivaDisponible { get; set; }
         public bool ActivaUsadaEnEstaMano { get; set; }
+        /// <summary>True una vez que el jugador usó la activa al menos una vez en la partida.
+        /// Hasta entonces la habilidad está disponible cada mano; el cooldown empieza recién al usarla.</summary>
+        public bool ActivaUsadaAlgunaVez { get; set; }
 
         public bool TimberoApuestaActiva { get; set; }
         public bool FanfarronBonusPendiente { get; set; }
