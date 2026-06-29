@@ -213,7 +213,8 @@ namespace TrucoRPG.Infraestructura.Migrations
                         .HasColumnName("lockoutend");
 
                     b.Property<int>("Monedas")
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnName("monedas");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
@@ -242,7 +243,8 @@ namespace TrucoRPG.Infraestructura.Migrations
                         .HasColumnName("securitystamp");
 
                     b.Property<string>("SpriteKey")
-                        .HasColumnType("longtext");
+                        .HasColumnType("longtext")
+                        .HasColumnName("spritekey");
 
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("tinyint(1)")
