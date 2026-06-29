@@ -11,10 +11,11 @@ namespace TrucoRPG.Dominio.UseCases
             int numeroDeMano = 1, puntosHumano = 0, puntosMaquina = 0;
             int nivelMentiraEnvido = 0, nivelMentiraTruco = 0;
             ConfiguracionPartida configuracion = new();
+            ManoTruco? anterior = null;
 
             if (manoAnteriorId.HasValue)
             {
-                var anterior = PartidaMemoriaServicio.Obtener(manoAnteriorId.Value)
+                anterior = PartidaMemoriaServicio.Obtener(manoAnteriorId.Value)
                     ?? throw new KeyNotFoundException("No se encontró la mano anterior.");
 
                 if (anterior.PartidaTerminada)
@@ -34,6 +35,11 @@ namespace TrucoRPG.Dominio.UseCases
 
             mano.NivelMentiraEnvidoMaquina = nivelMentiraEnvido;
             mano.NivelMentiraTrucoMaquina  = nivelMentiraTruco;
+
+            // El cooldown de la activa (manos desde el último uso) vive en EstadoHabilidades,
+            // que se recrea con cada mano. Lo trasladamos del anterior para que el conteo
+            // persista entre manos; si no, la habilidad volvería a estar disponible cada mano.
+            TrasladarCooldownHabilidades(anterior, mano);
 
             HabilidadesOrquestador.Disparar(mano, EventoPartida.ManoIniciada);
             HabilidadesRivalOrquestador.Disparar(mano, EventoPartida.ManoIniciada);
@@ -72,6 +78,23 @@ namespace TrucoRPG.Dominio.UseCases
 
             PartidaMemoriaServicio.Guardar(mano);
             return mano;
+        }
+
+        /// <summary>
+        /// Copia el estado de cooldown de la activa (manos desde el último uso y si ya se usó
+        /// alguna vez) desde la mano anterior a la nueva, por cada jugador. Sin esto el contador
+        /// se reiniciaría en cada mano y la habilidad quedaría siempre disponible.
+        /// </summary>
+        private static void TrasladarCooldownHabilidades(ManoTruco? anterior, ManoTruco nueva)
+        {
+            if (anterior == null) return;
+
+            foreach (var (id, estadoAnterior) in anterior.EstadoHabilidades.PorJugador)
+            {
+                var estadoNuevo = nueva.EstadoHabilidades.ObtenerOCrear(id, estadoAnterior.ClaseHeroe);
+                estadoNuevo.ManosDesdeUltimaActiva = estadoAnterior.ManosDesdeUltimaActiva;
+                estadoNuevo.ActivaUsadaAlgunaVez   = estadoAnterior.ActivaUsadaAlgunaVez;
+            }
         }
 
         private static ConfiguracionPartida ClonarConfiguracion(ConfiguracionPartida origen) =>
