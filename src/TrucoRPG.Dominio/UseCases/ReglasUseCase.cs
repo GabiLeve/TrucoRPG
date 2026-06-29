@@ -5,7 +5,7 @@ namespace TrucoRPG.Logica.UseCases
 {
     public class ReglasUseCase
     {
-        public async Task<IEnumerable<Carta>> GetCartas()
+        public async Task<IEnumerable<Carta>> ObtenerCartas()
         {
             var mazo = MazoServicio.CrearMazo();
 
@@ -17,7 +17,7 @@ namespace TrucoRPG.Logica.UseCases
             return await Task.FromResult(mazo.OrderByDescending(c => c.ValorTruco));
         }
 
-        public async Task<IEnumerable<CategoriaRegla>> GetReglasGenerales()
+        public async Task<IEnumerable<CategoriaRegla>> ObtenerReglasGenerales()
         {
             var reglas = ReglasServicio.ObtenerReglasGenerales();
 
