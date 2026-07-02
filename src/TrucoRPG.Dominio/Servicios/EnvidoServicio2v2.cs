@@ -44,7 +44,9 @@ namespace TrucoRPG.Dominio.Servicios
             if (mano.Vueltas.Count > 0) return false;
             if ((mano.ObtenerJugador(jugadorId)?.Jugadas.Count ?? 0) > 0) return false;
             if (mano.TrucoCantado &&
-                !(mano.NivelTruco == 1 && mano.EquipoCantorTruco != mano.ObtenerEquipoDeJugador(jugadorId)))
+                !(mano.NivelTruco == 1
+                  && !mano.TrucoResuelto
+                  && mano.EquipoCantorTruco != mano.ObtenerEquipoDeJugador(jugadorId)))
                 return false;
             return true;
         }

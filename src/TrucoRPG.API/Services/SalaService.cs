@@ -140,6 +140,11 @@ public class SalaService
         if (_listos.TryGetValue(sala, out var readySet))
             readySet.TryRemove(connectionId, out _);
 
+        // Liberar el cupo de equipo del jugador que se fue (si no, el slot
+        // queda "ocupado" y bloquea a los próximos que quieran ese equipo).
+        if (_equiposJugadores.TryGetValue(sala, out var equipos))
+            equipos.TryRemove(connectionId, out _);
+
         return new ResultadoAbandonar(sala, salaVacia, restantes);
     }
 
@@ -305,9 +310,36 @@ public class SalaService
 
     // ── Inicializar nueva mano (lógica extraída del Hub) ──────────────────────
 
-    public TrucoMultiState2v2 IniciarNuevaMano2v2(string sala, bool esPrimeraPartida, ManoTruco2v2? estadoAnterior = null)
+    /// <summary>
+    /// Ordena las conexiones respetando los equipos elegidos en el lobby:
+    /// "sanMartin" ocupa las posiciones IMPARES (1,3,5 → EquipoA) y "belgrano"
+    /// las PARES (2,4,6 → EquipoB), porque PartidaServicio2v2/3v3 arma EquipoA
+    /// con las posiciones impares y EquipoB con las pares. Si los equipos no
+    /// están completos (p. ej. partida iniciada sin lobby), cae al orden de llegada.
+    /// </summary>
+    private List<string> OrdenarJugadoresPorEquipos(string sala, int porEquipo)
     {
         var jugadores = GetJugadores(sala);
+        if (!_equiposJugadores.TryGetValue(sala, out var equipos))
+            return jugadores;
+
+        var equipoA = jugadores.Where(j => equipos.TryGetValue(j, out var e) && e == "sanMartin").ToList();
+        var equipoB = jugadores.Where(j => equipos.TryGetValue(j, out var e) && e == "belgrano").ToList();
+        if (equipoA.Count != porEquipo || equipoB.Count != porEquipo)
+            return jugadores; // equipos incompletos → orden de llegada
+
+        var ordenados = new List<string>(porEquipo * 2);
+        for (int i = 0; i < porEquipo; i++)
+        {
+            ordenados.Add(equipoA[i]); // posición impar → EquipoA
+            ordenados.Add(equipoB[i]); // posición par   → EquipoB
+        }
+        return ordenados;
+    }
+
+    public TrucoMultiState2v2 IniciarNuevaMano2v2(string sala, bool esPrimeraPartida, ManoTruco2v2? estadoAnterior = null)
+    {
+        var jugadores = OrdenarJugadoresPorEquipos(sala, porEquipo: 2);
         int numMano = esPrimeraPartida ? 1 : (estadoAnterior?.NumeroDeMano ?? 0) + 1;
         int ptsA    = esPrimeraPartida ? 0 : estadoAnterior?.PuntosEquipoA ?? 0;
         int ptsB    = esPrimeraPartida ? 0 : estadoAnterior?.PuntosEquipoB ?? 0;
@@ -338,7 +370,7 @@ public class SalaService
 
     public TrucoMultiState3v3 IniciarNuevaMano3v3(string sala, bool esPrimeraPartida, ManoTruco3v3? estadoAnterior = null)
     {
-        var jugadores = GetJugadores(sala);
+        var jugadores = OrdenarJugadoresPorEquipos(sala, porEquipo: 3);
         int numMano  = esPrimeraPartida ? 1 : (estadoAnterior?.NumeroDeMano ?? 0) + 1;
         int ptsA     = esPrimeraPartida ? 0 : estadoAnterior?.PuntosEquipoA ?? 0;
         int ptsB     = esPrimeraPartida ? 0 : estadoAnterior?.PuntosEquipoB ?? 0;
