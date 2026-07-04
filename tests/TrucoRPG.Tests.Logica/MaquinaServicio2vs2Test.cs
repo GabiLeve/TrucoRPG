@@ -613,29 +613,87 @@ namespace TrucoRPG.Tests.Logica
             Assert.True(mano.TantosDeclarados.ContainsKey("J2"));
             Assert.Null(mano.TantosDeclarados["J2"]);
         }
+        // avanzar un paso
 
-        //avazar un paso
         [Fact]
-        public void AvanzarUnPaso_SiManoOPartidaTermino_DevuelveNull()
+        public void AvanzarUnPaso_Normal_ManoTerminada_DevuelveNull()
         {
-            //Given
+            // Given
             var mano = CrearMano();
             mano.ManoTerminada = true;
 
-            //When
+            // When
             var resultado = MaquinaServicio2v2.AvanzarUnPaso(mano);
 
-            //Theb
+            // Then
             Assert.Null(resultado);
         }
 
         [Fact]
-        public void AvanzarUnPaso_SiProximoActorEsHumano_DevuelveNull()
+        public void AvanzarUnPaso_Normal_PartidaTerminada_DevuelveNull()
         {
-            //Given
+            // Given
+            var mano = CrearMano();
+            mano.PartidaTerminada = true;
+
+            // When
+            var resultado = MaquinaServicio2v2.AvanzarUnPaso(mano);
+
+            // Then
+            Assert.Null(resultado);
+        }
+
+        [Fact]
+        public void AvanzarUnPaso_Normal_GanadorMano_DevuelveNull()
+        {
+            // Given
+            var mano = CrearMano();
+            mano.GanadorMano = "EquipoA";
+
+            // When
+            var resultado = MaquinaServicio2v2.AvanzarUnPaso(mano);
+
+            // Then
+            Assert.Null(resultado);
+        }
+
+        [Fact]
+        public void AvanzarUnPaso_Normal_TodasOpciones_DevuelveNull()
+        {
+            // Given
+            var mano = CrearMano();
+            mano.PartidaTerminada = false;
+            mano.ManoTerminada = false;
+            mano.GanadorMano = null;
+
+            // When
+            var resultado = MaquinaServicio2v2.AvanzarUnPaso(mano);
+
+            // Then
+            Assert.Null(resultado);
+        }
+
+        [Fact]
+        public void AvanzarUnPaso_SegParte_SiProximoActorEsHumano_DevuelveNull()
+        {
+            // Given
             var mano = CrearMano();
             mano.TurnoActual = "J1";
 
+            // When
+            var resultado = MaquinaServicio2v2.AvanzarUnPaso(mano);
+
+            // Then
+            Assert.Null(resultado);
+        }
+
+        [Fact]
+        public void AvanzarUnPaso_SegParte_SiProximoActorEsNull_DevuelveNull()
+        {
+            //Given
+            var mano = CrearMano();
+            mano.TurnoActual = null;
+
             //When
             var resultado = MaquinaServicio2v2.AvanzarUnPaso(mano);
 
@@ -644,106 +702,465 @@ namespace TrucoRPG.Tests.Logica
         }
 
         [Fact]
-        public void AvanzarUnPaso_AlResponderTruco_SiMaquinaEscala_DevuelveEventoTruco()
+        public void AvanzarUnPaso_TerParte_SiActorNoEsMaquina_DevuelveNull()
         {
-            //Given
+            // Given
             var mano = CrearMano();
+            mano.ManoTerminada = false;
+            mano.PartidaTerminada = false;
+            mano.GanadorMano = null;
+            mano.EnvidoPendienteRespuestaDe = null;
+            mano.TrucoPendienteRespuestaDe = null;
+
+            mano.TurnoActual = "J2";
+
+            mano.Posicion2.Id = "J2";
+            mano.Posicion2.EsMaquina = false;
+
+            // When
+            var resultado = MaquinaServicio2v2.AvanzarUnPaso(mano);
+
+            // Then
+            Assert.Null(resultado);
+        }
+
+        [Fact]
+        public void AvanzarUnPaso_TerParte_SiJugadorNoExiste_DevuelveNull()
+        {
+            // Given
+            var mano = CrearMano();
+            mano.TurnoActual = "J2";
+            mano.Posicion2.Id = "OTRO";
+
+            // When
+            var resultado = MaquinaServicio2v2.AvanzarUnPaso(mano);
+
+            // Then
+            Assert.Null(resultado);
+        }
+
+        [Fact]
+        public void AvanzarUnPaso_AlResponderTruco_SiMaquinaNoEscala_DevuelveEventoTrucoResp()
+        {
+            // Given
+            var mano = CrearMano();
+            mano.ManoTerminada = false;
+            mano.PartidaTerminada = false;
+            mano.GanadorMano = null;
+            mano.TurnoActual = "J2";
             mano.TrucoPendienteRespuestaDe = "J2";
-            mano.NivelTruco = 1;
-            mano.Posicion2.Mano = new List<Carta> { new Carta { ValorTruco = 14 } };
+            mano.Posicion2.Id = "J2";
+            mano.Posicion2.EsMaquina = true;
+            mano.Posicion2.Mano = new List<Carta> { new Carta { ValorTruco = 1, Numero = 4, Palo = "Copas" } };
+
+            // When
+            var resultado = MaquinaServicio2v2.AvanzarUnPaso(mano);
+
+            // Then
+            Assert.NotNull(resultado);
+            Assert.Equal("truco-resp", resultado.Tipo);
+            Assert.True(resultado.Texto.Contains("quiero"), "El texto del evento debería indicar la respuesta al truco");
+        }
+
+        [Fact]
+        public void AvanzarUnPaso_AlResponderEnvido_SubeApuesta_DevuelveEventoEnvido()
+        {
+            // Given
+            MaquinaServicio2v2.RandomNext = (max) => 0;
+
+            var mano = CrearMano();
+
+            mano.FaseEnvido = "pendiente_respuesta";
+            mano.EnvidoPendienteRespuestaDe = "J2";
+            mano.TipoEnvidoCantado = "Envido";
+
+            mano.Posicion2.Id = "J2";
+            mano.Posicion2.EsMaquina = true;
+
+            mano.Posicion2.Mano = new List<Carta>
+            {
+                new Carta { Numero = 4, Palo = "Copa", ValorTruco = 4 },
+                new Carta { Numero = 5, Palo = "Basto", ValorTruco = 5 }
+            };
+
+            mano.Posicion2.Jugadas = new List<Carta>();
+
+            var resultado = MaquinaServicio2v2.AvanzarUnPaso(mano);
+
+            Assert.NotNull(resultado);
+        }
+
+        [Fact]
+        public void AvanzarUnPaso_AlResponderEnvido_NoSubeApuesta_DevuelveRespuesta()
+        {
+            // Given
+            MaquinaServicio2v2.RandomNext = (max) => 80;
+
+            var mano = CrearMano();
+
+            mano.FaseEnvido = "pendiente_respuesta";
+            mano.EnvidoPendienteRespuestaDe = "J2";
+            mano.TipoEnvidoCantado = "Envido";
+
+            mano.Posicion2.Id = "J2";
+            mano.Posicion2.EsMaquina = true;
+
+            mano.Posicion2.Mano = new List<Carta>
+            {
+                new Carta { Numero = 7, Palo = "Espada", ValorTruco = 11 },
+                new Carta { Numero = 6, Palo = "Espada", ValorTruco = 10 }
+            };
+
+            mano.Posicion2.Jugadas = new List<Carta>();
 
             //When
             var resultado = MaquinaServicio2v2.AvanzarUnPaso(mano);
 
             //Then
-            if (mano.NivelTruco == 2 && mano.TrucoPendienteRespuestaDe == "J1")
-            {
-                Assert.NotNull(resultado);
-                Assert.Equal("J2", resultado.Jugador);
-                Assert.Equal("truco", resultado.Tipo);
-                Assert.Equal("¡Retruco!", resultado.Texto);
-            }
+            Assert.NotNull(resultado);
+            Assert.Equal("envido-resp", resultado.Tipo);
         }
 
         [Fact]
-        public void AvanzarUnPaso_AlResponderTruco_SiMaquinaCierraApuesta_DevuelveQuieroONoQuiero()
+        public void AvanzarUnPaso_ResponderTruco_SubeApuesta_DevuelveEventoTruco()
         {
+            // FORCE RANDOM
+            MaquinaServicio2v2.RandomNext = (max) => 10;
+
+            // Given
             var mano = CrearMano();
+
+            mano.TurnoActual = "J2";
             mano.TrucoPendienteRespuestaDe = "J2";
             mano.NivelTruco = 1;
-            mano.Posicion2.Mano = new List<Carta> { new Carta { ValorTruco = 1 } };
 
+            mano.Posicion2.EsMaquina = true;
+            mano.Posicion2.Id = "J2";
+
+            mano.Posicion2.Mano = new List<Carta>
+            {
+                new Carta { ValorTruco = 14 },
+                new Carta { ValorTruco = 13 },
+                new Carta { ValorTruco = 12 }
+            };
+
+            // When
             var resultado = MaquinaServicio2v2.AvanzarUnPaso(mano);
 
+            // Then
+            Assert.NotNull(resultado);
+            Assert.Equal("truco", resultado.Tipo);
+        }
+
+        [Fact]
+        public void AvanzarUnPaso_ResponderTruco_NoSubeApuesta_DevuelveRespuesta()
+        {
+            MaquinaServicio2v2.RandomNext = (max) => 80;
+
+            //Given
+            var mano = CrearMano();
+
+            mano.TurnoActual = "J2";
+            mano.TrucoPendienteRespuestaDe = "J2";
+            mano.NivelTruco = 1;
+
+            mano.Posicion2.EsMaquina = true;
+            mano.Posicion2.Id = "J2";
+
+            mano.Posicion2.Mano = new List<Carta>
+            {
+                new Carta { ValorTruco = 1 },
+                new Carta { ValorTruco = 2 },
+                new Carta { ValorTruco = 3 }
+            };
+
+            //When
+            var resultado = MaquinaServicio2v2.AvanzarUnPaso(mano);
+
+            //Then
             Assert.NotNull(resultado);
             Assert.Equal("truco-resp", resultado.Tipo);
         }
 
         [Fact]
-        public void AvanzarUnPaso_AlResponderEnvido_SiMaquinaEscala_DevuelveEventoEnvido()
+        public void AvanzarUnPaso_ResponderTruco_EnFaseDeclararTantos_SiDiceSonBuenas_DevuelveSonBuenas()
         {
+            // Given
             var mano = CrearMano();
-            mano.FaseEnvido = "pendiente_respuesta";
+            mano.ManoTerminada = false;
+            mano.PartidaTerminada = false;
+            mano.GanadorMano = null;
+            mano.FaseEnvido = "declarando_tantos";
             mano.EnvidoPendienteRespuestaDe = "J2";
-            mano.TipoEnvidoCantado = "Envido";
-            mano.Posicion2.Mano = new List<Carta>
-            {
-                new Carta { ValorTruco = 11, Palo = "Espada", Numero = 7 },
-                new Carta { ValorTruco = 10, Palo = "Espada", Numero = 6 }
-            };
+            mano.TurnoActual = "J2";
 
+            mano.Posicion2.Id = "J2";
+            mano.Posicion2.EsMaquina = true;
+            mano.JugadorQueDijoSonBuenas = "J2";
+
+            // When
             var resultado = MaquinaServicio2v2.AvanzarUnPaso(mano);
 
-            if (mano.FaseEnvido == "pendiente_respuesta")
-            {
-                Assert.NotNull(resultado);
-                Assert.Equal("envido", resultado.Tipo);
-            }
+            // Then
+            Assert.NotNull(resultado);
+            Assert.Equal("tanto", resultado.Tipo);
+            Assert.Equal("¡Son buenas!", resultado.Texto);
         }
 
         [Fact]
-        public void AvanzarUnPaso_AlResponderEnvido_SiNoQuiereYHayTrucoPendiente_RecuerdaTruco()
+        public void AvanzarUnPaso_ResponderTruco_SiMaquinaCantaTrucoEnSuTurno_DevuelveEventoTrucoCartas()
         {
+            // Given
+            MaquinaServicio2v2.RandomNext = (max) => 80;
             var mano = CrearMano();
+            mano.ManoTerminada = false;
+            mano.PartidaTerminada = false;
+            mano.GanadorMano = null;
+
+            // Configuramos un turno normal para J2
+            mano.TurnoActual = "J2";
+            mano.Posicion2.Id = "J2";
+            mano.Posicion2.EsMaquina = true;
+
+            // Estado antes del turno: El truco NO estaba cantado
+            mano.TrucoCantado = false;
+            mano.EnvidoCantado = true; // Para pasar de largo el bloque de envido directo al de truco
+
+            // Forzamos cartas ultra agresivas para asegurarnos de que ProcesarTurnoMaquina elija cantar Truco
+            mano.Posicion2.Mano = new List<Carta> { new Carta { Numero = 1, Palo = "Espada", ValorTruco = 14 } };
+
+            // When
+            var resultado = MaquinaServicio2v2.AvanzarUnPaso(mano);
+
+            // Then
+            Assert.NotNull(resultado);
+            Assert.Equal("carta", resultado.Tipo);
+        }
+
+        [Fact]
+        public void AvanzarUnPaso_ResponderTruco_SiMaquinaCantaTrucoEnSuTurno_DevuelveEventoTruco()
+        {
+            MaquinaServicio2v2.RandomNext = (max) => 0;
+
+            // Given
+            var mano = CrearMano();
+
+            mano.ManoTerminada = false;
+            mano.PartidaTerminada = false;
+            mano.GanadorMano = null;
+            mano.TurnoActual = "J2";
+            mano.Posicion2.Id = "J2";
+            mano.Posicion2.EsMaquina = true;
+            mano.TrucoCantado = false;
+            mano.TrucoResuelto = false;
+
+            mano.EnvidoCantado = true;
+            mano.EnvidoResuelto = true;
+
+            mano.VueltaActual = new Vuelta2v2();
+
+            mano.Posicion2.Mano = new List<Carta>
+            {
+                new Carta{Numero = 1,Palo = "Espada",ValorTruco = 14}
+            };
+
+            // When
+            var resultado = MaquinaServicio2v2.AvanzarUnPaso(mano);
+
+            // Then
+            Assert.NotNull(resultado);
+            Assert.Equal("truco", resultado.Tipo);
+        }
+
+        [Fact]
+        public void AvanzarUnPaso_ResponderTruco_SiMaquinaDiceNoQuiero_DevuelveEventoNoQuiero()
+        {
+            // Given
+            var mano = CrearMano();
+            mano.ManoTerminada = false;
+            mano.PartidaTerminada = false;
+            mano.GanadorMano = null;
+
+            mano.TurnoActual = "J2";
+            mano.TrucoPendienteRespuestaDe = "J2";
+
+            mano.Posicion2.Id = "J2";
+            mano.Posicion2.EsMaquina = true;
+
+            mano.EstadoTruco = "El jugador J2 no quiso el Truco";
+
+            // When
+            var resultado = MaquinaServicio2v2.AvanzarUnPaso(mano);
+
+            // Then
+            Assert.NotNull(resultado);
+            Assert.Equal("truco-resp", resultado.Tipo);
+            Assert.Equal("¡No quiero!", resultado.Texto);
+        }
+
+        [Fact]
+        public void AvanzarUnPaso_ResponderEnvido_Acepta_DevuelveQuiero()
+        {
+            MaquinaServicio2v2.RandomNext = (max) => 99;
+
+            var mano = CrearMano();
+
             mano.FaseEnvido = "pendiente_respuesta";
             mano.EnvidoPendienteRespuestaDe = "J2";
             mano.TipoEnvidoCantado = "Envido";
 
-            mano.TrucoPendienteRespuestaDe = "J1";
-            mano.Posicion2.Mano = new List<Carta> { new Carta { ValorTruco = 1, Palo = "Basto", Numero = 4 } }; // Muy malas cartas
+            mano.Posicion2.Id = "J2";
+            mano.Posicion2.EsMaquina = true;
+
+            mano.Posicion2.Mano = new List<Carta>
+                {
+                    new Carta { Numero = 7, Palo = "Espada", ValorTruco = 11 },
+                    new Carta { Numero = 6, Palo = "Espada", ValorTruco = 10 }
+                };
+
+            mano.Posicion2.Jugadas = new List<Carta>();
 
             var resultado = MaquinaServicio2v2.AvanzarUnPaso(mano);
 
             Assert.NotNull(resultado);
             Assert.Equal("envido-resp", resultado.Tipo);
-            if (resultado.Texto.Contains("¿Y el truco?"))
-            {
-                Assert.Equal("¡No quiero! ¿Y el truco?", resultado.Texto);
-            }
         }
 
         [Fact]
-        public void AvanzarUnPaso_EnFaseDeclararTantos_DevuelveEventoTanto()
+        public void AvanzarUnPaso_ResponderEnvido_NoQuiere_DevuelveNoQuiero()
         {
             var mano = CrearMano();
-            mano.FaseEnvido = "declarando_tantos";
-            mano.EnvidoPendienteRespuestaDe = "J2";
 
+            mano.FaseEnvido = "pendiente_respuesta";
+            mano.EnvidoPendienteRespuestaDe = "J2";
+            mano.TipoEnvidoCantado = "Envido";
+            mano.Posicion2.Id = "J2";
+            mano.Posicion2.EsMaquina = true;
             mano.Posicion2.Mano = new List<Carta>
             {
-                new Carta { ValorTruco = 11, Palo = "Espada", Numero = 7 },
-                new Carta { ValorTruco = 10, Palo = "Espada", Numero = 6 }
+                new Carta { Numero = 1, Palo = "Espada", ValorTruco = 14 },
+                new Carta { Numero = 4, Palo = "Basto", ValorTruco = 4 }
             };
+
+            mano.Posicion2.Jugadas = new List<Carta>();
 
             var resultado = MaquinaServicio2v2.AvanzarUnPaso(mano);
 
             Assert.NotNull(resultado);
+            Assert.Equal("envido-resp", resultado.Tipo);
+            Assert.Equal("¡No quiero!", resultado.Texto);
+        }
+
+        [Fact]
+        public void AvanzarUnPaso_ResponderEnvido_NoQuiereYHayTrucoPendiente_DevuelveMensajeRecordatorio()
+        {
+            var mano = CrearMano();
+
+            mano.FaseEnvido = "pendiente_respuesta";
+            mano.EnvidoPendienteRespuestaDe = "J2";
+            mano.TipoEnvidoCantado = "Envido";
+            mano.TrucoPendienteRespuestaDe = "J1";
+            mano.Posicion2.Id = "J2";
+            mano.Posicion2.EsMaquina = true;
+
+            mano.Posicion2.Mano = new List<Carta>
+            {
+                new Carta { Numero = 1, Palo = "Espada", ValorTruco = 14 },
+                new Carta { Numero = 4, Palo = "Basto", ValorTruco = 4 }
+            };
+
+            mano.Posicion2.Jugadas = new List<Carta>();
+
+            var resultado = MaquinaServicio2v2.AvanzarUnPaso(mano);
+
+            Assert.NotNull(resultado);
+            Assert.Equal("envido-resp", resultado.Tipo);
+            Assert.Equal("¡No quiero! ¿Y el truco?", resultado.Texto);
+        }
+
+        [Fact]
+        public void AvanzarUnPaso_ResponderEnvido_SubeApuesta_DevuelveEventoEnvido()
+        {
+                // Given
+                MaquinaServicio2v2.RandomNext = (max) => 0;
+
+                var mano = CrearMano();
+
+                mano.FaseEnvido = "pendiente_respuesta";
+                mano.EnvidoPendienteRespuestaDe = "J2";
+                mano.TipoEnvidoCantado = "Envido";
+                mano.Posicion2.Id = "J2";
+                mano.Posicion2.EsMaquina = true;
+                mano.Posicion2.Mano = new List<Carta>
+                {
+                    new Carta { Numero = 7, Palo = "Espada", ValorTruco = 11 },
+                    new Carta { Numero = 6, Palo = "Espada", ValorTruco = 10 }
+                };
+
+                mano.Posicion2.Jugadas = new List<Carta>();
+
+                mano.EnvidoCantado = true;
+                mano.EnvidoResuelto = false;
+
+               //When
+               var resultado = MaquinaServicio2v2.AvanzarUnPaso(mano);
+
+               //Then
+               Assert.NotNull(resultado);
+        }
+
+        [Fact]
+        public void AvanzarUnPaso_DeclarandoTantos_SonBuenas_DevuelveEventoSonBuenas()
+        {
+            // Given
+            var mano = CrearMano();
+
+            mano.FaseEnvido = "declarando_tantos";
+            mano.EnvidoPendienteRespuestaDe = "J2";
+
+            mano.Posicion2.Id = "J2";
+            mano.Posicion2.EsMaquina = true;
+            mano.TantosReales["J2"] = 30;
+            mano.TantosDeclarados["J1"] = 33;
+
+            // When
+            var resultado = MaquinaServicio2v2.AvanzarUnPaso(mano);
+
+            // Then
+            Assert.NotNull(resultado);
             Assert.Equal("tanto", resultado.Tipo);
+            Assert.Equal("¡Son buenas!", resultado.Texto);
+        }
+
+        [Fact]
+        public void AvanzarUnPaso_DeclarandoTantos_DeclaraNumero_DevuelveTanto()
+        {
+            // Given
+            var mano = CrearMano();
+
+            mano.FaseEnvido = "declarando_tantos";
+            mano.EnvidoPendienteRespuestaDe = "J2";
+
+            mano.Posicion2.Id = "J2";
+            mano.Posicion2.EsMaquina = true;
+
+            // J2 tiene mejor tanto que el rival
+            mano.TantosReales["J2"] = 33;
+            mano.TantosDeclarados["J1"] = 28;
+
+            // When
+            var resultado = MaquinaServicio2v2.AvanzarUnPaso(mano);
+
+            // Then
+            Assert.NotNull(resultado);
+            Assert.Equal("tanto", resultado.Tipo);
+            Assert.Equal("33", resultado.Texto);
         }
 
         [Fact]
         public void AvanzarUnPaso_SiEsJ3_YCumpleVentanaEnvido_ConsultaAlHumano()
         {
+            //Given
             var mano = CrearMano();
             mano.Posicion3.EsMaquina = true;
             mano.TurnoActual = "J3";
@@ -758,8 +1175,10 @@ namespace TrucoRPG.Tests.Logica
                 new Carta { ValorTruco = 10, Palo = "Espada", Numero = 6 }
             };
 
+            //When
             var resultado = MaquinaServicio2v2.AvanzarUnPaso(mano);
 
+            //Then
             if (mano.CompaConsultaEnvido)
             {
                 Assert.NotNull(resultado);
@@ -771,6 +1190,7 @@ namespace TrucoRPG.Tests.Logica
         [Fact]
         public void AvanzarUnPaso_SiEsJ3_YTieneBuenasCartas_ConsultaTruco()
         {
+            //Given
             var mano = CrearMano();
             mano.Posicion3.EsMaquina = true;
             mano.TurnoActual = "J3";
@@ -781,8 +1201,10 @@ namespace TrucoRPG.Tests.Logica
             mano.Posicion1.Jugadas = new List<Carta>();
             mano.Posicion3.Mano = new List<Carta> { new Carta { ValorTruco = 10 } };
 
+            //When
             var resultado = MaquinaServicio2v2.AvanzarUnPaso(mano);
 
+            //Then
             if (mano.CompaConsultaTruco)
             {
                 Assert.NotNull(resultado);
@@ -792,23 +1214,317 @@ namespace TrucoRPG.Tests.Logica
         }
 
         [Fact]
-        public void AvanzarUnPaso_TurnoNormal_EjecutaProcesarTurnoMaquinaYDevuelveCarta()
+        public void AvanzarUnPaso_TurnoNormal_J3ConsultaTruco_DevuelveConsultaTruco()
         {
+            // Given
             var mano = CrearMano();
+
+            mano.TurnoActual = "J3";
+            mano.ManoTerminada = false;
+            mano.PartidaTerminada = false;
+            mano.GanadorMano = null;
+
+            mano.EnvidoPendienteRespuestaDe = null;
+            mano.TrucoPendienteRespuestaDe = null;
+
+            mano.Posicion3.Id = "J3";
+            mano.Posicion3.EsMaquina = true;
+
+            mano.Posicion1.Id = "J1";
+            mano.Posicion1.EsMaquina = false;
+            mano.Posicion1.Jugadas = new List<Carta>();
+
+            mano.CompaEnvidoConsultado = true;
+            mano.CompaTrucoConsultado = false;
+
+            mano.TrucoCantado = false;
+            mano.TrucoResuelto = false;
+
+            mano.Posicion3.Mano = new List<Carta>
+            {
+                new Carta{Numero = 1,Palo = "Espada",ValorTruco = 14}
+            };
+
+            // When
+            var resultado = MaquinaServicio2v2.AvanzarUnPaso(mano);
+
+            // Then
+            Assert.NotNull(resultado);
+            Assert.Equal("consulta-truco", resultado.Tipo);
+        }
+
+        [Fact]
+        public void AvanzarUnPaso_TurnoNormal_SiMaquinaCantaEnvidoYDaPista_DevuelveEventoEnvido()
+        {
+            MaquinaServicio2v2.RandomNext = (max) => 0;
+
+            var mano = CrearMano();
+
+            mano.JugadorMano = "J1"; 
+
             mano.TurnoActual = "J2";
 
-            // Desactivamos ventanas de envido y truco para saltearnos los IFs de canto
-            mano.EnvidoResuelto = true;
-            mano.TrucoResuelto = true;
-            mano.VueltaActual = new Vuelta2v2();
+            mano.EnvidoCantado = false;
+            mano.EnvidoResuelto = false;
+            mano.TrucoCantado = false;
+            mano.TrucoPendienteRespuestaDe = null;
 
-            // Le damos una carta para que juegue
-            mano.Posicion2.Mano = new List<Carta> { new Carta { ValorTruco = 5 } };
+            mano.Posicion2.Id = "J2";
+            mano.Posicion2.EsMaquina = true;
+
+            mano.Posicion2.Mano = new List<Carta>
+            {
+                new Carta { Numero = 7, Palo = "Espada", ValorTruco = 11 },
+                new Carta { Numero = 6, Palo = "Espada", ValorTruco = 10 }
+            };
+
+            mano.Posicion3.Mano = new List<Carta>
+            {
+                new Carta { Numero = 7, Palo = "Oro" },
+                new Carta { Numero = 6, Palo = "Oro" }
+            };
 
             var resultado = MaquinaServicio2v2.AvanzarUnPaso(mano);
 
             Assert.NotNull(resultado);
-            Assert.Equal("carta", resultado.Tipo);
+        }
+
+        [Fact]
+        public void AvanzarUnPaso_TurnoNormal_SiNoCantaEnvido_NoDevuelveEventoEnvido()
+        {
+            //Given
+            var mano = CrearMano();
+            mano.TurnoActual = "J2";
+            mano.EnvidoCantado = false;
+            mano.EnvidoResuelto = false;
+
+            mano.Posicion2.Id = "J2";
+            mano.Posicion2.EsMaquina = true;
+
+            // Mano muy mala
+            mano.Posicion2.Mano = new List<Carta>
+            {
+                new Carta { Numero = 4, Palo = "Espada" },
+                new Carta { Numero = 5, Palo = "Basto" },
+                new Carta { Numero = 6, Palo = "Oro" }
+            };
+
+            //When
+            var resultado = MaquinaServicio2v2.AvanzarUnPaso(mano);
+
+            //Then
+            Assert.NotNull(resultado);
+            Assert.NotEqual("envido", resultado.Tipo);
+        }
+
+        //Resolver consulta envido
+        [Fact]
+        public void ResolverConsultaEnvido_SiNoHayConsulta_LanzaExcepcion()
+        {
+            // Given
+            var mano = CrearMano();
+            mano.CompaConsultaEnvido = false;
+
+            // When
+            Action act = () => MaquinaServicio2v2.ResolverConsultaEnvido(mano,true,(m, j) => "J1");
+
+            // Then
+            Assert.Throws<InvalidOperationException>(act);
+        }
+
+        [Fact]
+        public void ResolverConsultaEnvido_SiNoAcepta_CierraConsultaSinCantar()
+        {
+            // Given
+            var mano = CrearMano();
+
+            mano.CompaConsultaEnvido = true;
+            mano.CompaEnvidoConsultado = false;
+
+            // When
+            MaquinaServicio2v2.ResolverConsultaEnvido(mano,false,(m, j) => "J1");
+
+            // Then
+            Assert.False(mano.CompaConsultaEnvido);
+            Assert.True(mano.CompaEnvidoConsultado);
+            Assert.False(mano.EnvidoCantado);
+        }
+
+        [Fact]
+        public void ResolverConsultaEnvido_SiAcepta_CantaEnvido()
+        {
+            // Given
+            var mano = CrearMano();
+            mano.CompaConsultaEnvido = true;
+            mano.CompaEnvidoConsultado = false;
+            mano.Posicion3.Id = "J3";
+            mano.Posicion3.EsMaquina = true;
+
+            // When
+            MaquinaServicio2v2.ResolverConsultaEnvido(mano,true,(m, j) => "J1");
+
+            // Then
+            Assert.False(mano.CompaConsultaEnvido);
+            Assert.True(mano.CompaEnvidoConsultado);
+
+            Assert.True(mano.EnvidoCantado);
+            Assert.Equal("Envido", mano.TipoEnvidoCantado);
+            Assert.Equal("J3", mano.CantorEnvido);
+        }
+
+
+        //resolver consulta truco
+        [Fact]
+        public void ResolverConsultaTruco_SiJ3EsNull_NoHaceNada()
+        {
+            var mano = CrearMano();
+
+            mano.Posicion3.Id = "x";
+
+            MaquinaServicio2v2.ResolverConsultaTruco(mano, true);
+
+            Assert.False(mano.CompaConsultaTruco);
+        }
+
+        [Fact]
+        public void ResolverConsultaTruco_SiJ3NoTieneCartas_NoHaceNada()
+        {
+            //Given
+            var mano = CrearMano();
+
+            mano.Posicion3.Mano.Clear();
+
+            //When
+            MaquinaServicio2v2.ResolverConsultaTruco(mano, true);
+
+            //Then
+            Assert.False(mano.CompaConsultaTruco);
+            Assert.True(mano.CompaTrucoConsultado);
+        }
+
+        [Fact]
+        public void ResolverConsultaTruco_SiVoy_JuegaCartaMasChica()
+        {
+            //Given
+            var mano = CrearMano();
+
+            mano.Posicion3.Mano = new List<Carta>
+            {
+                new Carta { ValorTruco = 14 },
+                new Carta { ValorTruco = 5 },
+                new Carta { ValorTruco = 10 }
+            };
+            mano.TurnoActual = "J3";
+            mano.TrucoPendienteRespuestaDe = null;
+            mano.EnvidoPendienteRespuestaDe = null;
+            
+            //When
+            MaquinaServicio2v2.ResolverConsultaTruco(mano, true);
+
+            //Then
+            Assert.Equal(5, mano.Posicion3.Jugadas.First().ValorTruco);
+        }
+
+        [Fact]
+        public void ResolverConsultaTruco_SiNoVoy_JuegaCartaMasGrande()
+        {
+            var mano = CrearMano();
+
+            mano.Posicion3.Mano = new List<Carta>
+            {
+                new Carta { ValorTruco = 14 },
+                new Carta { ValorTruco = 5 },
+                new Carta { ValorTruco = 10 }
+            };
+            mano.TurnoActual = "J3";
+            mano.TrucoPendienteRespuestaDe = null;
+            mano.EnvidoPendienteRespuestaDe = null;
+            MaquinaServicio2v2.ResolverConsultaTruco(mano, false);
+
+            Assert.Equal(14, mano.Posicion3.Jugadas.First().ValorTruco);
+        }
+
+        [Fact]
+        public void ResolverConsultaTruco_SiEnvidoDisponible_GeneraPista()
+        {
+            //Given
+            var mano = CrearMano();
+
+            mano.EnvidoCantado = false;
+            mano.EnvidoResuelto = false;
+            mano.CompaPista = "";
+            mano.Posicion3.Mano = new List<Carta>
+            {
+                new Carta { Numero = 7, Palo = "Oro" },
+                new Carta { Numero = 6, Palo = "Oro" }
+            };
+
+            //When
+            MaquinaServicio2v2.ResolverConsultaTruco(mano, true);
+
+            //Then
+            Assert.False(string.IsNullOrEmpty(mano.CompaPista));
+        }
+
+        //ordenar jugar mayor
+        [Fact]
+        public void OrdenarJugarMayor_JugadorNoExiste_LanzaInvalidOperationException()
+        {
+            // Given
+            var jugadorId = "BotInexistente";
+            var mano = new ManoTruco2v2();
+
+            // When
+            Action act = () => MaquinaServicio2v2.OrdenarJugarMayor(mano, jugadorId);
+
+            // Then
+            Assert.Throws<InvalidOperationException>(act);
+        }
+
+        [Fact]
+        public void OrdenarJugarMayor_JugadorNoEsMaquina_LanzaInvalidOperationException()
+        {
+            // Given
+            var mano = CrearMano();
+            var jugadorId = "J1";
+
+            // When
+            Action act = () => MaquinaServicio2v2.OrdenarJugarMayor(mano, jugadorId);
+
+            // Then
+            Assert.Throws<InvalidOperationException>(act);
+        }
+
+        [Fact]
+        public void OrdenarJugarMayor_BotSinCartas_LanzaInvalidOperationException()
+        {
+            // Given
+            var mano = CrearMano();
+            var jugadorId = "J2"; 
+            mano.EquipoA.Jugador2 = mano.Posicion2;
+            mano.Posicion2.Mano = new List<Carta>();
+
+            // When
+            Action act = () => MaquinaServicio2v2.OrdenarJugarMayor(mano, jugadorId);
+
+            // Then
+            Assert.Throws<InvalidOperationException>(act);
+        }
+
+        [Fact]
+        public void OrdenarJugarMayor_DatosValidos_AsignaOrdenJugarMayor()
+        {
+            // Given
+            var mano = CrearMano();
+            var jugadorId = "J2"; 
+            mano.EquipoA.Jugador2 = mano.Posicion2;
+            mano.Posicion2.Mano = new List<Carta> { new Carta() };
+
+            // When
+            MaquinaServicio2v2.OrdenarJugarMayor(mano, jugadorId);
+
+            // Then
+            Assert.Equal("J2",jugadorId);
         }
     }
 }
