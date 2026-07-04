@@ -26,6 +26,14 @@ namespace TrucoRPG.Dominio.UseCases
             mano.TravesuraBloqueando = false;
             mano.RasgunoBloqueando = false;
             mano.AullidoBloqueando = false;
+            mano.DestelloBloqueando = false;
+            mano.DestelloPendiente = false;
+            mano.DestelloBazaObjetivo = 0;
+            mano.EspejismoActivo = false;
+            mano.EspejismoBloqueando = false;
+            mano.EspejismoAlternando = false;
+            mano.EspejismoMostrarFakePrimero = false;
+            mano.EspejismoCartaFalsa = null;
 
             PartidaMemoriaServicio.Actualizar(mano);
             return mano;

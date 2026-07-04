@@ -67,10 +67,10 @@ namespace TrucoRPG.Infraestructura.Data.Configurations
                     Descripcion = "Cuarto jefe de la historia. Una presencia luminosa que desorienta al viajero.",
                     NombreHabilidad = "Destello",
                     DescripcionHabilidad =
-                        "Emite una luz radiante que te confunde y te hace jugar una carta al azar " +
-                        "(puede ocurrir en cualquier momento de la ronda).",
+                        "Destello: cada 2 turnos en bazas 1 o 2, te obliga a jugar una carta al azar. " +
+                        "Espejismo (pasiva): si es mano y abre la baza 1, muestra una carta falsa en pantalla hasta que respondas.",
                     TipoRival = ClaseRival.LuzMala,
-                    TipoHabilidad = TipoHabilidadRival.Ninguna
+                    TipoHabilidad = TipoHabilidadRival.Destello
                 },
                 new Rival
                 {

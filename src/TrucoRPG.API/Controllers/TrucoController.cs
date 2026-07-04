@@ -34,6 +34,8 @@ namespace TrucoRPG.API.Controllers
         private readonly ConfirmarTravesuraUseCase     _confirmarTravesura;
         private readonly ConfirmarRasgunoUseCase       _confirmarRasguno;
         private readonly ConfirmarAullidoUseCase       _confirmarAullido;
+        private readonly ConfirmarDestelloUseCase      _confirmarDestello;
+        private readonly ConfirmarEspejismoUseCase     _confirmarEspejismo;
         private readonly AvanzarMaquinaHistoriaUseCase _avanzarMaquinaHistoria;
         private readonly GanarAutomaticoDebugUseCase _ganarAutomaticoDebug;
         private readonly HistoriaValidacionServicio    _historiaValidacion;
@@ -54,6 +56,8 @@ namespace TrucoRPG.API.Controllers
             ConfirmarTravesuraUseCase     confirmarTravesura,
             ConfirmarRasgunoUseCase       confirmarRasguno,
             ConfirmarAullidoUseCase       confirmarAullido,
+            ConfirmarDestelloUseCase      confirmarDestello,
+            ConfirmarEspejismoUseCase     confirmarEspejismo,
             AvanzarMaquinaHistoriaUseCase avanzarMaquinaHistoria,
             GanarAutomaticoDebugUseCase   ganarAutomaticoDebug,
             HistoriaValidacionServicio    historiaValidacion,
@@ -73,6 +77,8 @@ namespace TrucoRPG.API.Controllers
             _confirmarTravesura = confirmarTravesura;
             _confirmarRasguno = confirmarRasguno;
             _confirmarAullido = confirmarAullido;
+            _confirmarDestello = confirmarDestello;
+            _confirmarEspejismo = confirmarEspejismo;
             _avanzarMaquinaHistoria = avanzarMaquinaHistoria;
             _ganarAutomaticoDebug = ganarAutomaticoDebug;
             _historiaValidacion = historiaValidacion;
@@ -138,6 +144,16 @@ namespace TrucoRPG.API.Controllers
         [HttpPost("confirmar-aullido")]
         public ActionResult<ManoTruco> ConfirmarAullido([FromBody] ConfirmarSalpicaduraRequest request) =>
             Ok(_confirmarAullido.Ejecutar(request.ManoId));
+
+        /// <summary>Confirma el efecto de la habilidad "Destello" y devuelve la mano actualizada.</summary>
+        [HttpPost("confirmar-destello")]
+        public ActionResult<ManoTruco> ConfirmarDestello([FromBody] ConfirmarSalpicaduraRequest request) =>
+            Ok(_confirmarDestello.Ejecutar(request.ManoId));
+
+        /// <summary>Confirma el overlay de la pasiva "Espejismo" y habilita el parpadeo visual.</summary>
+        [HttpPost("confirmar-espejismo")]
+        public ActionResult<ManoTruco> ConfirmarEspejismo([FromBody] ConfirmarSalpicaduraRequest request) =>
+            Ok(_confirmarEspejismo.Ejecutar(request.ManoId));
 
         // ── Configuración ─────────────────────────────────────────────
 

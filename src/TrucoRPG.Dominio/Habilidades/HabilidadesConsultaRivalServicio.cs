@@ -15,6 +15,18 @@ namespace TrucoRPG.Dominio.Habilidades
                 RasgunoActivo = mano.RasgunoActivo,
                 RasgunoBloqueando = mano.RasgunoBloqueando,
                 AullidoBloqueando = mano.AullidoBloqueando,
+                DestelloBloqueando = mano.DestelloBloqueando,
+                EspejismoActivo = mano.EspejismoActivo,
+                EspejismoBloqueando = mano.EspejismoBloqueando,
+                EspejismoAlternando = mano.EspejismoAlternando,
+                EspejismoMostrarFakePrimero = mano.EspejismoMostrarFakePrimero,
+                EspejismoCartaFalsa = mano.EspejismoCartaFalsa is null
+                    ? null
+                    : new CartaReferencia
+                    {
+                        Numero = mano.EspejismoCartaFalsa.Numero,
+                        Palo = mano.EspejismoCartaFalsa.Palo
+                    },
                 CartasOcultasTravesura = mano.CartasOcultasTravesura
                     .Select(c => new CartaReferencia { Numero = c.Numero, Palo = c.Palo })
                     .ToList(),

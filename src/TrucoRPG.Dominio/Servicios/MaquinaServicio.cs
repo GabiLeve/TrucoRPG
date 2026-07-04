@@ -32,7 +32,8 @@ namespace TrucoRPG.Dominio.Servicios
         {
             if (!EsModoHistoriaPasoAPaso(mano)) return null;
             if (mano.SalpicaduraBloqueando || mano.TravesuraBloqueando
-                || mano.RasgunoBloqueando || mano.AullidoBloqueando) return null;
+                || mano.RasgunoBloqueando || mano.AullidoBloqueando
+                || mano.DestelloBloqueando || mano.EspejismoBloqueando) return null;
             if (mano.GanadorMano != null || mano.PartidaTerminada) return null;
             if (mano.EnvidoPendienteRespuestaHumano || mano.TrucoPendienteRespuestaHumano) return null;
             if (mano.CartaMaquinaEnMesa != null) return null;
@@ -110,6 +111,9 @@ namespace TrucoRPG.Dominio.Servicios
 
             mano.TurnoActual = ganadorBaza == "Parda" ? mano.ManoIniciadaPor : ganadorBaza;
             mano.GanadorMano = JuegoServicio.ResolverGanadorMano(mano.Bazas, mano.ManoIniciadaPor);
+
+            if (mano.GanadorMano is null && mano.TurnoActual == IdJugador.Humano)
+                DestelloServicio.EvaluarTurnoHumano(mano);
 
             if (mano.GanadorMano is "Humano" or "Maquina")
             {
@@ -189,6 +193,9 @@ namespace TrucoRPG.Dominio.Servicios
             mano.Maquina.Mano.Remove(carta);
             mano.Maquina.Jugadas.Add(carta);
             mano.CartaMaquinaEnMesa = carta;
+            EspejismoServicio.IntentarAlJugarPrimeraCarta(mano);
+            if (!mano.EspejismoBloqueando)
+                DestelloServicio.EvaluarTurnoHumano(mano);
         }
     }
 }
