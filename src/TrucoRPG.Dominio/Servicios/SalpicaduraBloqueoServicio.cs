@@ -18,6 +18,12 @@ namespace TrucoRPG.Dominio.Servicios
                 throw new InvalidOperationException("Esperá a que la Luz Mala termine el Destello.");
             if (mano.EspejismoBloqueando)
                 throw new InvalidOperationException("Esperá a que la Luz Mala termine el Espejismo.");
+            if (mano.MandingaEspejoBloqueando)
+                throw new InvalidOperationException("Esperá a que el Mandinga termine El Espejo.");
+            if (mano.MandingaEnganoBloqueando)
+                throw new InvalidOperationException("Esperá a que el Mandinga termine El Engaño.");
+            if (mano.MandingaMaldicionBloqueando)
+                throw new InvalidOperationException("Esperá a que el Mandinga termine El Pacto.");
         }
     }
 }

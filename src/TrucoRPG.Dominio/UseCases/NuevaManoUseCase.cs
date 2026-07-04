@@ -41,6 +41,7 @@ namespace TrucoRPG.Dominio.UseCases
             // persista entre manos; si no, la habilidad volvería a estar disponible cada mano.
             TrasladarCooldownHabilidades(anterior, mano);
             TrasladarEstadoDestello(anterior, mano);
+            MandingaServicio.TrasladarEstadoPartida(anterior, mano);
 
             HabilidadesOrquestador.Disparar(mano, EventoPartida.ManoIniciada);
             HabilidadesRivalOrquestador.Disparar(mano, EventoPartida.ManoIniciada);
@@ -51,7 +52,9 @@ namespace TrucoRPG.Dominio.UseCases
             if (mano.ManoIniciadaPor == IdJugador.Maquina && !mano.SalpicaduraBloqueando
                 && !mano.TravesuraBloqueando && !mano.RasgunoBloqueando
                 && !mano.AullidoBloqueando && !mano.DestelloBloqueando
-                && !mano.EspejismoBloqueando && mano.GanadorMano == null
+                && !mano.EspejismoBloqueando && !mano.MandingaEspejoBloqueando
+                && !mano.MandingaEnganoBloqueando && !mano.MandingaMaldicionBloqueando
+                && mano.GanadorMano == null
                 && !MaquinaServicio.EsModoHistoriaPasoAPaso(mano))
                 MaquinaServicio.ProcesarIniciativa(mano);
 
@@ -77,7 +80,9 @@ namespace TrucoRPG.Dominio.UseCases
             if (mano.ManoIniciadaPor == IdJugador.Maquina && !mano.SalpicaduraBloqueando
                 && !mano.TravesuraBloqueando && !mano.RasgunoBloqueando
                 && !mano.AullidoBloqueando && !mano.DestelloBloqueando
-                && !mano.EspejismoBloqueando && mano.GanadorMano == null
+                && !mano.EspejismoBloqueando && !mano.MandingaEspejoBloqueando
+                && !mano.MandingaEnganoBloqueando && !mano.MandingaMaldicionBloqueando
+                && mano.GanadorMano == null
                 && !MaquinaServicio.EsModoHistoriaPasoAPaso(mano))
                 MaquinaServicio.ProcesarIniciativa(mano);
 

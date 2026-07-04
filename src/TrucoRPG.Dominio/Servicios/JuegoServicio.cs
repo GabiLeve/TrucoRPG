@@ -88,6 +88,22 @@ namespace TrucoRPG.Dominio.Servicios
             if (mano.Configuracion.HabilidadesActivas)
                 HabilidadesOrquestador.Disparar(mano, EventoPartida.AntesDeSumarPuntos, modificador);
 
+            if (MandingaServicio.DebeAcumularPuntos(mano))
+            {
+                MandingaServicio.AcumularPuntos(mano, ganador!, modificador.PuntosParaGanador());
+                if (modificador.BonusAlRival > 0)
+                {
+                    var rival = modificador.RivalDe(ganador!);
+                    if (rival != null)
+                        MandingaServicio.AcumularPuntos(mano, rival, modificador.BonusAlRival);
+                }
+
+                if (mano.GanadorMano != null)
+                    MandingaServicio.LiquidarPuntosMaldicion(mano);
+
+                return;
+            }
+
             AplicarPuntos(mano, ganador, modificador.PuntosParaGanador());
 
             if (modificador.BonusAlRival > 0)

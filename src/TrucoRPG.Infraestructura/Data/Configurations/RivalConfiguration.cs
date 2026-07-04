@@ -80,9 +80,9 @@ namespace TrucoRPG.Infraestructura.Data.Configurations
                     Descripcion = "Jefe final de la historia. Domina el trono con tres fases de combate.",
                     NombreHabilidad = "Fases",
                     DescripcionHabilidad =
-                        "Jefe final con 3 fases y distintas habilidades según los puntos que le quedan para ganar. (Próximamente.)",
+                        "Fase I (siempre): cada 2 manos maldice la mesa. Fase II (10+ pts tuyos): El Engaño. Fase III (20+ pts tuyos): El Espejo.",
                     TipoRival = ClaseRival.Mandinga,
-                    TipoHabilidad = TipoHabilidadRival.Ninguna
+                    TipoHabilidad = TipoHabilidadRival.MandingaFases
                 });
         }
     }

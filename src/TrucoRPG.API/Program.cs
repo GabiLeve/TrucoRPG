@@ -143,8 +143,12 @@ builder.Services.AddScoped<ConfirmarRasgunoUseCase>();
 builder.Services.AddScoped<ConfirmarAullidoUseCase>();
 builder.Services.AddScoped<ConfirmarDestelloUseCase>();
 builder.Services.AddScoped<ConfirmarEspejismoUseCase>();
+builder.Services.AddScoped<ConfirmarMandingaEspejoUseCase>();
+builder.Services.AddScoped<ConfirmarMandingaEnganoUseCase>();
+builder.Services.AddScoped<ConfirmarMandingaMaldicionUseCase>();
 builder.Services.AddScoped<AvanzarMaquinaHistoriaUseCase>();
 builder.Services.AddScoped<GanarAutomaticoDebugUseCase>();
+builder.Services.AddScoped<SumarPuntosHumanoDebugUseCase>();
 
 // ── Servicios de sala (singleton: el estado de salas debe sobrevivir entre requests) ──
 builder.Services.AddSingleton<SalaService>();

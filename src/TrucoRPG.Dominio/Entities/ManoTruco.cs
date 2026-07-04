@@ -37,6 +37,21 @@ namespace TrucoRPG.Dominio.Entities
         public bool EspejismoUsadoEnMano { get; set; }
         public List<Carta> CartasOcultasTravesura { get; set; } = new();
 
+        // ── Mandinga (jefe final) ───────────────────────────────────────────
+        public bool MandingaFase2Desbloqueada { get; set; }
+        public bool MandingaFase3Desbloqueada { get; set; }
+        public int MandingaPrimeraManoEngano { get; set; }
+        public List<Carta> MandingaJugadasHumanoManoAnterior { get; set; } = new();
+        public bool MandingaEspejoBloqueando { get; set; }
+        public bool MandingaEnganoBloqueando { get; set; }
+        public bool MandingaEnganoManoOculta { get; set; }
+        public bool MandingaEnganoProgramadoEstaMano { get; set; }
+        public bool MandingaMaldicionBloqueando { get; set; }
+        public bool MandingaMaldicionActivaEnMano { get; set; }
+        public bool MandingaMaldicionProgramadaEstaMano { get; set; }
+        public int PuntosHumanoAcumuladosMano { get; set; }
+        public int PuntosMaquinaAcumuladosMano { get; set; }
+
         public List<Carta> CartasRestantesMazo { get; set; } = new();
 
         public RepartoContext? RepartoContext { get; set; }

@@ -30,6 +30,13 @@ namespace TrucoRPG.Dominio.Habilidades
                 CartasOcultasTravesura = mano.CartasOcultasTravesura
                     .Select(c => new CartaReferencia { Numero = c.Numero, Palo = c.Palo })
                     .ToList(),
+                MandingaFase2Desbloqueada = mano.MandingaFase2Desbloqueada,
+                MandingaFase3Desbloqueada = mano.MandingaFase3Desbloqueada,
+                MandingaEspejoBloqueando = mano.MandingaEspejoBloqueando,
+                MandingaEnganoBloqueando = mano.MandingaEnganoBloqueando,
+                MandingaEnganoManoOculta = mano.MandingaEnganoManoOculta,
+                MandingaMaldicionBloqueando = mano.MandingaMaldicionBloqueando,
+                MandingaMaldicionActivaEnMano = mano.MandingaMaldicionActivaEnMano,
                 UltimoMensajeHabilidad = mano.UltimoMensajeHabilidadRival
             };
     }

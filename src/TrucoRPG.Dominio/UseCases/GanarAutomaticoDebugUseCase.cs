@@ -34,6 +34,9 @@ namespace TrucoRPG.Dominio.UseCases
             mano.EspejismoAlternando = false;
             mano.EspejismoMostrarFakePrimero = false;
             mano.EspejismoCartaFalsa = null;
+            mano.MandingaEspejoBloqueando = false;
+            mano.MandingaEnganoBloqueando = false;
+            mano.MandingaMaldicionBloqueando = false;
 
             PartidaMemoriaServicio.Actualizar(mano);
             return mano;

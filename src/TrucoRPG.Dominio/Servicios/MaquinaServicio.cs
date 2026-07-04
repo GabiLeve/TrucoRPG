@@ -33,7 +33,9 @@ namespace TrucoRPG.Dominio.Servicios
             if (!EsModoHistoriaPasoAPaso(mano)) return null;
             if (mano.SalpicaduraBloqueando || mano.TravesuraBloqueando
                 || mano.RasgunoBloqueando || mano.AullidoBloqueando
-                || mano.DestelloBloqueando || mano.EspejismoBloqueando) return null;
+                || mano.DestelloBloqueando || mano.EspejismoBloqueando
+                || mano.MandingaEspejoBloqueando || mano.MandingaEnganoBloqueando
+                || mano.MandingaMaldicionBloqueando) return null;
             if (mano.GanadorMano != null || mano.PartidaTerminada) return null;
             if (mano.EnvidoPendienteRespuestaHumano || mano.TrucoPendienteRespuestaHumano) return null;
             if (mano.CartaMaquinaEnMesa != null) return null;
@@ -124,6 +126,7 @@ namespace TrucoRPG.Dominio.Servicios
                 JuegoServicio.SumarPuntos(
                     mano, mano.GanadorMano, puntosMano, OrigenPuntos.TrucoMano, mano.CantorTruco);
                 mano.TrucoResuelto = true;
+                MandingaServicio.RegistrarFinMano(mano);
             }
             else if (!EsModoHistoriaPasoAPaso(mano))
             {

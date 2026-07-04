@@ -36,8 +36,12 @@ namespace TrucoRPG.API.Controllers
         private readonly ConfirmarAullidoUseCase       _confirmarAullido;
         private readonly ConfirmarDestelloUseCase      _confirmarDestello;
         private readonly ConfirmarEspejismoUseCase     _confirmarEspejismo;
+        private readonly ConfirmarMandingaEspejoUseCase  _confirmarMandingaEspejo;
+        private readonly ConfirmarMandingaEnganoUseCase  _confirmarMandingaEngano;
+        private readonly ConfirmarMandingaMaldicionUseCase _confirmarMandingaMaldicion;
         private readonly AvanzarMaquinaHistoriaUseCase _avanzarMaquinaHistoria;
         private readonly GanarAutomaticoDebugUseCase _ganarAutomaticoDebug;
+        private readonly SumarPuntosHumanoDebugUseCase _sumarPuntosHumanoDebug;
         private readonly HistoriaValidacionServicio    _historiaValidacion;
         private readonly IUsuarioActualServicio        _usuarioActual;
 
@@ -58,8 +62,12 @@ namespace TrucoRPG.API.Controllers
             ConfirmarAullidoUseCase       confirmarAullido,
             ConfirmarDestelloUseCase      confirmarDestello,
             ConfirmarEspejismoUseCase     confirmarEspejismo,
+            ConfirmarMandingaEspejoUseCase confirmarMandingaEspejo,
+            ConfirmarMandingaEnganoUseCase confirmarMandingaEngano,
+            ConfirmarMandingaMaldicionUseCase confirmarMandingaMaldicion,
             AvanzarMaquinaHistoriaUseCase avanzarMaquinaHistoria,
             GanarAutomaticoDebugUseCase   ganarAutomaticoDebug,
+            SumarPuntosHumanoDebugUseCase sumarPuntosHumanoDebug,
             HistoriaValidacionServicio    historiaValidacion,
             IUsuarioActualServicio        usuarioActual)
         {
@@ -79,8 +87,12 @@ namespace TrucoRPG.API.Controllers
             _confirmarAullido = confirmarAullido;
             _confirmarDestello = confirmarDestello;
             _confirmarEspejismo = confirmarEspejismo;
+            _confirmarMandingaEspejo = confirmarMandingaEspejo;
+            _confirmarMandingaEngano = confirmarMandingaEngano;
+            _confirmarMandingaMaldicion = confirmarMandingaMaldicion;
             _avanzarMaquinaHistoria = avanzarMaquinaHistoria;
             _ganarAutomaticoDebug = ganarAutomaticoDebug;
+            _sumarPuntosHumanoDebug = sumarPuntosHumanoDebug;
             _historiaValidacion = historiaValidacion;
             _usuarioActual      = usuarioActual;
         }
@@ -154,6 +166,18 @@ namespace TrucoRPG.API.Controllers
         [HttpPost("confirmar-espejismo")]
         public ActionResult<ManoTruco> ConfirmarEspejismo([FromBody] ConfirmarSalpicaduraRequest request) =>
             Ok(_confirmarEspejismo.Ejecutar(request.ManoId));
+
+        [HttpPost("confirmar-mandinga-espejo")]
+        public ActionResult<ManoTruco> ConfirmarMandingaEspejo([FromBody] ConfirmarSalpicaduraRequest request) =>
+            Ok(_confirmarMandingaEspejo.Ejecutar(request.ManoId));
+
+        [HttpPost("confirmar-mandinga-engano")]
+        public ActionResult<ManoTruco> ConfirmarMandingaEngano([FromBody] ConfirmarSalpicaduraRequest request) =>
+            Ok(_confirmarMandingaEngano.Ejecutar(request.ManoId));
+
+        [HttpPost("confirmar-mandinga-maldicion")]
+        public ActionResult<ManoTruco> ConfirmarMandingaMaldicion([FromBody] ConfirmarSalpicaduraRequest request) =>
+            Ok(_confirmarMandingaMaldicion.Ejecutar(request.ManoId));
 
         // ── Configuración ─────────────────────────────────────────────
 
@@ -288,5 +312,10 @@ namespace TrucoRPG.API.Controllers
         [HttpPost("ganar-automatico-debug")]
         public ActionResult<ManoTruco> GanarAutomaticoDebug([FromBody] CantarEnvidoRequest request) =>
             Ok(_ganarAutomaticoDebug.Ejecutar(request.ManoId));
+
+        /// <summary>SOLO PRUEBAS: suma 10 puntos al humano contra El Mandinga. Eliminar antes de producción.</summary>
+        [HttpPost("sumar-puntos-humano-debug")]
+        public ActionResult<ManoTruco> SumarPuntosHumanoDebug([FromBody] CantarEnvidoRequest request) =>
+            Ok(_sumarPuntosHumanoDebug.Ejecutar(request.ManoId));
     }
 }
