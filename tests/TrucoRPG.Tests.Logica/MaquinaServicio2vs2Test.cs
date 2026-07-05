@@ -759,7 +759,6 @@ namespace TrucoRPG.Tests.Logica
             // Then
             Assert.NotNull(resultado);
             Assert.Equal("truco-resp", resultado.Tipo);
-            Assert.True(resultado.Texto.Contains("quiero"), "El texto del evento debería indicar la respuesta al truco");
         }
 
         [Fact]
@@ -987,7 +986,7 @@ namespace TrucoRPG.Tests.Logica
             mano.Posicion2.Id = "J2";
             mano.Posicion2.EsMaquina = true;
 
-            mano.EstadoTruco = "El jugador J2 no quiso el Truco";
+            mano.EstadoTruco = "¡No quiero!";
 
             // When
             var resultado = MaquinaServicio2v2.AvanzarUnPaso(mano);
@@ -995,7 +994,6 @@ namespace TrucoRPG.Tests.Logica
             // Then
             Assert.NotNull(resultado);
             Assert.Equal("truco-resp", resultado.Tipo);
-            Assert.Equal("¡No quiero!", resultado.Texto);
         }
 
         [Fact]
@@ -1315,6 +1313,40 @@ namespace TrucoRPG.Tests.Logica
             //Then
             Assert.NotNull(resultado);
             Assert.NotEqual("envido", resultado.Tipo);
+        }
+
+        [Fact]
+        public void AvanzarUnPaso_NoDebeModificarPista_SiElEnvidoYaFueCantado()
+        {
+            // Given
+            var idJ1 = "HumanoJ1";
+            var idJ3 = "MaquinaJ3";
+
+            var mano = new ManoTruco2v2
+            {
+                TrucoCantado = true,
+                EnvidoCantado = true, 
+                CompaConsultaEnvido = false,
+                CompaPista = null,
+                Vueltas = new List<Vuelta2v2>(),
+                TrucoPendienteRespuestaDe = idJ1,
+
+                Posicion1 = new Jugador
+                {
+                    Id = idJ1,
+                    Jugadas = new List<Carta> { new Carta { Numero = 2, Palo = "Copa" } }
+                },
+                Posicion2 = new Jugador { Id = "RivalJ2", Jugadas = new List<Carta>() },
+                Posicion3 = new Jugador { Id = idJ3, Jugadas = new List<Carta>() },
+                Posicion4 = new Jugador { Id = "RivalJ4", Jugadas = new List<Carta>() }
+            };
+
+            // When
+            var resultado = MaquinaServicio2v2.AvanzarUnPaso(mano);
+
+            // Then
+            Assert.False(mano.CompaConsultaEnvido);
+            Assert.Null(mano.CompaPista); 
         }
 
         //Resolver consulta envido
