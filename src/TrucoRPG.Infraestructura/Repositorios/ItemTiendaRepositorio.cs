@@ -14,6 +14,11 @@ public class ItemTiendaRepositorio : IItemTiendaRepositorio
         _context = context;
     }
 
+    public async Task<ItemTienda?> ObtenerItemPorIdAsync(int idItemTienda)
+    {
+        return await _context.Items.FindAsync(idItemTienda);
+    }
+
     public async Task<List<ItemTienda>> ObtenerTodosLosItemsAsync()
     {
         return await _context.Items.ToListAsync();

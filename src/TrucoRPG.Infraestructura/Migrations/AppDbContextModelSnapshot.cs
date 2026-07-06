@@ -292,6 +292,31 @@ namespace TrucoRPG.Infraestructura.Migrations
                         });
                 });
 
+            modelBuilder.Entity("TrucoRPG.Dominio.Entities.Inventario", b =>
+                {
+                    b.Property<string>("UsuarioId")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<int>("ItemTiendaId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Cantidad")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.Property<bool>("Equipado")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(false);
+
+                    b.HasKey("UsuarioId", "ItemTiendaId");
+
+                    b.HasIndex("ItemTiendaId");
+
+                    b.ToTable("Inventarios");
+                });
+
             modelBuilder.Entity("TrucoRPG.Dominio.Entities.ItemTienda", b =>
                 {
                     b.Property<int>("Id")
@@ -299,6 +324,9 @@ namespace TrucoRPG.Infraestructura.Migrations
                         .HasColumnType("int");
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Acumulable")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<string>("Categoria")
                         .IsRequired()
@@ -335,6 +363,7 @@ namespace TrucoRPG.Infraestructura.Migrations
                         new
                         {
                             Id = 1,
+                            Acumulable = false,
                             Categoria = "HABILIDADES",
                             Descripcion = "Te otorga la habilidad del manipulador en una partida",
                             Img = "/assets/objetos/objeto.png",
@@ -344,6 +373,7 @@ namespace TrucoRPG.Infraestructura.Migrations
                         new
                         {
                             Id = 2,
+                            Acumulable = false,
                             Categoria = "HABILIDADES",
                             Descripcion = "Te otorga la habilidad del timbero en una partida",
                             Img = "/assets/objetos/objeto.png",
@@ -353,6 +383,7 @@ namespace TrucoRPG.Infraestructura.Migrations
                         new
                         {
                             Id = 3,
+                            Acumulable = false,
                             Categoria = "HABILIDADES",
                             Descripcion = "Te otorga la habilidad del fanfarron en una partida",
                             Img = "/assets/objetos/objeto.png",
@@ -362,6 +393,7 @@ namespace TrucoRPG.Infraestructura.Migrations
                         new
                         {
                             Id = 4,
+                            Acumulable = false,
                             Categoria = "HABILIDADES",
                             Descripcion = "Te otorga la habilidad del mentiroso en una partida",
                             Img = "/assets/objetos/objeto.png",
@@ -371,6 +403,7 @@ namespace TrucoRPG.Infraestructura.Migrations
                         new
                         {
                             Id = 5,
+                            Acumulable = false,
                             Categoria = "ARMARIO",
                             Descripcion = "Cambia el color de tu Poncho a rosa",
                             Img = "/assets/objetos/GotaRosa.png",
@@ -381,6 +414,7 @@ namespace TrucoRPG.Infraestructura.Migrations
                         new
                         {
                             Id = 6,
+                            Acumulable = false,
                             Categoria = "ARMARIO",
                             Descripcion = "Cambia el color de tu Poncho a marrón",
                             Img = "/assets/objetos/GotaMarron.png",
@@ -391,6 +425,7 @@ namespace TrucoRPG.Infraestructura.Migrations
                         new
                         {
                             Id = 7,
+                            Acumulable = false,
                             Categoria = "ARMARIO",
                             Descripcion = "Cambia el color de tu Poncho a rojo",
                             Img = "/assets/objetos/GotaRoja.png",
@@ -401,6 +436,7 @@ namespace TrucoRPG.Infraestructura.Migrations
                         new
                         {
                             Id = 8,
+                            Acumulable = false,
                             Categoria = "ARMARIO",
                             Descripcion = "Cambia el color de tu Poncho a azul",
                             Img = "/assets/objetos/GotaAzul.png",
@@ -594,6 +630,25 @@ namespace TrucoRPG.Infraestructura.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("HeroeSeleccionado");
+                });
+
+            modelBuilder.Entity("TrucoRPG.Dominio.Entities.Inventario", b =>
+                {
+                    b.HasOne("TrucoRPG.Dominio.Entities.ItemTienda", "ItemTienda")
+                        .WithMany()
+                        .HasForeignKey("ItemTiendaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TrucoRPG.Dominio.Entities.ApplicationUser", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ItemTienda");
+
+                    b.Navigation("Usuario");
                 });
 
             modelBuilder.Entity("TrucoRPG.Dominio.Entities.ProgresoPartida", b =>

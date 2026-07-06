@@ -15,5 +15,6 @@ namespace TrucoRPG.Dominio.Entities
         public string Categoria { get; set; } = string.Empty;
         public string Img { get; set; } = string.Empty;
         public string? SpriteKey { get; set; }
+        public bool Acumulable { get; set; }
     }
 }

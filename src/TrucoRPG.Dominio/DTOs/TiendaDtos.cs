@@ -15,6 +15,7 @@ namespace TrucoRPG.Dominio.DTOs
         public int Precio { get; set; }
         public string Img { get; set; } = string.Empty;
         public string? SpriteKey { get; set; }
+        public bool Acumulable { get; set; }
     }
 
     public class CategoriaTiendaDto

@@ -1,8 +1,9 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TrucoRPG.API.Models;
 using TrucoRPG.Dominio.UseCases;
+using TrucoRPG.Dominio.Repositorios;
 
 namespace TrucoRPG.API.Controllers
 {
@@ -16,19 +17,19 @@ namespace TrucoRPG.API.Controllers
     [Produces("application/json")]
     public class AuthController : ControllerBase
     {
-        private readonly RegisterUseCase               _registerUseCase;
-        private readonly LoginUseCase                  _loginUseCase;
-        private readonly CambiarPasswordUseCase        _cambiarPasswordUseCase;
-        private readonly SolicitarResetPasswordUseCase _solicitarResetUseCase;
-        private readonly ResetPasswordUseCase          _resetPasswordUseCase;
+        private readonly IRegisterUseCase               _registerUseCase;
+        private readonly ILoginUseCase                  _loginUseCase;
+        private readonly ICambiarPasswordUseCase        _cambiarPasswordUseCase;
+        private readonly ISolicitarResetPasswordUseCase _solicitarResetUseCase;
+        private readonly IResetPasswordUseCase          _resetPasswordUseCase;
         private readonly ILogger<AuthController>       _logger;
 
         public AuthController(
-            RegisterUseCase registerUseCase,
-            LoginUseCase loginUseCase,
-            CambiarPasswordUseCase cambiarPasswordUseCase,
-            SolicitarResetPasswordUseCase solicitarResetUseCase,
-            ResetPasswordUseCase resetPasswordUseCase,
+            IRegisterUseCase registerUseCase,
+            ILoginUseCase loginUseCase,
+            ICambiarPasswordUseCase cambiarPasswordUseCase,
+            ISolicitarResetPasswordUseCase solicitarResetUseCase,
+            IResetPasswordUseCase resetPasswordUseCase,
             ILogger<AuthController> logger)
         {
             _registerUseCase        = registerUseCase;

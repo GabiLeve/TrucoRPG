@@ -12,7 +12,8 @@ namespace TrucoRPG.Dominio.Mapeos
             Descripcion = item.Descripcion,
             Precio = item.Precio,
             Img = item.Img,
-            SpriteKey = item.SpriteKey
+            SpriteKey = item.SpriteKey,
+            Acumulable = item.Acumulable
         };
 
         /// <summary>Agrupa los ítems por categoría (en mayúsculas) y los mapea a DTOs.</summary>
