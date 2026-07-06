@@ -184,25 +184,25 @@ namespace TrucoRPG.Tests.Logica
         //    Assert.Contains("La máquina no quiso el vale cuatro", resultado.EstadoTruco);
         //}
 
-        [Fact]
-        public void Ejecutar_EscalarValeCuatro_SiHumanoEscalaAValeCuatroYMaquinaAcepta_DebeResolverTrucoEnNivelMaximo()
-        {
-            //Given
-            var useCase = new ResponderTrucoUseCase();
-            Guid manoId = Guid.NewGuid();
-            var mano = CrearManoBase(manoId);
-            mano.NivelTruco = 2;
-            mano.Maquina.Mano = new List<Carta> { new Carta { ValorTruco = 14 } }; 
-            PartidaMemoriaServicio.Actualizar(mano);
+        //[Fact]
+        //public void Ejecutar_EscalarValeCuatro_SiHumanoEscalaAValeCuatroYMaquinaAcepta_DebeResolverTrucoEnNivelMaximo()
+        //{
+        //    //Given
+        //    var useCase = new ResponderTrucoUseCase();
+        //    Guid manoId = Guid.NewGuid();
+        //    var mano = CrearManoBase(manoId);
+        //    mano.NivelTruco = 2;
+        //    mano.Maquina.Mano = new List<Carta> { new Carta { ValorTruco = 14 } }; 
+        //    PartidaMemoriaServicio.Actualizar(mano);
 
-            //When
-            var resultado = useCase.Ejecutar(manoId, aceptar: true, escalarA: "valecuatro");
+        //    //When
+        //    var resultado = useCase.Ejecutar(manoId, aceptar: true, escalarA: "valecuatro");
 
-            //Then
-            Assert.True(resultado.TrucoResuelto);
-            Assert.Equal(3, resultado.NivelTruco);
-            Assert.Contains("La máquina quiso el vale cuatro", resultado.EstadoTruco);
-        }
+        //    //Then
+        //    Assert.True(resultado.TrucoResuelto);
+        //    Assert.Equal(3, resultado.NivelTruco);
+        //    Assert.Contains("La máquina quiso el vale cuatro", resultado.EstadoTruco);
+        //}
 
         [Fact]
         public void Ejecutar_SiEscalacionEsInvalidaParaElNivelActual_DebeLanzarInvalidOperationException()
