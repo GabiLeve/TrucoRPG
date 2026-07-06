@@ -19,4 +19,8 @@
     <ProjectReference Include="..\TrucoRPG.Dominio\TrucoRPG.Dominio.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="TrucoRPG\Infraestructura\Data\Configurations\" />
+  </ItemGroup>
+
 </Project>

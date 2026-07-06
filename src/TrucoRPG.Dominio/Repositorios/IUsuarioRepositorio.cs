@@ -15,5 +15,7 @@ namespace TrucoRPG.Dominio.Repositorios
         Task CrearPersonaje(string userId, string spriteKey, Guid habilidad);
         Task<bool> PersonajeExistente(string userId);
         Task<Personaje> ObtenerPersonajeDelUsuario(string userId);
+        Task<Usuario?> ObtenerPorIdAsync(string userId);
+        Task<bool> ActualizarMonedasAsync(string userId, int nuevasMonedas);
     }
 }
