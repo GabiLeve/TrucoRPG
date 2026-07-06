@@ -106,17 +106,17 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IUsuarioActualServicio, UsuarioActualServicio>();
 builder.Services.AddScoped<IRivalRepositorio, RivalRepositorio>();
 builder.Services.AddScoped<IProgresoPartidaRepositorio, ProgresoPartidaRepositorio>();
+builder.Services.AddScoped<ICambiarPasswordUseCase, CambiarPasswordUseCase>();
+builder.Services.AddScoped<IRegisterUseCase, RegisterUseCase>();
 builder.Services.AddScoped<HistoriaValidacionServicio>();
 builder.Services.AddScoped<ObtenerRivalesHistoriaUseCase>();
 builder.Services.AddScoped<ObtenerProgresoHistoriaUseCase>();
 builder.Services.AddScoped<PuedePelearConRivalUseCase>();
 builder.Services.AddScoped<RegistrarVictoriaHistoriaUseCase>();
-builder.Services.AddScoped<RegisterUseCase>();
-builder.Services.AddScoped<LoginUseCase>();
-builder.Services.AddScoped<CambiarPasswordUseCase>();
-builder.Services.AddScoped<ResetPasswordUseCase>();
+builder.Services.AddScoped<ILoginUseCase, LoginUseCase>();
+builder.Services.AddScoped<IResetPasswordUseCase, ResetPasswordUseCase>();
 builder.Services.AddSingleton<IEmailService, EmailService>();
-builder.Services.AddScoped<SolicitarResetPasswordUseCase>(sp =>
+builder.Services.AddScoped<ISolicitarResetPasswordUseCase, SolicitarResetPasswordUseCase>(sp =>
 {
     var repo       = sp.GetRequiredService<IUsuarioRepositorio>();
     var email      = sp.GetRequiredService<IEmailService>();
