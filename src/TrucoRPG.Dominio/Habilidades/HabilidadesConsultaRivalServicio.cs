@@ -15,9 +15,28 @@ namespace TrucoRPG.Dominio.Habilidades
                 RasgunoActivo = mano.RasgunoActivo,
                 RasgunoBloqueando = mano.RasgunoBloqueando,
                 AullidoBloqueando = mano.AullidoBloqueando,
+                DestelloBloqueando = mano.DestelloBloqueando,
+                EspejismoActivo = mano.EspejismoActivo,
+                EspejismoBloqueando = mano.EspejismoBloqueando,
+                EspejismoAlternando = mano.EspejismoAlternando,
+                EspejismoMostrarFakePrimero = mano.EspejismoMostrarFakePrimero,
+                EspejismoCartaFalsa = mano.EspejismoCartaFalsa is null
+                    ? null
+                    : new CartaReferencia
+                    {
+                        Numero = mano.EspejismoCartaFalsa.Numero,
+                        Palo = mano.EspejismoCartaFalsa.Palo
+                    },
                 CartasOcultasTravesura = mano.CartasOcultasTravesura
                     .Select(c => new CartaReferencia { Numero = c.Numero, Palo = c.Palo })
                     .ToList(),
+                MandingaFase2Desbloqueada = mano.MandingaFase2Desbloqueada,
+                MandingaFase3Desbloqueada = mano.MandingaFase3Desbloqueada,
+                MandingaEspejoBloqueando = mano.MandingaEspejoBloqueando,
+                MandingaEnganoBloqueando = mano.MandingaEnganoBloqueando,
+                MandingaEnganoManoOculta = mano.MandingaEnganoManoOculta,
+                MandingaMaldicionBloqueando = mano.MandingaMaldicionBloqueando,
+                MandingaMaldicionActivaEnMano = mano.MandingaMaldicionActivaEnMano,
                 UltimoMensajeHabilidad = mano.UltimoMensajeHabilidadRival
             };
     }

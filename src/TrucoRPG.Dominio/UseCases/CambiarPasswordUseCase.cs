@@ -2,7 +2,7 @@
 
 namespace TrucoRPG.Dominio.UseCases
 {
-    public class CambiarPasswordUseCase :ICambiarPasswordUseCase
+    public class CambiarPasswordUseCase : ICambiarPasswordUseCase
     {
         private readonly IUsuarioRepositorio _usuarioRepo;
 

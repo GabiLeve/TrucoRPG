@@ -24,6 +24,8 @@ namespace TrucoRPG.Dominio.UseCases
                 && !mano.TravesuraBloqueando && !mano.RasgunoBloqueando)
                 MaquinaServicio.ProcesarIniciativa(mano);
 
+            DestelloServicio.EvaluarTurnoHumano(mano);
+
             HabilidadesOrquestador.ActualizarVistas(mano);
             HabilidadesRivalOrquestador.ActualizarVista(mano);
 
