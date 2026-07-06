@@ -106,12 +106,12 @@ builder.Services.AddScoped<ObtenerRivalesHistoriaUseCase>();
 builder.Services.AddScoped<ObtenerProgresoHistoriaUseCase>();
 builder.Services.AddScoped<PuedePelearConRivalUseCase>();
 builder.Services.AddScoped<RegistrarVictoriaHistoriaUseCase>();
-builder.Services.AddScoped<RegisterUseCase>();
-builder.Services.AddScoped<LoginUseCase>();
-builder.Services.AddScoped<CambiarPasswordUseCase>();
-builder.Services.AddScoped<ResetPasswordUseCase>();
+builder.Services.AddScoped<IRegisterUseCase, RegisterUseCase>();
+builder.Services.AddScoped<ILoginUseCase, LoginUseCase>();
+builder.Services.AddScoped<ICambiarPasswordUseCase, CambiarPasswordUseCase>();
+builder.Services.AddScoped<IResetPasswordUseCase, ResetPasswordUseCase>();
 builder.Services.AddSingleton<IEmailService, EmailService>();
-builder.Services.AddScoped<SolicitarResetPasswordUseCase>(sp =>
+builder.Services.AddScoped<ISolicitarResetPasswordUseCase>(sp =>
 {
     var repo       = sp.GetRequiredService<IUsuarioRepositorio>();
     var email      = sp.GetRequiredService<IEmailService>();
