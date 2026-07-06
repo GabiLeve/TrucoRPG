@@ -1,4 +1,4 @@
-using TrucoRPG.Dominio.Repositorios;
+﻿using TrucoRPG.Dominio.Repositorios;
 using TrucoRPG.Dominio.Servicios;
 
 namespace TrucoRPG.Dominio.UseCases

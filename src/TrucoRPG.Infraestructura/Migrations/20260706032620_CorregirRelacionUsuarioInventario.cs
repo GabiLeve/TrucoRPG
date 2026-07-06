@@ -11,56 +11,62 @@ namespace TrucoRPG.Infraestructura.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            // 1. Borramos la clave foránea tradicional de EF usando sintaxis nativa de MySQL sin "IF EXISTS"
             migrationBuilder.DropForeignKey(
-                name: "FK_Inventarios_Usuario_UsuarioId",
-                table: "Inventarios");
+                name: "fk_inventarios_usuario_usuarioid", // Nombre en minúsculas como se creó originalmente
+                table: "inventarios");
 
+            // 2. Borramos la tabla vieja 'usuario'
             migrationBuilder.DropTable(
-                name: "Usuario");
+                name: "usuario");
 
+            // 3. Añadimos la nueva clave foránea apuntando todo en minúsculas (a aspnetusers)
             migrationBuilder.AddForeignKey(
-                name: "FK_Inventarios_AspNetUsers_UsuarioId",
-                table: "Inventarios",
-                column: "UsuarioId",
-                principalTable: "AspNetUsers",
-                principalColumn: "Id",
+                name: "fk_inventarios_aspnetusers_usuarioid",
+                table: "inventarios",
+                column: "usuarioid",
+                principalTable: "aspnetusers",
+                principalColumn: "id",
                 onDelete: ReferentialAction.Cascade);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            // Revertimos la relación apuntando a minúsculas
             migrationBuilder.DropForeignKey(
-                name: "FK_Inventarios_AspNetUsers_UsuarioId",
-                table: "Inventarios");
+                name: "fk_inventarios_aspnetusers_usuarioid",
+                table: "inventarios");
 
+            // Recreamos la tabla 'usuario' en minúsculas por si se hace un Rollback
             migrationBuilder.CreateTable(
-                name: "Usuario",
+                name: "usuario",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "varchar(255)", nullable: false)
+                    id = table.Column<string>(type: "varchar(255)", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Email = table.Column<string>(type: "longtext", nullable: false)
+                    email = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    HeroeSeleccionadoId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
-                    Monedas = table.Column<int>(type: "int", nullable: false),
-                    SpriteKey = table.Column<string>(type: "longtext", nullable: true)
+                    heroeseleccionadoid = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
+                    monedas = table.Column<int>(type: "int", nullable: false),
+                    spritekey = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    UserName = table.Column<string>(type: "longtext", nullable: false)
+                    username = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Usuario", x => x.Id);
+                    table.PrimaryKey("pk_usuario", x => x.id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
+            // Recreamos la FK vieja apuntando a minúsculas
             migrationBuilder.AddForeignKey(
-                name: "FK_Inventarios_Usuario_UsuarioId",
-                table: "Inventarios",
-                column: "UsuarioId",
-                principalTable: "Usuario",
-                principalColumn: "Id",
+                name: "fk_inventarios_usuario_usuarioid",
+                table: "inventarios",
+                column: "usuarioid",
+                principalTable: "usuario",
+                principalColumn: "id",
                 onDelete: ReferentialAction.Cascade);
         }
     }
