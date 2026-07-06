@@ -130,6 +130,10 @@ builder.Services.AddScoped<ObtenerTiendaUseCase>();
 builder.Services.AddScoped<VerificarPersonajeUseCase>();
 builder.Services.AddScoped<CrearPersonajeUseCase>();
 builder.Services.AddScoped<ObtenerPersonajeDelUsuarioUseCase>();
+builder.Services.AddScoped<IInventarioRepositorio, InventarioRepositorio>();
+builder.Services.AddScoped<ComprarItemUseCase>();
+builder.Services.AddScoped<ObtenerInventarioDelUsuarioUseCase>();
+builder.Services.AddScoped<ObtenerMonedasUseCase>();
 
 // ── Use Cases de Truco (vs. Máquina) ─────────────────────────────
 builder.Services.AddScoped<NuevaManoUseCase>();

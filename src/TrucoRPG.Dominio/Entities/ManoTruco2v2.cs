@@ -6,7 +6,7 @@ namespace TrucoRPG.Dominio.Entities
     /// EquipoB contiene jugadores en posiciones 2 y 4.
     /// Orden de turnos: posicion1 → posicion2 → posicion3 → posicion4 (horario).
     /// </summary>
-    public class ManoTruco2v2
+    public class ManoTruco2v2 : IManoEnvidoEquipos
     {
         public Guid Id { get; set; } = Guid.NewGuid();
         public int NumeroDeMano { get; set; } = 1;
@@ -122,5 +122,13 @@ namespace TrucoRPG.Dominio.Entities
 
         public int ObtenerPuntosEquipo(string equipoId) =>
             equipoId == "EquipoA" ? PuntosEquipoA : PuntosEquipoB;
+
+        // Implementación explícita de IManoEnvidoEquipos: no altera el JSON serializado.
+        List<string> IManoEnvidoEquipos.JugadoresActivos => new();
+
+        int IManoEnvidoEquipos.VueltasJugadas() => Vueltas.Count;
+
+        IEnumerable<Jugador> IManoEnvidoEquipos.JugadoresDelEquipo(string equipoId) =>
+            ObtenerEquipo(equipoId).Jugadores;
     }
 }

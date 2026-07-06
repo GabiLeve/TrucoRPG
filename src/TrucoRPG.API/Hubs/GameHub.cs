@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.SignalR;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.SignalR;
 using System.Collections.Concurrent;
 using TrucoRPG.API.Services;
 using TrucoRPG.Dominio.Entities;
@@ -6,6 +7,7 @@ using TrucoRPG.Dominio.Servicios;
 
 namespace TrucoRPG.API.Hubs;
 
+[Authorize]
 public class GameHub : Hub
 {
     private readonly SalaService _salas;
@@ -29,7 +31,11 @@ public class GameHub : Hub
 
     public async Task<bool> UnirseASala(string codigo)
     {
-        var r = _salas.UnirseASala(Context.ConnectionId, codigo.ToUpperInvariant().Trim());
+        // Normalizar una sola vez: el grupo de SignalR debe ser EXACTAMENTE el mismo
+        // string que usó CrearSala (mayúsculas), si no el jugador queda en otro grupo
+        // y nunca recibe los broadcasts de la sala.
+        codigo = codigo.ToUpperInvariant().Trim();
+        var r = _salas.UnirseASala(Context.ConnectionId, codigo);
         if (!r.Ok) return false;
 
         await Groups.AddToGroupAsync(Context.ConnectionId, codigo);
@@ -267,6 +273,9 @@ public class GameHub : Hub
     public async Task NuevaPartida()
     {
         if (!_salas.TryGetEstado1v1(Context.ConnectionId, out var sala, out var state)) return;
+        // Solo se puede reiniciar cuando la partida terminó (evita que un jugador
+        // borre la partida en curso del rival).
+        if (!state!.Mano.PartidaTerminada) return;
         TrucoMulti1v1Servicio.IniciarNuevaMano(state, esPrimeraPartida: true);
         _salas.SetEstado1v1(sala!, state);
         await BroadcastTrucoEstado(sala!, state);

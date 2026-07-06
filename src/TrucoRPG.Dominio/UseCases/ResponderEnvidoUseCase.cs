@@ -122,6 +122,10 @@ namespace TrucoRPG.Dominio.UseCases
             mano.EnvidoResuelto     = true;
             mano.GanadorEnvido      = "Maquina";
             int puntosEnJuego       = EnvidoServicio.ObtenerPuntosSegunTipo(mano.TipoEnvidoCantado ?? "Envido");
+            // La Falta Envido no tiene valor fijo (ObtenerPuntosSegunTipo devuelve 0):
+            // vale lo que le falta al que va ganando para llegar a 30, igual que en ResolverEnvido.
+            if (mano.TipoEnvidoCantado == "FaltaEnvido")
+                puntosEnJuego = EnvidoServicio.CalcularPuntosFalta(Math.Max(mano.PuntosHumano, mano.PuntosMaquina));
             mano.PuntosEnvido       = puntosEnJuego;
             mano.EstadoEnvido       = $"Dijiste 'son buenas'. La máquina gana {puntosEnJuego} punto(s) de envido.";
 
