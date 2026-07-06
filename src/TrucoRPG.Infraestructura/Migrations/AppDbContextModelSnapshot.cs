@@ -359,7 +359,7 @@ namespace TrucoRPG.Infraestructura.Migrations
 
                     b.HasIndex("ItemTiendaId");
 
-                    b.ToTable("Inventarios");
+                    b.ToTable("inventarios");
                 });
 
             modelBuilder.Entity("TrucoRPG.Dominio.Entities.ItemTienda", b =>
