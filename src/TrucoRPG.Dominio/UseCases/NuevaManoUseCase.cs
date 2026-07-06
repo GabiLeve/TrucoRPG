@@ -40,6 +40,8 @@ namespace TrucoRPG.Dominio.UseCases
             // que se recrea con cada mano. Lo trasladamos del anterior para que el conteo
             // persista entre manos; si no, la habilidad volvería a estar disponible cada mano.
             TrasladarCooldownHabilidades(anterior, mano);
+            TrasladarEstadoDestello(anterior, mano);
+            MandingaServicio.TrasladarEstadoPartida(anterior, mano);
 
             HabilidadesOrquestador.Disparar(mano, EventoPartida.ManoIniciada);
             HabilidadesRivalOrquestador.Disparar(mano, EventoPartida.ManoIniciada);
@@ -49,9 +51,14 @@ namespace TrucoRPG.Dominio.UseCases
 
             if (mano.ManoIniciadaPor == IdJugador.Maquina && !mano.SalpicaduraBloqueando
                 && !mano.TravesuraBloqueando && !mano.RasgunoBloqueando
-                && !mano.AullidoBloqueando && mano.GanadorMano == null
+                && !mano.AullidoBloqueando && !mano.DestelloBloqueando
+                && !mano.EspejismoBloqueando && !mano.MandingaEspejoBloqueando
+                && !mano.MandingaEnganoBloqueando && !mano.MandingaMaldicionBloqueando
+                && mano.GanadorMano == null
                 && !MaquinaServicio.EsModoHistoriaPasoAPaso(mano))
                 MaquinaServicio.ProcesarIniciativa(mano);
+
+            DestelloServicio.EvaluarTurnoHumano(mano);
 
             PartidaMemoriaServicio.Guardar(mano);
             return mano;
@@ -72,9 +79,14 @@ namespace TrucoRPG.Dominio.UseCases
 
             if (mano.ManoIniciadaPor == IdJugador.Maquina && !mano.SalpicaduraBloqueando
                 && !mano.TravesuraBloqueando && !mano.RasgunoBloqueando
-                && !mano.AullidoBloqueando && mano.GanadorMano == null
+                && !mano.AullidoBloqueando && !mano.DestelloBloqueando
+                && !mano.EspejismoBloqueando && !mano.MandingaEspejoBloqueando
+                && !mano.MandingaEnganoBloqueando && !mano.MandingaMaldicionBloqueando
+                && mano.GanadorMano == null
                 && !MaquinaServicio.EsModoHistoriaPasoAPaso(mano))
                 MaquinaServicio.ProcesarIniciativa(mano);
+
+            DestelloServicio.EvaluarTurnoHumano(mano);
 
             PartidaMemoriaServicio.Guardar(mano);
             return mano;
@@ -85,6 +97,14 @@ namespace TrucoRPG.Dominio.UseCases
         /// alguna vez) desde la mano anterior a la nueva, por cada jugador. Sin esto el contador
         /// se reiniciaría en cada mano y la habilidad quedaría siempre disponible.
         /// </summary>
+        private static void TrasladarEstadoDestello(ManoTruco? anterior, ManoTruco nueva)
+        {
+            if (anterior == null) return;
+            nueva.ContadorTurnosHumanoPartida = anterior.ContadorTurnosHumanoPartida;
+            nueva.DestelloPendiente = anterior.DestelloPendiente;
+            nueva.DestelloBazaObjetivo = anterior.DestelloBazaObjetivo;
+        }
+
         private static void TrasladarCooldownHabilidades(ManoTruco? anterior, ManoTruco nueva)
         {
             if (anterior == null) return;
