@@ -1,7 +1,9 @@
-using TrucoRPG.Dominio.Entities;
+﻿using TrucoRPG.Dominio.Entities;
+using System.Diagnostics.CodeAnalysis;
 
 namespace TrucoRPG.Dominio.DTOs
 {
+    [ExcludeFromCodeCoverage]
     public record RivalDto(
         Guid Id,
         int Nivel,

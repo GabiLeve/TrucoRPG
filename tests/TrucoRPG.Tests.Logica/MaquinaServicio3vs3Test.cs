@@ -307,6 +307,115 @@ namespace TrucoRPG.Tests.Logica
         }
 
         [Fact]
+        public void AvanzarUnPaso_MaquinaRespondeTrucoYDiceRetruco()
+        {
+            // Given
+            MaquinaServicio3v3.RandomNext = (max) => 10;
+            var mano = CrearMano();
+            mano.EquipoA.Jugadores.Clear();
+            mano.EquipoA.Jugadores.AddRange(new[] { mano.Posicion1, mano.Posicion3, mano.Posicion5 });
+
+            mano.EquipoB.Jugadores.Clear();
+            mano.EquipoB.Jugadores.AddRange(new[] { mano.Posicion2, mano.Posicion4, mano.Posicion6 });
+
+            mano.TrucoPendienteRespuestaDe = "J2";
+            mano.NivelTruco = 1;
+            mano.TrucoCantado = true;
+            mano.CantorTruco = "J1";
+            mano.EquipoCantorTruco = "EquipoA";
+            mano.JugadorMano = "J3";
+            mano.Posicion2.Mano = new List<Carta> { new Carta { ValorTruco = 14 } };
+            mano.Posicion4.Mano = new List<Carta>();
+            mano.Posicion6.Mano = new List<Carta>();
+
+            mano.TurnoActual = "J2";
+            // When
+            var resultado = MaquinaServicio3v3.AvanzarUnPaso(mano);
+
+            // Then
+            Assert.NotNull(resultado);
+            Assert.Equal("J2", resultado.Jugador);
+            Assert.Equal("truco", resultado.Tipo);
+            Assert.Equal("¡Retruco!", resultado.Texto);
+        }
+
+        [Fact]
+        public void AvanzarUnPaso_MaquinaRespondeEnvidoYRevira()
+        {
+            // Given
+            MaquinaServicio3v3.RandomNext = (max) => 1;
+
+            var mano = CrearMano();
+            mano.EquipoA.Jugadores.Clear();
+            mano.EquipoA.Jugadores.AddRange(new[] { mano.Posicion1, mano.Posicion3, mano.Posicion5 });
+
+            mano.EquipoB.Jugadores.Clear();
+            mano.EquipoB.Jugadores.AddRange(new[] { mano.Posicion2, mano.Posicion4, mano.Posicion6 });
+
+            mano.FaseEnvido = "pendiente_respuesta";
+            mano.EnvidoPendienteRespuestaDe = "J2";
+
+            mano.TipoEnvidoCantado = "Envido";
+
+            mano.Posicion2.Mano = new List<Carta>
+            {
+                new Carta { Palo = "Espada", Numero = 7 },
+                new Carta { Palo = "Espada", Numero = 6 },
+                new Carta { Palo = "Espada", Numero = 5 }
+            };
+
+            mano.CantorEnvido = "J1";
+            mano.TurnoActual = "J2";
+
+            MaquinaServicio3v3.RandomNext = (max) =>
+            {
+                mano.FaseEnvido = "pendiente_respuesta"; 
+                mano.TipoEnvidoCantado = "RealEnvido";   
+                return 1;
+            };
+
+            // When
+            var resultado = MaquinaServicio3v3.AvanzarUnPaso(mano);
+
+            // Then
+            Assert.NotNull(resultado);
+            Assert.Equal("J2", resultado.Jugador);
+            Assert.Equal("envido", resultado.Tipo);
+            Assert.Equal("¡RealEnvido!", resultado.Texto); 
+        }
+
+        [Fact]
+        public void AvanzarUnPaso_MaquinaNoQuiereEnvidoYRecuerdaTrucoPendiente()
+        {
+            // Given
+            var mano = CrearMano();
+
+            mano.FaseEnvido = "pendiente_respuesta";
+            mano.EnvidoPendienteRespuestaDe = "J2";
+            mano.TipoEnvidoCantado = "Falta Envido"; // Al ser Falta Envido, si tiene 0 tanto va a decir que no
+
+            // CONDICIÓN CRÍTICA: El truco está pendiente de respuesta por parte de J1 (el humano)
+            mano.TrucoPendienteRespuestaDe = "J1";
+
+            // Le damos cartas sin puntos para asegurar el "No quiero"
+            mano.Posicion2.Mano = new List<Carta>
+    {
+        new Carta { Palo = "Espada", Numero = 10 },
+        new Carta { Palo = "Basto", Numero = 11 },
+        new Carta { Palo = "Copa", Numero = 12 }
+    };
+
+            // When
+            var resultado = MaquinaServicio3v3.AvanzarUnPaso(mano);
+
+            // Then
+            Assert.NotNull(resultado);
+            Assert.Equal("J2", resultado.Jugador);
+            Assert.Equal("envido-resp", resultado.Tipo);
+            Assert.Equal("¡No quiero! ¿Y el truco?", resultado.Texto);
+        }
+
+        [Fact]
         public void AvanzarUnPaso_MaquinaRespondeEnvidoNoQuiero()
         {
             // Given
@@ -493,6 +602,80 @@ namespace TrucoRPG.Tests.Logica
             Assert.Equal("consulta-truco", resultado.Tipo);
         }
 
+        [Fact]
+        public void AvanzarUnPaso_CompaneroBotConsultaEnvido_DebeRetornarConsultaEnvido()
+        {
+            // Given
+            MaquinaServicio3v3.RandomNext = (max) => 1;
+            var mano = CrearMano();
+
+            // 1. Configuramos las referencias individuales de los equipos
+            mano.EquipoA.Id = "EquipoA";
+            mano.EquipoA.Jugador1 = mano.Posicion1; // J1 (Humano)
+            mano.EquipoA.Jugador2 = mano.Posicion3; // J3 (Bot Aliado)
+            mano.EquipoA.Jugador3 = mano.Posicion5; // J5 (Bot Aliado)
+
+            mano.EquipoB.Id = "EquipoB";
+            mano.EquipoB.Jugador1 = mano.Posicion2;
+            mano.EquipoB.Jugador2 = mano.Posicion4;
+            mano.EquipoB.Jugador3 = mano.Posicion6;
+
+            // 2. Llenamos las listas por si acaso
+            mano.EquipoA.Jugadores.Clear();
+            mano.EquipoA.Jugadores.AddRange(new[] { mano.Posicion1, mano.Posicion3, mano.Posicion5 });
+            mano.EquipoB.Jugadores.Clear();
+            mano.EquipoB.Jugadores.AddRange(new[] { mano.Posicion2, mano.Posicion4, mano.Posicion6 });
+
+            // Aseguramos que los jugadores sean válidos y máquinas
+            mano.Posicion3.EsMaquina = true;
+
+            // 3. CONFIGURACIÓN SINCRO DE TURNOS:
+            // Seteamos que el jugador mano es J3. Así ProximoActor(mano) devolverá "J3".
+            var actor = "J3";
+            mano.JugadorMano = actor;
+            mano.TurnoActual = actor;
+
+            // 4. Cargamos los Jugadores Activos en un orden rotado que deje a J3 al final de su equipo
+            // Si la ronda es J3 -> J4 -> J5 -> J6 -> J1 -> J2
+            // El orden del EquipoA es J3, J5, J1. ¡Por lo tanto el Último en el turno es J1!
+            // Para que J3 sea el ÚLTIMO, necesitamos que empiece J5:
+            mano.JugadoresActivos = new List<string> { "J5", "J6", "J1", "J2", "J3", "J4" };
+            mano.JugadorMano = "J5"; // Esto fuerza que el bucle de ObtenerOrdenTurno arranque en J5 y deje a J3 último.
+
+            // Hack de sincronización: Forzamos a que el sistema reconozca que el turno es de J3
+            // Si ProximoActor lee JugadorMano, lo ideal es que coincida con el TurnoActual.
+            // Dado que ProximoActor calcula el turno actual, le dejamos la mesa servida:
+            mano.TurnoActual = "J3";
+
+            // 5. BLINDAJE DE FASES GLOBALES
+            mano.PartidaTerminada = false;
+            mano.ManoTerminada = false;
+            mano.GanadorMano = null;
+            mano.PicaPica = false;
+            mano.CompaEnvidoConsultado = false;
+            mano.EnvidoCantado = false;
+            mano.EnvidoResuelto = false;
+            mano.TrucoCantado = false;
+            mano.TrucoPendienteRespuestaDe = null;
+            mano.Vueltas = new List<Vuelta3v3>(); // Vueltas.Count == 0
+
+            // Le asignamos cartas válidas a J3 para el cálculo
+            mano.Posicion3.Mano = new List<Carta>
+    {
+        new Carta { Palo = "Espada", Numero = 7 },
+        new Carta { Palo = "Espada", Numero = 6 },
+        new Carta { Palo = "Basto", Numero = 1 }
+    };
+
+            // When
+            var resultado = MaquinaServicio3v3.AvanzarUnPaso(mano);
+
+            // Then
+            Assert.NotNull(resultado);
+            Assert.Equal("J3", resultado.Jugador);
+            Assert.Equal("consulta-envido", resultado.Tipo);
+            Assert.Equal("¿Canto los tantos?", resultado.Texto);
+        }
 
         //Procesar maquina
         [Fact]

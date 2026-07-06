@@ -1212,6 +1212,62 @@ namespace TrucoRPG.Tests.Logica
         }
 
         [Fact]
+        public void AvanzarUnPaso_SiMaquinaCantaEnvido_YRespondeJ1_GeneraPistaYEvento()
+        {
+            // Given
+            var randomOriginal = MaquinaServicio2v2.RandomNext;
+            MaquinaServicio2v2.RandomNext = _ => 0; 
+
+            try
+            {
+                var mano = CrearMano();
+
+                mano.TurnoActual = "J4";
+                mano.Vueltas = new List<Vuelta2v2>();
+
+                mano.EnvidoCantado = false;
+                mano.EnvidoResuelto = false;
+                mano.TrucoCantado = false;
+                mano.TrucoPendienteRespuestaDe = null;
+
+                
+                mano.Posicion4.Mano = new List<Carta>
+                {
+                    new Carta { Palo = "Espada", Numero = 7, ValorTruco = 11 },
+                    new Carta { Palo = "Espada", Numero = 6, ValorTruco = 10 },
+                    new Carta { Palo = "Basto", Numero = 1, ValorTruco = 1 }
+                };
+
+                mano.Posicion3 = new Jugador
+                {
+                    Id = "J3",
+                    EsMaquina = false,
+                    Mano = new List<Carta>
+                    {
+                        new Carta { Palo = "Oro", Numero = 7, ValorTruco = 4 },
+                        new Carta { Palo = "Oro", Numero = 6, ValorTruco = 3 },
+                        new Carta { Palo = "Copa", Numero = 1, ValorTruco = 1 }
+                    }
+                };
+
+                // When
+                var resultado = MaquinaServicio2v2.AvanzarUnPaso(mano);
+
+                // Then
+                Assert.NotNull(resultado);
+                Assert.Equal("envido", resultado.Tipo);
+
+                Assert.True(mano.EnvidoCantado);
+                Assert.Equal("J1", mano.EnvidoPendienteRespuestaDe);
+                Assert.Equal("Tengo mucho", mano.CompaPista);
+            }
+            finally
+            {
+                MaquinaServicio2v2.RandomNext = randomOriginal;
+            }
+        }
+
+        [Fact]
         public void AvanzarUnPaso_TurnoNormal_J3ConsultaTruco_DevuelveConsultaTruco()
         {
             // Given

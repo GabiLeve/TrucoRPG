@@ -10,6 +10,9 @@ namespace TrucoRPG.Tests.Logica
 {
     public  class TrucoServicio3vs3Testcs
     {
+        //obtener siguiente prueba
+
+
         //responder
         [Fact]
         public void Responder_CuandoNoHayTrucoCantadoONoEsElTurnoDelJugador_DeberiaRetornarFalse()
@@ -257,5 +260,7 @@ namespace TrucoRPG.Tests.Logica
             Assert.True(mano.ManoTerminada);
             Assert.Equal("EquipoA", mano.GanadorMano);
         }
+
+
     }
 }

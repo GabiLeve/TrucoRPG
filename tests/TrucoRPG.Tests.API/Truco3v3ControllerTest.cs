@@ -903,6 +903,59 @@ namespace TrucoRPG.Tests.API
             Assert.NotNull(manoRetornada);
         }
 
+        //ordenar por mayor
+        [Fact]
+        public void OrdenarMayor_CuandoElJugadorEsRivalONoEsMaquina_DebeLanzarInvalidOperationException()
+        {
+            // Given
+            var controller = new Truco3v3Controller();
+            var manoId = Guid.NewGuid();
+            string rivalId = "J2"; 
+            var request = new Truco3v3OrdenMayorRequest(manoId, rivalId);
+
+            var manoSimulada = new ManoTruco3v3 { Id = manoId };
+            manoSimulada.Posicion2 = new Jugador
+            {
+                Id = rivalId,
+                EsMaquina = true, 
+                Mano = new List<Carta> { new Carta { Numero = 7, Palo = "Basto" } }
+            };
+
+            Truco3v3MemoriaServicio.Guardar(manoSimulada);
+
+            // When
+            Action action = () => controller.OrdenarMayor(request);
+
+            // Then
+            Assert.Throws<InvalidOperationException>(action);
+        }
+
+        [Fact]
+        public void OrdenarMayor_CuandoElBotNoTieneCartas_DebeLanzarInvalidOperationException()
+        {
+            // Given
+            var controller = new Truco3v3Controller();
+            var manoId = Guid.NewGuid();
+            string botCompaneroId = "J3";
+            var request = new Truco3v3OrdenMayorRequest(manoId, botCompaneroId);
+
+            var manoSimulada = new ManoTruco3v3 { Id = manoId };
+            manoSimulada.Posicion3 = new Jugador
+            {
+                Id = botCompaneroId,
+                EsMaquina = true,
+                Mano = new List<Carta>() 
+            };
+
+            Truco3v3MemoriaServicio.Guardar(manoSimulada);
+
+            //When
+            Action action = () => controller.OrdenarMayor(request);
+
+            // Then
+            Assert.Throws<InvalidOperationException>(action);
+        }
+
         //avanzar maquina
         [Fact]
         public void AvanzarMaquina_CuandoSeEjecutaElPaso_DebeActualizarLaMemoriaYRetornarOkConLaRespuesta()
