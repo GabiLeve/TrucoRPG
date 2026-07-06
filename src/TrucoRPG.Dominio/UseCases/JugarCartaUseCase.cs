@@ -20,6 +20,10 @@ namespace TrucoRPG.Dominio.UseCases
 
             SalpicaduraBloqueoServicio.ValidarNoBloqueado(mano);
 
+            int bazaAlJugar = mano.Bazas.Count + 1;
+            if (bazaAlJugar == 1 && mano.EspejismoActivo)
+                EspejismoServicio.Finalizar(mano);
+
             var cartaHumano = mano.Humano.Mano
                 .FirstOrDefault(c => c.Numero == numero &&
                                      c.Palo.Equals(palo, StringComparison.OrdinalIgnoreCase))
@@ -50,6 +54,8 @@ namespace TrucoRPG.Dominio.UseCases
                 mano.Maquina.Jugadas.Add(cartaMaquina);
                 MaquinaServicio.ResolverBazaJugada(mano, cartaHumano, cartaMaquina);
             }
+
+            DestelloServicio.RegistrarJugadaHumano(mano, bazaAlJugar);
 
             PartidaMemoriaServicio.Actualizar(mano);
             return mano;

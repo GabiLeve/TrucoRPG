@@ -11,16 +11,15 @@ namespace TrucoRPG.Infraestructura.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "Id",
-                table: "Inventarios");
+                name: "id",        
+                table: "inventarios");
         }
-
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<int>(
-                name: "Id",
-                table: "Inventarios",
+                name: "id",
+                table: "inventarios",
                 type: "int",
                 nullable: false,
                 defaultValue: 0);

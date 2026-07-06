@@ -1,8 +1,8 @@
-using TrucoRPG.Dominio.Repositorios;
+﻿using TrucoRPG.Dominio.Repositorios;
 
 namespace TrucoRPG.Dominio.UseCases
 {
-    public class CambiarPasswordUseCase
+    public class CambiarPasswordUseCase : ICambiarPasswordUseCase
     {
         private readonly IUsuarioRepositorio _usuarioRepo;
 

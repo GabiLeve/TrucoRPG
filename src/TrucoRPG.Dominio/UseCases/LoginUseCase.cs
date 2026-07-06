@@ -2,7 +2,7 @@
 
 namespace TrucoRPG.Dominio.UseCases
 {
-    public class LoginUseCase
+    public class LoginUseCase : ILoginUseCase
     {
         private readonly IUsuarioRepositorio _usuarioRepo;
         private readonly ITokenService       _tokenService;

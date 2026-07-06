@@ -27,6 +27,7 @@ namespace TrucoRPG.Dominio.UseCases
             mano.EstadoTruco        = $"Te fuiste al mazo. La máquina gana {puntosParaMaquina} punto(s).";
             JuegoServicio.SumarPuntos(
                 mano, IdJugador.Maquina, puntosParaMaquina, OrigenPuntos.TrucoMano, mano.CantorTruco);
+            MandingaServicio.RegistrarFinMano(mano);
 
             PartidaMemoriaServicio.Actualizar(mano);
             return mano;
