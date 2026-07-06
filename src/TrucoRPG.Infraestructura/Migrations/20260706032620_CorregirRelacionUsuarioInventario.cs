@@ -11,18 +11,19 @@ namespace TrucoRPG.Infraestructura.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_Inventarios_Usuario_UsuarioId",
-                table: "Inventarios");
+            // Borramos la FK usando SQL seguro con IF EXISTS por si acaso
+            migrationBuilder.Sql("ALTER TABLE `inventarios` DROP FOREIGN KEY IF EXISTS `FK_Inventarios_Usuario_UsuarioId`;");
+            migrationBuilder.Sql("ALTER TABLE `inventarios` DROP FOREIGN KEY IF EXISTS `fk_inventarios_usuario_usuarioid`;");
 
-            migrationBuilder.DropTable(
-                name: "Usuario");
+            // Borramos la tabla vieja en minúsculas
+            migrationBuilder.DropTable(name: "usuario");
 
+            // Creamos la nueva relación apuntando todo a las tablas en minúsculas
             migrationBuilder.AddForeignKey(
-                name: "FK_Inventarios_AspNetUsers_UsuarioId",
-                table: "Inventarios",
-                column: "UsuarioId",
-                principalTable: "AspNetUsers",
+                name: "fk_inventarios_aspnetusers_usuarioid",
+                table: "inventarios",       // <-- Minúsculas
+                column: "UsuarioId",        // Tu propiedad de C# (esta se mapea igual)
+                principalTable: "aspnetusers", // <-- Minúsculas (Identity en Linux)
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Cascade);
         }
