@@ -25,7 +25,7 @@ namespace TrucoRPG.Tests.API
 
             // Then 
             Assert.False(string.IsNullOrEmpty(codigoSala));
-            Assert.Equal(6, codigoSala.Length);
+            Assert.Equal(6, codigoSala.Length); 
         }
 
         //unirse
@@ -35,7 +35,7 @@ namespace TrucoRPG.Tests.API
             var salaService = new SalaService();
             var connectionIdCreador = "jugador_1";
             var connectionIdInvitado = "jugador_2";
-            var modo = "2v2";
+            var modo = "2v2"; 
 
             var codigoSala = salaService.CrearSala(connectionIdCreador, modo, publica: true);
 
@@ -45,7 +45,7 @@ namespace TrucoRPG.Tests.API
             // Then 
             Assert.True(resultado.Ok);
             Assert.Equal(modo, resultado.Modo);
-            Assert.Equal(2, resultado.Cantidad);
+            Assert.Equal(2, resultado.Cantidad); 
         }
 
         [Fact]
@@ -81,7 +81,7 @@ namespace TrucoRPG.Tests.API
             // Then
             Assert.False(resultado.Ok);
             Assert.Equal(modo, resultado.Modo);
-            Assert.Equal(1, resultado.Cantidad);
+            Assert.Equal(1, resultado.Cantidad); 
         }
 
         //abandonar sala
@@ -239,7 +239,7 @@ namespace TrucoRPG.Tests.API
             var salaService = new SalaService();
             var jugador1 = "jugador_1";
             salaService.CrearSala(jugador1, "2v2", publica: true);
-            var equipoInvalido = "cuartetoObrero";
+            var equipoInvalido = "cuartetoObrero"; 
 
             // When
             var resultado = salaService.ElegirEquipo(jugador1, equipoInvalido);
@@ -271,7 +271,7 @@ namespace TrucoRPG.Tests.API
             // Given 
             var salaService = new SalaService();
             var jugador1 = "jugador_1";
-            var modo = "1v1";
+            var modo = "1v1"; 
 
             salaService.CrearSala(jugador1, modo, publica: true);
 
@@ -299,7 +299,7 @@ namespace TrucoRPG.Tests.API
 
             // Then 
             Assert.NotNull(resultado);
-            Assert.False(resultado.TodosListos);
+            Assert.False(resultado.TodosListos); 
             Assert.Equal(1, resultado.CantidadListos);
             Assert.Equal(2, resultado.Requeridos);
         }
@@ -322,7 +322,7 @@ namespace TrucoRPG.Tests.API
 
             // Then 
             Assert.NotNull(resultado);
-            Assert.True(resultado.TodosListos);
+            Assert.True(resultado.TodosListos); 
             Assert.Equal(2, resultado.CantidadListos);
             Assert.Equal(2, resultado.Requeridos);
         }
@@ -385,8 +385,8 @@ namespace TrucoRPG.Tests.API
             Assert.False(resultado.SalaVacia);
 
             Assert.NotNull(resultado.EquiposMap);
-            Assert.False(resultado.EquiposMap.ContainsKey(jugador1));
-            Assert.True(resultado.EquiposMap.ContainsKey(jugador2));
+            Assert.False(resultado.EquiposMap.ContainsKey(jugador1)); 
+            Assert.True(resultado.EquiposMap.ContainsKey(jugador2));  
             Assert.Equal(modo, resultado.Modo);
         }
 

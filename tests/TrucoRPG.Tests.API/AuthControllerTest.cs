@@ -6,9 +6,10 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using TrucoRPG.API.Controllers;
 using TrucoRPG.API.Models;
-using TrucoRPG.Dominio.DTOs;
 using TrucoRPG.Dominio.Repositorios;
-using TrucoRPG.Dominio.UseCases;
+using TrucoRPG.Dominio.DTOs; 
+using System.Security.Claims;
+using System.Threading.Tasks;
 using Xunit;
 
 public class AuthControllerTests
@@ -85,7 +86,7 @@ public class AuthControllerTests
             .ThrowsAsync(new InvalidOperationException("El email ya está en uso."));
 
         // WHEN
-
+       
         Func<Task> accion = () => _authController.Registrar(dto);
 
         var excepcion = await Assert.ThrowsAsync<InvalidOperationException>(accion);
@@ -162,7 +163,7 @@ public class AuthControllerTests
 
         _cambiarPasswordUseCaseMock
             .Setup(x => x.EjecutarAsync(userId, dto.PasswordActual, dto.PasswordNueva))
-            .Returns(Task.CompletedTask);
+            .Returns(Task.CompletedTask); 
 
         // When
         var resultado = await _authController.CambiarPassword(dto);
@@ -231,7 +232,7 @@ public class AuthControllerTests
 
         _solicitarResetUseCaseMock
             .Setup(x => x.EjecutarAsync(dto.Email))
-            .Returns(Task.CompletedTask);
+            .Returns(Task.CompletedTask); 
 
         // When
         var resultado = await _authController.RecuperarPassword(dto);
@@ -268,7 +269,7 @@ public class AuthControllerTests
 
         _resetPasswordUseCaseMock
             .Setup(x => x.EjecutarAsync(dto.Email, dto.Token, dto.NuevaPassword))
-            .Returns(Task.CompletedTask);
+            .Returns(Task.CompletedTask); 
 
         // When
         var resultado = await _authController.RestablecerPassword(dto);

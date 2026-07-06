@@ -57,7 +57,7 @@ namespace TrucoRPG.Tests.API
             // Given
             var controller = new Truco3v3Controller();
             var manoId = Guid.NewGuid();
-            string jugadorHumanoId = "J1";
+            string jugadorHumanoId = "J1"; 
             var request = new Truco3v3CartaRequest(manoId, 7, "Espada");
 
             var manoSimulada = new ManoTruco3v3
@@ -100,7 +100,7 @@ namespace TrucoRPG.Tests.API
             var manoSimulada = new ManoTruco3v3
             {
                 Id = manoId,
-                ManoTerminada = true
+                ManoTerminada = true 
             };
 
             Truco3v3MemoriaServicio.Guardar(manoSimulada);
@@ -153,7 +153,7 @@ namespace TrucoRPG.Tests.API
                 ManoTerminada = false,
                 PartidaTerminada = false,
                 TrucoPendienteRespuestaDe = null,
-                EnvidoPendienteRespuestaDe = jugadorHumanoId
+                EnvidoPendienteRespuestaDe = jugadorHumanoId 
             };
 
             Truco3v3MemoriaServicio.Guardar(manoSimulada);
@@ -234,7 +234,7 @@ namespace TrucoRPG.Tests.API
             // Given
             var controller = new Truco3v3Controller();
             var manoId = Guid.NewGuid();
-            string jugadorHumanoId = "J1";
+            string jugadorHumanoId = "J1"; 
             var request = new Truco3v3EnvidoRequest(manoId, "Envido");
             var manoSimulada = new ManoTruco3v3
             {
@@ -242,8 +242,8 @@ namespace TrucoRPG.Tests.API
                 TurnoActual = jugadorHumanoId,
                 EnvidoCantado = false,
                 EnvidoResuelto = false,
-                FaseEnvido = "inicial",
-                NumeroDeMano = 1
+                FaseEnvido = "inicial", 
+                NumeroDeMano = 1      
             };
 
             manoSimulada.Posicion1 = new Jugador { Id = jugadorHumanoId, EsMaquina = false };
@@ -267,7 +267,7 @@ namespace TrucoRPG.Tests.API
             // Given
             var controller = new Truco3v3Controller();
             var manoId = Guid.NewGuid();
-            string jugadorHumanoId = "J1";
+            string jugadorHumanoId = "J1"; 
             var request = new Truco3v3ResponderEnvidoRequest(manoId, true, null);
             var manoSimulada = new ManoTruco3v3
             {
@@ -362,8 +362,8 @@ namespace TrucoRPG.Tests.API
             // Given
             var controller = new Truco3v3Controller();
             var manoId = Guid.NewGuid();
-            string jugadorHumanoId = "J1";
-            var request = new Truco3v3TantoRequest(manoId, 28);
+            string jugadorHumanoId = "J1"; 
+            var request = new Truco3v3TantoRequest(manoId, 28); 
             var manoSimulada = new ManoTruco3v3
             {
                 Id = manoId,
@@ -397,7 +397,7 @@ namespace TrucoRPG.Tests.API
             var manoSimulada = new ManoTruco3v3
             {
                 Id = manoId,
-                FaseEnvido = "pendiente_respuesta",
+                FaseEnvido = "pendiente_respuesta", 
                 EnvidoPendienteRespuestaDe = jugadorHumanoId
             };
 
@@ -421,7 +421,7 @@ namespace TrucoRPG.Tests.API
             {
                 Id = manoId,
                 FaseEnvido = "declarando_tantos",
-                EnvidoPendienteRespuestaDe = "J2"
+                EnvidoPendienteRespuestaDe = "J2" 
             };
 
             Truco3v3MemoriaServicio.Guardar(manoSimulada);
@@ -440,7 +440,7 @@ namespace TrucoRPG.Tests.API
             // Given
             var controller = new Truco3v3Controller();
             var manoId = Guid.NewGuid();
-            string jugadorHumanoId = "J1";
+            string jugadorHumanoId = "J1"; 
             var request = new Truco3v3Request(manoId);
             var manoSimulada = new ManoTruco3v3
             {
@@ -507,7 +507,7 @@ namespace TrucoRPG.Tests.API
 
             // When
             Action action = () => controller.SonBuenas(request);
-
+           
             // Then
             Assert.Throws<InvalidOperationException>(action);
         }
@@ -519,7 +519,7 @@ namespace TrucoRPG.Tests.API
             // Given
             var controller = new Truco3v3Controller();
             var manoId = Guid.NewGuid();
-            string jugadorHumanoId = "J1";
+            string jugadorHumanoId = "J1"; 
             var request = new Truco3v3Request(manoId);
             var manoSimulada = new ManoTruco3v3
             {
@@ -527,7 +527,7 @@ namespace TrucoRPG.Tests.API
                 TurnoActual = jugadorHumanoId,
                 TrucoCantado = false,
                 TrucoResuelto = false,
-                NivelTruco = 0,
+                NivelTruco = 0, 
                 ManoTerminada = false
             };
 
@@ -592,7 +592,7 @@ namespace TrucoRPG.Tests.API
                 ManoTerminada = false,
                 TrucoCantado = true,
                 TrucoResuelto = true,
-                NivelTruco = 1,
+                NivelTruco = 1,     
                 PuntosTrucoMano = 2,
                 PuedeEscalarTruco = jugadorHumanoId
             };
@@ -647,7 +647,7 @@ namespace TrucoRPG.Tests.API
             // Given
             var controller = new Truco3v3Controller();
             var manoId = Guid.NewGuid();
-            string jugadorHumanoId = "J1";
+            string jugadorHumanoId = "J1"; 
             var request = new Truco3v3ResponderTrucoRequest(manoId, true, null);
 
             var manoSimulada = new ManoTruco3v3
@@ -656,7 +656,7 @@ namespace TrucoRPG.Tests.API
                 TurnoActual = jugadorHumanoId,
                 TrucoCantado = true,
                 TrucoResuelto = false,
-                TrucoPendienteRespuestaDe = jugadorHumanoId,
+                TrucoPendienteRespuestaDe = jugadorHumanoId, 
                 ManoTerminada = false
             };
 
@@ -687,7 +687,7 @@ namespace TrucoRPG.Tests.API
                 Id = manoId,
                 TurnoActual = jugadorHumanoId,
                 TrucoCantado = true,
-                TrucoResuelto = true,
+                TrucoResuelto = true, 
                 TrucoPendienteRespuestaDe = null
             };
 
@@ -709,7 +709,7 @@ namespace TrucoRPG.Tests.API
             // Given
             var controller = new Truco3v3Controller();
             var manoId = Guid.NewGuid();
-            string jugadorHumanoId = "J1";
+            string jugadorHumanoId = "J1"; 
             var request = new Truco3v3Request(manoId);
 
             var manoSimulada = new ManoTruco3v3
@@ -778,9 +778,9 @@ namespace TrucoRPG.Tests.API
                 NumeroDeMano = 2,
                 PuntosEquipoA = 18,
                 PuntosEquipoB = 22,
-                GanadorMano = "EquipoB",
-                PartidaTerminada = false,
-                PicaPicaSlot = 1
+                GanadorMano = "EquipoB",     
+                PartidaTerminada = false, 
+                PicaPicaSlot = 1           
             };
 
             Truco3v3MemoriaServicio.Guardar(manoAnteriorSimulada);
@@ -832,7 +832,7 @@ namespace TrucoRPG.Tests.API
             {
                 Id = manoId,
                 GanadorMano = "EquipoA",
-                PartidaTerminada = true
+                PartidaTerminada = true 
             };
 
             Truco3v3MemoriaServicio.Guardar(manoAnteriorSimulada);
@@ -851,14 +851,14 @@ namespace TrucoRPG.Tests.API
             // Given
             var controller = new Truco3v3Controller();
             var manoId = Guid.NewGuid();
-            string jugadorHumanoId = "J1";
+            string jugadorHumanoId = "J1"; 
             var request = new Truco3v3ConsultaEnvidoRequest(manoId, true);
             var manoSimulada = new ManoTruco3v3
             {
                 Id = manoId,
                 TurnoActual = jugadorHumanoId,
-                CompaConsultaEnvido = true,
-                CompaEnvidoConsultado = false,
+                CompaConsultaEnvido = true,       
+                CompaEnvidoConsultado = false,    
                 CompaPista = "Tengo 29 para el tanto"
             };
 
@@ -887,7 +887,7 @@ namespace TrucoRPG.Tests.API
             var manoSimulada = new ManoTruco3v3
             {
                 Id = manoId,
-                CompaConsultaTruco = true,
+                CompaConsultaTruco = true,      
                 CompaTrucoConsultado = false
             };
 
@@ -910,14 +910,14 @@ namespace TrucoRPG.Tests.API
             // Given
             var controller = new Truco3v3Controller();
             var manoId = Guid.NewGuid();
-            string rivalId = "J2";
+            string rivalId = "J2"; 
             var request = new Truco3v3OrdenMayorRequest(manoId, rivalId);
 
             var manoSimulada = new ManoTruco3v3 { Id = manoId };
             manoSimulada.Posicion2 = new Jugador
             {
                 Id = rivalId,
-                EsMaquina = true,
+                EsMaquina = true, 
                 Mano = new List<Carta> { new Carta { Numero = 7, Palo = "Basto" } }
             };
 
@@ -944,7 +944,7 @@ namespace TrucoRPG.Tests.API
             {
                 Id = botCompaneroId,
                 EsMaquina = true,
-                Mano = new List<Carta>()
+                Mano = new List<Carta>() 
             };
 
             Truco3v3MemoriaServicio.Guardar(manoSimulada);
@@ -967,7 +967,7 @@ namespace TrucoRPG.Tests.API
             var manoSimulada = new ManoTruco3v3
             {
                 Id = manoId,
-                TurnoActual = "J2",
+                TurnoActual = "J2", 
                 ManoTerminada = false,
                 PartidaTerminada = false
             };
