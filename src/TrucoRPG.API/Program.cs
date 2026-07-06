@@ -106,12 +106,12 @@ builder.Services.AddScoped<ObtenerRivalesHistoriaUseCase>();
 builder.Services.AddScoped<ObtenerProgresoHistoriaUseCase>();
 builder.Services.AddScoped<PuedePelearConRivalUseCase>();
 builder.Services.AddScoped<RegistrarVictoriaHistoriaUseCase>();
-builder.Services.AddScoped<RegisterUseCase>();
-builder.Services.AddScoped<LoginUseCase>();
-builder.Services.AddScoped<CambiarPasswordUseCase>();
-builder.Services.AddScoped<ResetPasswordUseCase>();
+builder.Services.AddScoped<IRegisterUseCase, RegisterUseCase>();
+builder.Services.AddScoped<ILoginUseCase, LoginUseCase>();
+builder.Services.AddScoped<ICambiarPasswordUseCase, CambiarPasswordUseCase>();
+builder.Services.AddScoped<IResetPasswordUseCase, ResetPasswordUseCase>();
 builder.Services.AddSingleton<IEmailService, EmailService>();
-builder.Services.AddScoped<SolicitarResetPasswordUseCase>(sp =>
+builder.Services.AddScoped<ISolicitarResetPasswordUseCase>(sp =>
 {
     var repo       = sp.GetRequiredService<IUsuarioRepositorio>();
     var email      = sp.GetRequiredService<IEmailService>();
@@ -145,8 +145,14 @@ builder.Services.AddScoped<ConfirmarSalpicaduraUseCase>();
 builder.Services.AddScoped<ConfirmarTravesuraUseCase>();
 builder.Services.AddScoped<ConfirmarRasgunoUseCase>();
 builder.Services.AddScoped<ConfirmarAullidoUseCase>();
+builder.Services.AddScoped<ConfirmarDestelloUseCase>();
+builder.Services.AddScoped<ConfirmarEspejismoUseCase>();
+builder.Services.AddScoped<ConfirmarMandingaEspejoUseCase>();
+builder.Services.AddScoped<ConfirmarMandingaEnganoUseCase>();
+builder.Services.AddScoped<ConfirmarMandingaMaldicionUseCase>();
 builder.Services.AddScoped<AvanzarMaquinaHistoriaUseCase>();
 builder.Services.AddScoped<GanarAutomaticoDebugUseCase>();
+builder.Services.AddScoped<SumarPuntosHumanoDebugUseCase>();
 
 // ── Servicios de sala (singleton: el estado de salas debe sobrevivir entre requests) ──
 builder.Services.AddSingleton<SalaService>();

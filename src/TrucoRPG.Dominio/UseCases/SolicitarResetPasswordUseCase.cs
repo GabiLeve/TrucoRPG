@@ -3,7 +3,7 @@ using TrucoRPG.Dominio.Servicios;
 
 namespace TrucoRPG.Dominio.UseCases
 {
-    public class SolicitarResetPasswordUseCase
+    public class SolicitarResetPasswordUseCase : ISolicitarResetPasswordUseCase
     {
         private readonly IUsuarioRepositorio _usuarioRepo;
         private readonly IEmailService       _emailService;

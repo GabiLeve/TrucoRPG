@@ -562,11 +562,11 @@ namespace TrucoRPG.Infraestructura.Migrations
                         {
                             Id = new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa5"),
                             Descripcion = "Jefe final de la historia. Domina el trono con tres fases de combate.",
-                            DescripcionHabilidad = "Jefe final con 3 fases y distintas habilidades según los puntos que le quedan para ganar. (Próximamente.)",
+                            DescripcionHabilidad = "Fase I (siempre): cada 2 manos maldice la mesa. Fase II (10+ pts tuyos): El Engaño. Fase III (20+ pts tuyos): El Espejo.",
                             Nivel = 5,
                             Nombre = "Mandinga",
                             NombreHabilidad = "Fases",
-                            TipoHabilidad = 0,
+                            TipoHabilidad = 6,
                             TipoRival = 5
                         });
                 });
