@@ -134,4 +134,67 @@ public class MandingaServicioTests
     Assert.True(mano.MandingaEnganoManoOculta);
     Assert.False(mano.MandingaEnganoBloqueando);
   }
+
+  [Fact]
+  public void ConfirmarEspejo_LimpiaBloqueoYSeteaMensaje()
+  {
+    var mano = CrearManoMandinga();
+    mano.MandingaEspejoBloqueando = true;
+
+    MandingaServicio.ConfirmarEspejo(mano);
+
+    Assert.False(mano.MandingaEspejoBloqueando);
+    Assert.Contains("Espejo", mano.UltimoMensajeHabilidadRival);
+  }
+
+  [Fact]
+  public void ConfirmarMaldicion_ActivaMaldicion()
+  {
+    var mano = CrearManoMandinga();
+    mano.MandingaMaldicionBloqueando = true;
+
+    MandingaServicio.ConfirmarMaldicion(mano);
+
+    Assert.False(mano.MandingaMaldicionBloqueando);
+    Assert.True(mano.MandingaMaldicionActivaEnMano);
+  }
+
+  [Fact]
+  public void SincronizarDesbloqueosFases_Con20Puntos_DesbloqueaFase3()
+  {
+    var mano = CrearManoMandinga(puntosHumano: 20);
+
+    MandingaServicio.SincronizarDesbloqueosFases(mano);
+
+    Assert.True(mano.MandingaFase2Desbloqueada);
+    Assert.True(mano.MandingaFase3Desbloqueada);
+  }
+
+  [Fact]
+  public void RegistrarFinMano_GuardaJugadasHumanoParaEspejo()
+  {
+    var mano = CrearManoMandinga();
+    mano.Bazas.Add(new Baza
+    {
+      CartaJugador = new Carta { Numero = 1, Palo = "Espada", ValorTruco = 14 },
+      CartaMaquina = new Carta { Numero = 4, Palo = "Copa", ValorTruco = 1 },
+      Ganador = IdJugador.Humano,
+    });
+
+    MandingaServicio.RegistrarFinMano(mano);
+
+    Assert.Single(mano.MandingaJugadasHumanoManoAnterior);
+    Assert.Equal(1, mano.MandingaJugadasHumanoManoAnterior[0].Numero);
+  }
+
+  [Fact]
+  public void DebeAcumularPuntos_ConMaldicionActiva_DevuelveTrue()
+  {
+    var mano = CrearManoMandinga();
+    mano.MandingaMaldicionActivaEnMano = true;
+
+    Assert.True(MandingaServicio.DebeAcumularPuntos(mano));
+    MandingaServicio.AcumularPuntos(mano, IdJugador.Humano, 2);
+    Assert.Equal(2, mano.PuntosHumanoAcumuladosMano);
+  }
 }

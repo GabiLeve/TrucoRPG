@@ -4,9 +4,6 @@ using TrucoRPG.Dominio.Servicios;
 
 namespace TrucoRPG.Dominio.UseCases
 {
-    /// <summary>
-    /// SOLO PRUEBAS — Suma 10 puntos al humano contra El Mandinga. Eliminar antes de producción.
-    /// </summary>
     public class SumarPuntosHumanoDebugUseCase
     {
         public const int PuntosASumar = 10;

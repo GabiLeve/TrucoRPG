@@ -119,6 +119,67 @@ public class DestelloServicioTests
   }
 
   [Fact]
+  public void EvaluarTurnoHumano_ContadorPar_IniciaCicloDestello()
+  {
+    var mano = CrearManoLuzMala(contadorTurnos: 2);
+
+    DestelloServicio.EvaluarTurnoHumano(mano);
+
+    Assert.True(mano.DestelloPendiente);
+    Assert.InRange(mano.DestelloBazaObjetivo, 1, 2);
+  }
+
+  [Fact]
+  public void EvaluarTurnoHumano_RivalNoLuzMala_NoHaceNada()
+  {
+    var mano = CrearManoLuzMala(contadorTurnos: 2);
+    mano.Configuracion.RivalDeLaMaquina = ClaseRival.Nahuelito;
+
+    DestelloServicio.EvaluarTurnoHumano(mano);
+
+    Assert.False(mano.DestelloPendiente);
+  }
+
+  [Fact]
+  public void RegistrarJugadaHumano_BazaMayorA2_NoIncrementaContador()
+  {
+    var mano = CrearManoLuzMala(contadorTurnos: 1);
+
+    DestelloServicio.RegistrarJugadaHumano(mano, 3);
+
+    Assert.Equal(1, mano.ContadorTurnosHumanoPartida);
+  }
+
+  [Fact]
+  public void JugarCartaAleatoria_ConCartaMaquinaEnMesa_ResuelveBaza()
+  {
+    var mano = CrearManoLuzMala();
+    mano.CartaMaquinaEnMesa = mano.Maquina.Mano[0];
+    mano.Maquina.Mano.RemoveAt(0);
+    mano.DestelloPendiente = true;
+    mano.DestelloBazaObjetivo = 1;
+
+    DestelloServicio.JugarCartaAleatoria(mano);
+
+    Assert.False(mano.DestelloPendiente);
+    Assert.Single(mano.Bazas);
+  }
+
+  [Fact]
+  public void JugarCartaAleatoria_ModoTradicional_JuegaAmbasCartas()
+  {
+    var mano = CrearManoLuzMala();
+    mano.Configuracion.Modo = ModoJuego.Tradicional;
+    mano.DestelloPendiente = true;
+    mano.DestelloBazaObjetivo = 1;
+
+    DestelloServicio.JugarCartaAleatoria(mano);
+
+    Assert.False(mano.DestelloPendiente);
+    Assert.Single(mano.Bazas);
+  }
+
+  [Fact]
   public void ConfirmarDestello_JuegaCartaAleatoriaYLimpiaCiclo()
   {
     var mano = CrearManoLuzMala(contadorTurnos: 0);

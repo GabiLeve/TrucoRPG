@@ -313,7 +313,6 @@ namespace TrucoRPG.API.Controllers
         public ActionResult<ManoTruco> GanarAutomaticoDebug([FromBody] CantarEnvidoRequest request) =>
             Ok(_ganarAutomaticoDebug.Ejecutar(request.ManoId));
 
-        /// <summary>SOLO PRUEBAS: suma 10 puntos al humano contra El Mandinga. Eliminar antes de producción.</summary>
         [HttpPost("sumar-puntos-humano-debug")]
         public ActionResult<ManoTruco> SumarPuntosHumanoDebug([FromBody] CantarEnvidoRequest request) =>
             Ok(_sumarPuntosHumanoDebug.Ejecutar(request.ManoId));
