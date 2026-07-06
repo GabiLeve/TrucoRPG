@@ -22,16 +22,16 @@ namespace TrucoRPG.Infraestructura.Migrations
                 name: "usuario",
                 columns: table => new
                 {
-                    id = table.Column<string>(type: "varchar(255)", nullable: false) 
+                    id = table.Column<string>(type: "varchar(255)", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    username = table.Column<string>(type: "longtext", nullable: false) 
+                    username = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    email = table.Column<string>(type: "longtext", nullable: false) 
+                    email = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    monedas = table.Column<int>(type: "int", nullable: false), 
-                    spritekey = table.Column<string>(type: "longtext", nullable: true) 
+                    monedas = table.Column<int>(type: "int", nullable: false),
+                    spritekey = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    heroveseleccionadoid = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci") 
+                    heroeseleccionadoid = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci")
                 },
                 constraints: table =>
                 {
@@ -43,32 +43,31 @@ namespace TrucoRPG.Infraestructura.Migrations
                 name: "inventarios",
                 columns: table => new
                 {
-                    usuarioid = table.Column<string>(type: "varchar(255)", nullable: false) 
+                    usuarioid = table.Column<string>(type: "varchar(255)", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    itemtiendaid = table.Column<int>(type: "int", nullable: false), 
-                    id = table.Column<int>(type: "int", nullable: false), 
+                    itemtiendaid = table.Column<int>(type: "int", nullable: false),
+                    id = table.Column<int>(type: "int", nullable: false),
                     cantidad = table.Column<int>(type: "int", nullable: false, defaultValue: 1),
-                    equipado = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: false) 
+                    equipado = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_inventarios", x => new { x.usuarioid, x.itemtiendaid }); 
+                    table.PrimaryKey("pk_inventarios", x => new { x.usuarioid, x.itemtiendaid });
                     table.ForeignKey(
                         name: "fk_inventarios_usuario_usuarioid",
-                        column: x => x.usuarioid, 
+                        column: x => x.usuarioid,
                         principalTable: "usuario",
-                        principalColumn: "id", 
+                        principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "fk_inventarios_items_itemtiendaid",
-                        column: x => x.itemtiendaid, 
+                        column: x => x.itemtiendaid,
                         principalTable: "items",
-                        principalColumn: "id", 
+                        principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
-            /// Dejamos los nombres de las propiedades tal como C# las entiende
             migrationBuilder.UpdateData(table: "items", keyColumn: "Id", keyValue: 1, column: "Acumulable", value: false);
             migrationBuilder.UpdateData(table: "items", keyColumn: "Id", keyValue: 2, column: "Acumulable", value: false);
             migrationBuilder.UpdateData(table: "items", keyColumn: "Id", keyValue: 3, column: "Acumulable", value: false);
@@ -81,20 +80,20 @@ namespace TrucoRPG.Infraestructura.Migrations
             migrationBuilder.CreateIndex(
                 name: "ix_inventarios_itemtiendaid",
                 table: "inventarios",
-                column: "itemtiendaid"); 
+                column: "itemtiendaid");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Inventarios");
+                name: "inventarios");
 
             migrationBuilder.DropTable(
-                name: "Usuario");
+                name: "usuario");
 
             migrationBuilder.DropColumn(
-                name: "Acumulable",
+                name: "acumulable",
                 table: "items");
         }
     }
