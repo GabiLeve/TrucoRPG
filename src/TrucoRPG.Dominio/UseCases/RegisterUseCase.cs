@@ -1,8 +1,8 @@
-using TrucoRPG.Dominio.Repositorios;
+﻿using TrucoRPG.Dominio.Repositorios;
 
 namespace TrucoRPG.Dominio.UseCases
 {
-    public class RegisterUseCase
+    public class RegisterUseCase : IRegisterUseCase
     {
         private readonly IUsuarioRepositorio _usuarioRepo;
         private readonly ITokenService       _tokenService;
