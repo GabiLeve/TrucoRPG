@@ -68,15 +68,15 @@ namespace TrucoRPG.Infraestructura.Migrations
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
-            // Updates de datos con columnas en minúsculas
-            migrationBuilder.UpdateData(table: "items", keyColumn: "id", keyValue: 1, column: "acumulable", value: false);
-            migrationBuilder.UpdateData(table: "items", keyColumn: "id", keyValue: 2, column: "acumulable", value: false);
-            migrationBuilder.UpdateData(table: "items", keyColumn: "id", keyValue: 3, column: "acumulable", value: false);
-            migrationBuilder.UpdateData(table: "items", keyColumn: "id", keyValue: 4, column: "acumulable", value: false);
-            migrationBuilder.UpdateData(table: "items", keyColumn: "id", keyValue: 5, column: "acumulable", value: false);
-            migrationBuilder.UpdateData(table: "items", keyColumn: "id", keyValue: 6, column: "acumulable", value: false);
-            migrationBuilder.UpdateData(table: "items", keyColumn: "id", keyValue: 7, column: "acumulable", value: false);
-            migrationBuilder.UpdateData(table: "items", keyColumn: "id", keyValue: 8, column: "acumulable", value: false);
+            /// Dejamos los nombres de las propiedades tal como C# las entiende
+            migrationBuilder.UpdateData(table: "items", keyColumn: "Id", keyValue: 1, column: "Acumulable", value: false);
+            migrationBuilder.UpdateData(table: "items", keyColumn: "Id", keyValue: 2, column: "Acumulable", value: false);
+            migrationBuilder.UpdateData(table: "items", keyColumn: "Id", keyValue: 3, column: "Acumulable", value: false);
+            migrationBuilder.UpdateData(table: "items", keyColumn: "Id", keyValue: 4, column: "Acumulable", value: false);
+            migrationBuilder.UpdateData(table: "items", keyColumn: "Id", keyValue: 5, column: "Acumulable", value: false);
+            migrationBuilder.UpdateData(table: "items", keyColumn: "Id", keyValue: 6, column: "Acumulable", value: false);
+            migrationBuilder.UpdateData(table: "items", keyColumn: "Id", keyValue: 7, column: "Acumulable", value: false);
+            migrationBuilder.UpdateData(table: "items", keyColumn: "Id", keyValue: 8, column: "Acumulable", value: false);
 
             migrationBuilder.CreateIndex(
                 name: "ix_inventarios_itemtiendaid",
