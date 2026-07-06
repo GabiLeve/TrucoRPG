@@ -143,5 +143,31 @@ namespace TrucoRPG.Infraestructura.Repositorios
 
             return personaje;
         }
+
+        public async Task<Usuario?> ObtenerPorIdAsync(string userId)
+        {
+            var appUser = await _userManager.FindByIdAsync(userId);
+            if (appUser is null) return null;
+
+            return new Usuario
+            {
+                Id = appUser.Id,
+                UserName = appUser.UserName ?? string.Empty,
+                Email = appUser.Email ?? string.Empty,
+                Monedas = appUser.Monedas,
+                SpriteKey = appUser.SpriteKey,
+                HeroeSeleccionadoId = appUser.HeroeSeleccionadoId
+            };
+        }
+
+        public async Task<bool> ActualizarMonedasAsync(string userId, int nuevasMonedas)
+        {
+            var appUser = await _userManager.FindByIdAsync(userId);
+            if (appUser is null) return false;
+
+            appUser.Monedas = nuevasMonedas;
+            var result = await _userManager.UpdateAsync(appUser);
+            return result.Succeeded;
+        }
     }
 }
