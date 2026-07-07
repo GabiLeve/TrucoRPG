@@ -34,8 +34,14 @@ namespace TrucoRPG.API.Controllers
         private readonly ConfirmarTravesuraUseCase     _confirmarTravesura;
         private readonly ConfirmarRasgunoUseCase       _confirmarRasguno;
         private readonly ConfirmarAullidoUseCase       _confirmarAullido;
+        private readonly ConfirmarDestelloUseCase      _confirmarDestello;
+        private readonly ConfirmarEspejismoUseCase     _confirmarEspejismo;
+        private readonly ConfirmarMandingaEspejoUseCase  _confirmarMandingaEspejo;
+        private readonly ConfirmarMandingaEnganoUseCase  _confirmarMandingaEngano;
+        private readonly ConfirmarMandingaMaldicionUseCase _confirmarMandingaMaldicion;
         private readonly AvanzarMaquinaHistoriaUseCase _avanzarMaquinaHistoria;
         private readonly GanarAutomaticoDebugUseCase _ganarAutomaticoDebug;
+        private readonly SumarPuntosHumanoDebugUseCase _sumarPuntosHumanoDebug;
         private readonly HistoriaValidacionServicio    _historiaValidacion;
         private readonly IUsuarioActualServicio        _usuarioActual;
 
@@ -54,8 +60,14 @@ namespace TrucoRPG.API.Controllers
             ConfirmarTravesuraUseCase     confirmarTravesura,
             ConfirmarRasgunoUseCase       confirmarRasguno,
             ConfirmarAullidoUseCase       confirmarAullido,
+            ConfirmarDestelloUseCase      confirmarDestello,
+            ConfirmarEspejismoUseCase     confirmarEspejismo,
+            ConfirmarMandingaEspejoUseCase confirmarMandingaEspejo,
+            ConfirmarMandingaEnganoUseCase confirmarMandingaEngano,
+            ConfirmarMandingaMaldicionUseCase confirmarMandingaMaldicion,
             AvanzarMaquinaHistoriaUseCase avanzarMaquinaHistoria,
             GanarAutomaticoDebugUseCase   ganarAutomaticoDebug,
+            SumarPuntosHumanoDebugUseCase sumarPuntosHumanoDebug,
             HistoriaValidacionServicio    historiaValidacion,
             IUsuarioActualServicio        usuarioActual)
         {
@@ -73,8 +85,14 @@ namespace TrucoRPG.API.Controllers
             _confirmarTravesura = confirmarTravesura;
             _confirmarRasguno = confirmarRasguno;
             _confirmarAullido = confirmarAullido;
+            _confirmarDestello = confirmarDestello;
+            _confirmarEspejismo = confirmarEspejismo;
+            _confirmarMandingaEspejo = confirmarMandingaEspejo;
+            _confirmarMandingaEngano = confirmarMandingaEngano;
+            _confirmarMandingaMaldicion = confirmarMandingaMaldicion;
             _avanzarMaquinaHistoria = avanzarMaquinaHistoria;
             _ganarAutomaticoDebug = ganarAutomaticoDebug;
+            _sumarPuntosHumanoDebug = sumarPuntosHumanoDebug;
             _historiaValidacion = historiaValidacion;
             _usuarioActual      = usuarioActual;
         }
@@ -138,6 +156,28 @@ namespace TrucoRPG.API.Controllers
         [HttpPost("confirmar-aullido")]
         public ActionResult<ManoTruco> ConfirmarAullido([FromBody] ConfirmarSalpicaduraRequest request) =>
             Ok(_confirmarAullido.Ejecutar(request.ManoId));
+
+        /// <summary>Confirma el efecto de la habilidad "Destello" y devuelve la mano actualizada.</summary>
+        [HttpPost("confirmar-destello")]
+        public ActionResult<ManoTruco> ConfirmarDestello([FromBody] ConfirmarSalpicaduraRequest request) =>
+            Ok(_confirmarDestello.Ejecutar(request.ManoId));
+
+        /// <summary>Confirma el overlay de la pasiva "Espejismo" y habilita el parpadeo visual.</summary>
+        [HttpPost("confirmar-espejismo")]
+        public ActionResult<ManoTruco> ConfirmarEspejismo([FromBody] ConfirmarSalpicaduraRequest request) =>
+            Ok(_confirmarEspejismo.Ejecutar(request.ManoId));
+
+        [HttpPost("confirmar-mandinga-espejo")]
+        public ActionResult<ManoTruco> ConfirmarMandingaEspejo([FromBody] ConfirmarSalpicaduraRequest request) =>
+            Ok(_confirmarMandingaEspejo.Ejecutar(request.ManoId));
+
+        [HttpPost("confirmar-mandinga-engano")]
+        public ActionResult<ManoTruco> ConfirmarMandingaEngano([FromBody] ConfirmarSalpicaduraRequest request) =>
+            Ok(_confirmarMandingaEngano.Ejecutar(request.ManoId));
+
+        [HttpPost("confirmar-mandinga-maldicion")]
+        public ActionResult<ManoTruco> ConfirmarMandingaMaldicion([FromBody] ConfirmarSalpicaduraRequest request) =>
+            Ok(_confirmarMandingaMaldicion.Ejecutar(request.ManoId));
 
         // ── Configuración ─────────────────────────────────────────────
 
@@ -272,5 +312,9 @@ namespace TrucoRPG.API.Controllers
         [HttpPost("ganar-automatico-debug")]
         public ActionResult<ManoTruco> GanarAutomaticoDebug([FromBody] CantarEnvidoRequest request) =>
             Ok(_ganarAutomaticoDebug.Ejecutar(request.ManoId));
+
+        [HttpPost("sumar-puntos-humano-debug")]
+        public ActionResult<ManoTruco> SumarPuntosHumanoDebug([FromBody] CantarEnvidoRequest request) =>
+            Ok(_sumarPuntosHumanoDebug.Ejecutar(request.ManoId));
     }
 }
