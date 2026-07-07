@@ -8,5 +8,6 @@ namespace TrucoRPG.Tests.API
 {
     internal class HistoriaControllerTest
     {
+
     }
 }
