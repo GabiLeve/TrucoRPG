@@ -516,6 +516,43 @@ public class GameHub : Hub
     }
 
     // ─────────────────────────────────────────────────────────────
+    //  Señas — solo llegan a los compañeros de equipo
+    // ─────────────────────────────────────────────────────────────
+
+    public async Task EnviarSenia2v2(string tipo)
+    {
+        if (!_salas.TryGetEstado2v2(Context.ConnectionId, out _, out var state)) return;
+        if (!state!.Posiciones.TryGetValue(Context.ConnectionId, out var miPos)) return;
+
+        // Compañero: 1↔3, 2↔4
+        int posCompanero = miPos switch { 1 => 3, 3 => 1, 2 => 4, 4 => 2, _ => 0 };
+        var companero = state.Posiciones.FirstOrDefault(x => x.Value == posCompanero).Key;
+        if (string.IsNullOrEmpty(companero)) return;
+
+        await Clients.Client(companero).SendAsync("RecibirSenia2v2", tipo);
+    }
+
+    public async Task EnviarSenia3v3(string tipo)
+    {
+        if (!_salas.TryGetEstado3v3(Context.ConnectionId, out _, out var state)) return;
+        if (!state!.Posiciones.TryGetValue(Context.ConnectionId, out var miPos)) return;
+
+        var miRol    = $"J{miPos}";
+        var miEquipo = state.Mano.ObtenerEquipoDeJugador(miRol);
+
+        // Enviar a los dos compañeros (EquipoA = pos 1/3/5, EquipoB = pos 2/4/6)
+        foreach (var kv in state.Posiciones)
+        {
+            if (kv.Key == Context.ConnectionId) continue;
+
+            var rol = $"J{kv.Value}";
+            if (state.Mano.ObtenerEquipoDeJugador(rol) != miEquipo) continue;
+
+            await Clients.Client(kv.Key).SendAsync("RecibirSenia3v3", tipo, miRol);
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────
     //  Desconexión
     // ─────────────────────────────────────────────────────────────
 
