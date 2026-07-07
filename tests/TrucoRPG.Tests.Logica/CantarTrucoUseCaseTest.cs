@@ -156,11 +156,13 @@ namespace TrucoRPG.Tests
             // Given
             var id = Guid.NewGuid();
             var mano = CrearManoBase(id);
-            mano.NivelMentiraTrucoMaquina = 0;
+
+            mano.NivelMentiraTrucoMaquina = 3;
+
             mano.Maquina.Mano = new List<Carta>
-            {
-                new Carta { Numero = 7, Palo = "Oro", ValorTruco = 10 }
-            };
+        {
+            new Carta { Numero = 1, Palo = "Espada", ValorTruco = 100 }
+        };
 
             PartidaMemoriaServicio.Guardar(mano);
             var servicio = new CantarTrucoUseCase();
@@ -177,10 +179,10 @@ namespace TrucoRPG.Tests
             }
             else
             {
-                // Si el random cae en el 22% restante y escala:
                 Assert.Equal(2, resultado.NivelTruco);
                 Assert.Equal(3, resultado.PuntosTrucoMano);
             }
         }
+    
     }
 }
