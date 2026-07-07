@@ -174,7 +174,7 @@ public class AuthControllerTests
     }
 
     [Fact]
-    public async Task CambiarPassword_CuandoLaContrasenaActualEsIncorrecta_DebeRetornarBadRequest()
+    public async Task CambiarPassword_CuandoLaContrasenaActualEsIncorrecta_DebeRetornarInvalidate()
     {
         // Given
         var dto = new CambiarPasswordDto("Incorrecta!", "Nueva123!");
@@ -193,12 +193,12 @@ public class AuthControllerTests
             .Setup(x => x.EjecutarAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
             .ThrowsAsync(new InvalidOperationException("La contraseña actual no coincide."));
 
-        // When
-        var resultado = await _authController.CambiarPassword(dto);
+        // When & Then 
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _authController.CambiarPassword(dto)
+        );
 
-        // Then
-        var badRequestResult = Assert.IsType<BadRequestObjectResult>(resultado);
-        Assert.Equal(StatusCodes.Status400BadRequest, badRequestResult.StatusCode);
+        Assert.Equal("La contraseña actual no coincide.", ex.Message);
     }
 
     [Fact]
@@ -290,11 +290,11 @@ public class AuthControllerTests
             .Setup(x => x.EjecutarAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
             .ThrowsAsync(new InvalidOperationException(mensajeError));
 
-        // When
-        var resultado = await _authController.RestablecerPassword(dto);
+        // When & Then
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _authController.RestablecerPassword(dto)
+        );
 
-        // Then
-        var badRequestResult = Assert.IsType<BadRequestObjectResult>(resultado);
-        Assert.Equal(StatusCodes.Status400BadRequest, badRequestResult.StatusCode);
+        Assert.Equal(mensajeError, ex.Message);
     }
 }

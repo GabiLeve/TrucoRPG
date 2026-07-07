@@ -102,6 +102,8 @@ namespace TrucoRPG.Tests.Logica
             Assert.Contains("La máquina no quiso el retruco", resultado.EstadoTruco);
         }
 
+        //ESTANA SI XQ CUANDO CORRO UNO ME DA VERDE Y DESPUES LA CORRO DA ROJO
+        //RESUEMN BIPOLAR 
         //[Fact]
         //public void EjecutarEscalarARetrucoSiHumanoEscalaARetrucoYMaquinaRedoblaDebeSubirANivelValeCuatro()
         //{

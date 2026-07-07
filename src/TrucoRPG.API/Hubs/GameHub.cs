@@ -29,7 +29,7 @@ public class GameHub : Hub
     public Task<List<SalaPublicaInfo>> ListarSalasPublicas(string modo = "1v1") =>
         Task.FromResult(_salas.ListarSalasPublicas(modo));
 
-    public async Task<bool> UnirseASala(string codigo)
+    public virtual async Task<bool> UnirseASala(string codigo)
     {
         // Normalizar una sola vez: el grupo de SignalR debe ser EXACTAMENTE el mismo
         // string que usó CrearSala (mayúsculas), si no el jugador queda en otro grupo
