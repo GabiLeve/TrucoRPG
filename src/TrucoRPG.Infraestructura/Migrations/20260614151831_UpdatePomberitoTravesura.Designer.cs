@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TrucoRPG.Infraestructura.Data;
 
@@ -11,9 +12,11 @@ using TrucoRPG.Infraestructura.Data;
 namespace TrucoRPG.Infraestructura.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260614151831_UpdatePomberitoTravesura")]
+    partial class UpdatePomberitoTravesura
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -182,9 +185,6 @@ namespace TrucoRPG.Infraestructura.Migrations
                     b.Property<DateTimeOffset?>("LockoutEnd")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<int>("Monedas")
-                        .HasColumnType("int");
-
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
                         .HasColumnType("varchar(256)");
@@ -203,9 +203,6 @@ namespace TrucoRPG.Infraestructura.Migrations
                         .HasColumnType("tinyint(1)");
 
                     b.Property<string>("SecurityStamp")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("SpriteKey")
                         .HasColumnType("longtext");
 
                     b.Property<bool>("TwoFactorEnabled")
@@ -292,160 +289,6 @@ namespace TrucoRPG.Infraestructura.Migrations
                         });
                 });
 
-            modelBuilder.Entity("TrucoRPG.Dominio.Entities.Inventario", b =>
-                {
-                    b.Property<string>("UsuarioId")
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<int>("ItemTiendaId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Cantidad")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(1);
-
-                    b.Property<bool>("Equipado")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("tinyint(1)")
-                        .HasDefaultValue(false);
-
-                    b.HasKey("UsuarioId", "ItemTiendaId");
-
-                    b.HasIndex("ItemTiendaId");
-
-                    b.ToTable("Inventarios");
-                });
-
-            modelBuilder.Entity("TrucoRPG.Dominio.Entities.ItemTienda", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("Acumulable")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("Categoria")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
-
-                    b.Property<string>("Descripcion")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<string>("Img")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
-
-                    b.Property<int>("Precio")
-                        .HasColumnType("int");
-
-                    b.Property<string>("SpriteKey")
-                        .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("items", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Acumulable = false,
-                            Categoria = "HABILIDADES",
-                            Descripcion = "Te otorga la habilidad del manipulador en una partida",
-                            Img = "/assets/objetos/objeto.png",
-                            Nombre = "BOLEADORAS",
-                            Precio = 150
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Acumulable = false,
-                            Categoria = "HABILIDADES",
-                            Descripcion = "Te otorga la habilidad del timbero en una partida",
-                            Img = "/assets/objetos/objeto.png",
-                            Nombre = "BOLEADORAS",
-                            Precio = 150
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Acumulable = false,
-                            Categoria = "HABILIDADES",
-                            Descripcion = "Te otorga la habilidad del fanfarron en una partida",
-                            Img = "/assets/objetos/objeto.png",
-                            Nombre = "BOLEADORAS",
-                            Precio = 150
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Acumulable = false,
-                            Categoria = "HABILIDADES",
-                            Descripcion = "Te otorga la habilidad del mentiroso en una partida",
-                            Img = "/assets/objetos/objeto.png",
-                            Nombre = "BOLEADORAS",
-                            Precio = 150
-                        },
-                        new
-                        {
-                            Id = 5,
-                            Acumulable = false,
-                            Categoria = "ARMARIO",
-                            Descripcion = "Cambia el color de tu Poncho a rosa",
-                            Img = "/assets/objetos/GotaRosa.png",
-                            Nombre = "Poncho rosa",
-                            Precio = 150,
-                            SpriteKey = "personaje1rosa"
-                        },
-                        new
-                        {
-                            Id = 6,
-                            Acumulable = false,
-                            Categoria = "ARMARIO",
-                            Descripcion = "Cambia el color de tu Poncho a marrón",
-                            Img = "/assets/objetos/GotaMarron.png",
-                            Nombre = "Poncho marrón",
-                            Precio = 150,
-                            SpriteKey = "personaje1rosa"
-                        },
-                        new
-                        {
-                            Id = 7,
-                            Acumulable = false,
-                            Categoria = "ARMARIO",
-                            Descripcion = "Cambia el color de tu Poncho a rojo",
-                            Img = "/assets/objetos/GotaRoja.png",
-                            Nombre = "Poncho rojo",
-                            Precio = 150,
-                            SpriteKey = "personaje1rosa"
-                        },
-                        new
-                        {
-                            Id = 8,
-                            Acumulable = false,
-                            Categoria = "ARMARIO",
-                            Descripcion = "Cambia el color de tu Poncho a azul",
-                            Img = "/assets/objetos/GotaAzul.png",
-                            Nombre = "Poncho azul",
-                            Precio = 150,
-                            SpriteKey = "personaje1rosa"
-                        });
-                });
-
             modelBuilder.Entity("TrucoRPG.Dominio.Entities.ProgresoPartida", b =>
                 {
                     b.Property<Guid>("Id")
@@ -518,7 +361,7 @@ namespace TrucoRPG.Infraestructura.Migrations
                         {
                             Id = new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1"),
                             Descripcion = "Primer jefe de la historia. Habita las orillas del lago.",
-                            DescripcionHabilidad = "Cada 2 manos, cambia el palo de 2 cartas. Pasiva Remolino: 50% de cambiar el palo de tu primera carta en la 1.ª baza.",
+                            DescripcionHabilidad = "Cada 2 manos, cambia los palos de tus cartas (ej. Espada se ve/vuelve Copa).",
                             Nivel = 1,
                             Nombre = "Nahuelito",
                             NombreHabilidad = "Salpicadura",
@@ -529,45 +372,12 @@ namespace TrucoRPG.Infraestructura.Migrations
                         {
                             Id = new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2"),
                             Descripcion = "Segundo jefe de la historia. Guarda la entrada de la cueva.",
-                            DescripcionHabilidad = "Cada 2 manos, muestra tus cartas 5s y oculta 2. Pasiva Trampa del monte: +1 pt si nadie cantó envido ni truco.",
+                            DescripcionHabilidad = "Cada 2 manos, te muestra tus 3 cartas 5 segundos y luego oculta 2 al azar.",
                             Nivel = 2,
                             Nombre = "El Pomberito",
                             NombreHabilidad = "Travesura",
                             TipoHabilidad = 2,
                             TipoRival = 2
-                        },
-                        new
-                        {
-                            Id = new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa3"),
-                            Descripcion = "Tercer jefe de la historia. Acecha en las profundidades de la cueva.",
-                            DescripcionHabilidad = "Rasguño: te cambia una carta aleatoria por una de menor valor (puede ocurrir en cualquier momento de la ronda).\nAullido: su aullido te asusta y te manda al mazo.",
-                            Nivel = 3,
-                            Nombre = "El Lobizón",
-                            NombreHabilidad = "Rasguño",
-                            TipoHabilidad = 3,
-                            TipoRival = 3
-                        },
-                        new
-                        {
-                            Id = new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa4"),
-                            Descripcion = "Cuarto jefe de la historia. Una presencia luminosa que desorienta al viajero.",
-                            DescripcionHabilidad = "Emite una luz radiante que te confunde y te hace jugar una carta al azar (puede ocurrir en cualquier momento de la ronda).",
-                            Nivel = 4,
-                            Nombre = "La Luz Mala",
-                            NombreHabilidad = "Destello",
-                            TipoHabilidad = 0,
-                            TipoRival = 4
-                        },
-                        new
-                        {
-                            Id = new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa5"),
-                            Descripcion = "Jefe final de la historia. Domina el trono con tres fases de combate.",
-                            DescripcionHabilidad = "Fase I (siempre): cada 2 manos maldice la mesa. Fase II (10+ pts tuyos): El Engaño. Fase III (20+ pts tuyos): El Espejo.",
-                            Nivel = 5,
-                            Nombre = "Mandinga",
-                            NombreHabilidad = "Fases",
-                            TipoHabilidad = 6,
-                            TipoRival = 5
                         });
                 });
 
@@ -630,25 +440,6 @@ namespace TrucoRPG.Infraestructura.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("HeroeSeleccionado");
-                });
-
-            modelBuilder.Entity("TrucoRPG.Dominio.Entities.Inventario", b =>
-                {
-                    b.HasOne("TrucoRPG.Dominio.Entities.ItemTienda", "ItemTienda")
-                        .WithMany()
-                        .HasForeignKey("ItemTiendaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("TrucoRPG.Dominio.Entities.ApplicationUser", "Usuario")
-                        .WithMany()
-                        .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ItemTienda");
-
-                    b.Navigation("Usuario");
                 });
 
             modelBuilder.Entity("TrucoRPG.Dominio.Entities.ProgresoPartida", b =>
