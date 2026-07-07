@@ -50,15 +50,10 @@ namespace TrucoRPG.API.Controllers
         [HttpPost("crearPersonaje")]
         public async Task<IActionResult> CrearPersonaje([FromBody] PersonajeDto personaje)
         {
-            try
-            {
                 var usuarioId = _usuarioActual.ObtenerId();
                 await _crearPersonaje.Ejecutar(usuarioId, personaje.SpriteKey, personaje.HeroeId);
                 return Ok(new { mensaje = "Personaje guardado correctamente!" });
-            }
-            catch (InvalidOperationException ex){
-                return BadRequest(ex.Message);
-            }
+ 
         }
 
         [HttpGet("verificarPersonaje")]
@@ -73,8 +68,6 @@ namespace TrucoRPG.API.Controllers
         [HttpGet("obtenerPersonaje")]
         public async Task<IActionResult> ObtenerPersonaje()
         {
-            try
-            {
                 var usuarioId = _usuarioActual.ObtenerId();
 
                 if (string.IsNullOrEmpty(usuarioId))
@@ -83,11 +76,7 @@ namespace TrucoRPG.API.Controllers
                 var personaje = await _obtenerPersonaje.Ejecutar(usuarioId);
 
                 return Ok(personaje);
-            }
-            catch (InvalidOperationException ex)
-            {
-                return NotFound(new { mensaje = ex.Message });
-            }
+            
         }
 
         /// <summary>Devuelve la lista completa de rivales del modo historia, ordenados por nivel.</summary>

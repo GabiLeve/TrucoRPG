@@ -1,4 +1,4 @@
-using TrucoRPG.Dominio.Entities;
+﻿using TrucoRPG.Dominio.Entities;
 
 namespace TrucoRPG.Dominio.Servicios
 {
@@ -8,7 +8,8 @@ namespace TrucoRPG.Dominio.Servicios
     /// </summary>
     public static class MaquinaServicio2v2
     {
-        private static readonly Random _random = new Random();
+      //  private static readonly Random _random = new Random();
+        public static Func<int, int> RandomNext = (max) => new Random().Next(max);
 
         /// <summary>
         /// Elige la mejor carta para jugar según el contexto de la vuelta.
@@ -106,7 +107,7 @@ namespace TrucoRPG.Dominio.Servicios
                 _  => 10
             };
 
-            return _random.Next(1, 101) <= probabilidad;
+            return RandomNext(100) + 1 <= probabilidad;
         }
 
         /// <summary>
@@ -132,9 +133,9 @@ namespace TrucoRPG.Dominio.Servicios
             int suma   = mano.Sum(c => c.ValorTruco);
 
             if (fuerte >= 12) return true;                       // 7 espada, ancho de basto/espada
-            if (fuerte >= 10) return _random.Next(100) < 60;     // tiene un 3 o mejor
-            if (suma   >= 22) return _random.Next(100) < 35;     // mano pareja y fuerte
-            return _random.Next(100) < 12;                       // farol ocasional
+            if (fuerte >= 10) return RandomNext(100) < 60;     // tiene un 3 o mejor
+            if (suma   >= 22) return RandomNext(100) < 35;     // mano pareja y fuerte
+            return RandomNext(100) < 12;                       // farol ocasional
         }
 
         /// <summary>
@@ -155,7 +156,7 @@ namespace TrucoRPG.Dominio.Servicios
                 _  => 20
             };
 
-            return _random.Next(1, 101) <= probabilidad;
+            return RandomNext(100) +1 <= probabilidad;
         }
 
         /// <summary>
@@ -187,14 +188,14 @@ namespace TrucoRPG.Dominio.Servicios
             int perdidas  = mano.Vueltas.Count(v => v.GanadorVuelta is not null and not "Parda" && v.GanadorVuelta != equipo);
 
             // Va ganando la mano → casi siempre quiere.
-            if (ganadas > perdidas) return _random.Next(100) < 92;
+            if (ganadas > perdidas) return RandomNext(100) < 92;
             // Tiene (o jugó) una carta brava → quiere casi siempre.
-            if (mejorEquipo >= 12) return _random.Next(100) < 88;
-            if (mejorEquipo >= 10) return _random.Next(100) < 65;
+            if (mejorEquipo >= 12) return RandomNext(100) < 88;
+            if (mejorEquipo >= 10) return RandomNext(100) < 65;
             // Va claramente perdiendo y sin cartas → normalmente no quiere.
-            if (perdidas > ganadas && mejorEquipo < 9) return _random.Next(100) < 15;
+            if (perdidas > ganadas && mejorEquipo < 9) return RandomNext(100) < 15;
             // Caso intermedio: según lo que le queda en la mano.
-            return (jugador?.Mano.Count ?? 0) > 0 ? AceptarTruco(jugador!.Mano) : _random.Next(100) < 30;
+            return (jugador?.Mano.Count ?? 0) > 0 ? AceptarTruco(jugador!.Mano) : RandomNext(100) < 30;
         }
 
         /// <summary>
@@ -321,7 +322,7 @@ namespace TrucoRPG.Dominio.Servicios
         {
             if (tanto < 30) return null; // solo escala con mucho tanto
             string t = (tipoActual ?? "Envido").ToLowerInvariant().Replace(" ", "");
-            int r = _random.Next(100);
+            int r = RandomNext(100);
             return t switch
             {
                 "envido"        => tanto >= 32 && r < 40 ? "Real Envido"
@@ -397,7 +398,7 @@ namespace TrucoRPG.Dominio.Servicios
             {
                 // Con el equipo fuerte (carta brava jugada o en mano), a veces sube la apuesta.
                 int fuerte = FuerzaEquipoEnMano(mano, mano.ObtenerEquipoDeJugador(jugadorId));
-                if (mano.NivelTruco < 3 && fuerte >= 12 && _random.Next(100) < 55)
+                if (mano.NivelTruco < 3 && fuerte >= 12 && RandomNext(100) < 55)
                 {
                     string equipoMaquina = mano.ObtenerEquipoDeJugador(jugadorId);
                     mano.NivelTruco++;
@@ -525,7 +526,7 @@ namespace TrucoRPG.Dominio.Servicios
 
                 if (!envidoAntes && mano.EnvidoCantado)
                 {
-                    if (mano.EnvidoPendienteRespuestaDe == J1 && _random.Next(100) < 50)
+                    if (mano.EnvidoPendienteRespuestaDe == J1 && RandomNext(100) < 50)
                     {
                         var compa = mano.ObtenerJugador(J3);
                         int tantoCompa = compa != null ? EnvidoServicio2v2.TantoOriginal(compa) : 0;
