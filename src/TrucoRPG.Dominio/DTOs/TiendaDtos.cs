@@ -4,9 +4,11 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Diagnostics.CodeAnalysis;
 
 namespace TrucoRPG.Dominio.DTOs
 {
+    [ExcludeFromCodeCoverage]
     public class ObjetoTiendaDto
     {
         public int Id { get; set; }
@@ -18,6 +20,7 @@ namespace TrucoRPG.Dominio.DTOs
         public bool Acumulable { get; set; }
     }
 
+    [ExcludeFromCodeCoverage]
     public class CategoriaTiendaDto
     {
         public string Categoria { get; set; } = string.Empty;

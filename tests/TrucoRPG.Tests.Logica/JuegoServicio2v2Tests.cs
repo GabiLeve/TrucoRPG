@@ -1,4 +1,4 @@
-using TrucoRPG.Dominio.Entities;
+﻿using TrucoRPG.Dominio.Entities;
 using TrucoRPG.Dominio.Servicios;
 
 namespace TrucoRPG.Tests.Logica;
@@ -413,4 +413,236 @@ public class JuegoServicio2v2Tests
         Assert.Equal(5, mano.PuntosEquipoA);
         Assert.False(mano.PartidaTerminada);
     }
+
+    //validar accion jugador
+    [Fact]
+    public void ValidarAccionJugador_DadoPartidaTerminada_DebeLanzarExcepcion()
+    {
+        // Given
+        var mano = new ManoTruco2v2
+        {
+            PartidaTerminada = true,
+            ManoTerminada = false
+        };
+
+        // When
+        Action action = () => JuegoServicio2v2.ValidarAccionJugador(mano, "Jugador1");
+
+        // Then
+        Assert.Throws<InvalidOperationException>(action);
+    }
+
+    [Fact]
+    public void ValidarAccionJugador_DadoManoTerminada_DebeLanzarExcepcion()
+    {
+        // Given
+        var mano = new ManoTruco2v2
+        {
+            PartidaTerminada = false,
+            ManoTerminada = true
+        };
+
+        // When
+        Action act = () => JuegoServicio2v2.ValidarAccionJugador(mano, "Jugador1");
+
+        // Then
+        Assert.Throws<InvalidOperationException>(act);
+    }
+
+    [Fact]
+    public void ValidarAccionJugador_DadoTrucoPendienteDeRespuestaDelMismoJugador_DebeLanzarExcepcion()
+    {
+        // Given
+        var jugadorId = "Jugador1";
+        var mano = new ManoTruco2v2
+        {
+            PartidaTerminada = false,
+            ManoTerminada = false,
+            TrucoPendienteRespuestaDe = jugadorId
+        };
+
+        // When
+        Action act = () => JuegoServicio2v2.ValidarAccionJugador(mano, jugadorId);
+
+        // Then
+        Assert.Throws<InvalidOperationException>(act);
+    }
+
+    [Fact]
+    public void ValidarAccionJugador_DadoEnvidoPendienteDeRespuestaDelMismoJugador_DebeLanzarExcepcion()
+    {
+        // Given
+        var jugadorId = "Jugador1";
+        var mano = new ManoTruco2v2
+        {
+            PartidaTerminada = false,
+            ManoTerminada = false,
+            TrucoPendienteRespuestaDe = null,
+            EnvidoPendienteRespuestaDe = jugadorId
+        };
+
+        // When
+        Action act = () => JuegoServicio2v2.ValidarAccionJugador(mano, jugadorId);
+
+        // Then
+        Assert.Throws<InvalidOperationException>(act);
+    }
+
+    [Fact]
+    public void ValidarAccionJugador_DadoJugadorQueNoEsSuTurno_DebeLanzarExcepcion()
+    {
+        // Given
+        var jugadorId = "Jugador1";
+        var mano = new ManoTruco2v2
+        {
+            PartidaTerminada = false,
+            ManoTerminada = false,
+            TrucoPendienteRespuestaDe = null,
+            EnvidoPendienteRespuestaDe = null,
+            TurnoActual = "Jugador2" // Es el turno de otro
+        };
+
+        // When
+        Action act = () => JuegoServicio2v2.ValidarAccionJugador(mano, jugadorId);
+
+        // Then
+        Assert.Throws<InvalidOperationException>(act);
+    }
+
+
+    //jugar carta por valor
+    [Fact]
+    public void JugarCartaPorValor_DadoManoConGanador_DebeRetornarFalse()
+    {
+        // Given
+        var mano = new ManoTruco2v2 { GanadorMano = "EquipoA" };
+
+        // When
+        var resultado = JuegoServicio2v2.JugarCartaPorValor(mano, "Jugador1", 7, "Espada");
+
+        // Then
+        Assert.False(resultado);
+    }
+
+    [Fact]
+    public void JugarCartaPorValor_DadoManoTerminada_DebeRetornarFalse()
+    {
+        // Given
+        var mano = new ManoTruco2v2 { ManoTerminada = true };
+
+        // When
+        var resultado = JuegoServicio2v2.JugarCartaPorValor(mano, "Jugador1", 7, "Espada");
+
+        // Then
+        Assert.False(resultado);
+    }
+
+    [Fact]
+    public void JugarCartaPorValor_DadoPartidaTerminada_DebeRetornarFalse()
+    {
+        // Given
+        var mano = new ManoTruco2v2 { PartidaTerminada = true };
+
+        // When
+        var resultado = JuegoServicio2v2.JugarCartaPorValor(mano, "Jugador1", 7, "Espada");
+
+        // Then
+        Assert.False(resultado);
+    }
+
+    [Fact]
+    public void JugarCartaPorValor_DadoTrucoPendienteDeRespuesta_DebeRetornarFalse()
+    {
+        // Given
+        var mano = new ManoTruco2v2 { TrucoPendienteRespuestaDe = "Jugador2" };
+
+        // When
+        var resultado = JuegoServicio2v2.JugarCartaPorValor(mano, "Jugador1", 7, "Espada");
+
+        // Then
+        Assert.False(resultado);
+    }
+
+    [Fact]
+    public void JugarCartaPorValor_DadoEnvidoPendienteDeRespuesta_DebeRetornarFalse()
+    {
+        // Given
+        var mano = new ManoTruco2v2 { EnvidoPendienteRespuestaDe = "Jugador2" };
+
+        // When
+        var resultado = JuegoServicio2v2.JugarCartaPorValor(mano, "Jugador1", 7, "Espada");
+
+        // Then
+        Assert.False(resultado);
+    }
+
+    [Fact]
+    public void JugarCartaPorValor_DadoJugadorQueNoEsSuTurno_DebeRetornarFalse()
+    {
+        // Given
+        var mano = new ManoTruco2v2 { TurnoActual = "Jugador2" }; 
+
+        // When
+        var resultado = JuegoServicio2v2.JugarCartaPorValor(mano, "Jugador1", 7, "Espada");
+
+        // Then
+        Assert.False(resultado);
+    }
+
+    [Fact]
+    public void JugarCartaPorValor_DadoCartaQueNoExisteEnLaManoDelJugador_DebeRetornarFalse()
+    {
+        // Given
+        var jugadorIdValido = "Jugador1";
+        var mano = new ManoTruco2v2
+        {
+            TurnoActual = jugadorIdValido,
+            Posicion1 = new Jugador
+            {
+                Id = jugadorIdValido,
+                Mano = new List<Carta> { new Carta { Numero = 1, Palo = "Basto" } } 
+            },
+            Posicion2 = new Jugador { Id = "J2", Mano = new() },
+            Posicion3 = new Jugador { Id = "J3", Mano = new() },
+            Posicion4 = new Jugador { Id = "J4", Mano = new() }
+        };
+
+        // When
+        var resultado = JuegoServicio2v2.JugarCartaPorValor(mano, jugadorIdValido, 7, "Espada");
+
+        // Then
+        Assert.False(resultado);
+    }
+
+    [Fact]
+    public void JugarCartaPorValor_DadoEstadoValidoYElJugadorTieneLaCarta_DebeJugarlaYRetornarTrue()
+    {
+        // Given
+        var jugadorIdValido = "Jugador1";
+        var mano = new ManoTruco2v2
+        {
+            TurnoActual = jugadorIdValido,
+            GanadorMano = null,
+            ManoTerminada = false,
+            PartidaTerminada = false,
+            TrucoPendienteRespuestaDe = null,
+            EnvidoPendienteRespuestaDe = null,
+
+            Posicion1 = new Jugador
+            {
+                Id = jugadorIdValido,
+                Mano = new List<Carta> { new Carta { Numero = 7, Palo = "Espada" } }
+            },
+            Posicion2 = new Jugador { Id = "J2", Mano = new() },
+            Posicion3 = new Jugador { Id = "J3", Mano = new() },
+            Posicion4 = new Jugador { Id = "J4", Mano = new() }
+        };
+
+        // When
+        var resultado = JuegoServicio2v2.JugarCartaPorValor(mano, jugadorIdValido, 7, "espada");
+
+        // Then
+        Assert.True(resultado);
+    }
+
 }

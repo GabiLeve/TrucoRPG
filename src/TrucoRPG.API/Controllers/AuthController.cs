@@ -81,15 +81,9 @@ namespace TrucoRPG.API.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userId is null) return Unauthorized();
 
-            try
-            {
                 await _cambiarPasswordUseCase.EjecutarAsync(userId, dto.PasswordActual, dto.PasswordNueva);
                 return Ok(new { message = "Contraseña actualizada correctamente." });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            
         }
 
         /// <summary>Envía un email con el link para restablecer la contraseña.</summary>
@@ -124,15 +118,8 @@ namespace TrucoRPG.API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> RestablecerPassword([FromBody] ResetPasswordDto dto)
         {
-            try
-            {
                 await _resetPasswordUseCase.EjecutarAsync(dto.Email, dto.Token, dto.NuevaPassword);
                 return Ok(new { message = "Contraseña restablecida correctamente." });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
         }
     }
 }
