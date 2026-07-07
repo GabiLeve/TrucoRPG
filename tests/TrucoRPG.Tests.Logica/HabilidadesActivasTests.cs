@@ -93,14 +93,25 @@ public class HabilidadesActivasTests
     public void Manipulador_TrasUsar_NoDisponiblePorTresManos_LuegoVuelve()
     {
         var useCase = new NuevaManoUseCase();
-        var mano1 = useCase.EjecutarNuevaPartida(new ConfiguracionPartida
+
+        // La activa exige que quede en el mazo una carta de ValorTruco igual o
+        // mayor a la descartada. Se descarta la más baja de la mano y, en el
+        // caso raro de que ni así haya reemplazo (las cartas altas repartidas),
+        // se reparte una partida nueva.
+        ManoTruco mano1;
+        Carta carta;
+        do
         {
-            Modo = ModoJuego.Historia,
-            HeroeDelHumano = ClaseHeroe.Manipulador
-        });
+            mano1 = useCase.EjecutarNuevaPartida(new ConfiguracionPartida
+            {
+                Modo = ModoJuego.Historia,
+                HeroeDelHumano = ClaseHeroe.Manipulador
+            });
+            carta = mano1.Humano.Mano.OrderBy(c => c.ValorTruco).First();
+        }
+        while (!mano1.CartasRestantesMazo.Any(c => c.ValorTruco >= carta.ValorTruco));
 
         // Usar la activa en la mano 1.
-        var carta = mano1.Humano.Mano[0];
         new ActivarHabilidadUseCase().Ejecutar(mano1.Id, carta.Numero, carta.Palo);
 
         var mano2 = useCase.Ejecutar(mano1.Id);

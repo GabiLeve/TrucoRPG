@@ -412,18 +412,28 @@ public class MaquinaServicioTests
         var mano = CrearManoBase();
         mano.EnvidoCantado = false;
         mano.EnvidoResuelto = false;
-        mano.Bazas = new List<Baza>(); 
+        mano.Bazas = new List<Baza>();
 
         mano.NivelMentiraEnvidoMaquina = 0;
         mano.Maquina.Mano = new List<Carta>();
 
-        // When
-        MaquinaServicio.ProcesarIniciativa(mano);
+        // La decisión tiene un piso de 4% de probabilidad: se fija la tirada
+        // en "no" para que el test sea determinístico.
+        AzarServicio.TirarProbabilidadOverride = _ => false;
+        try
+        {
+            // When
+            MaquinaServicio.ProcesarIniciativa(mano);
 
-        // Then
-        Assert.False(mano.EnvidoCantado);
-        Assert.Null(mano.CantorEnvido);
-        Assert.False(mano.EnvidoPendienteRespuestaHumano);
+            // Then
+            Assert.False(mano.EnvidoCantado);
+            Assert.Null(mano.CantorEnvido);
+            Assert.False(mano.EnvidoPendienteRespuestaHumano);
+        }
+        finally
+        {
+            AzarServicio.TirarProbabilidadOverride = null;
+        }
     }
 
     [Fact]
