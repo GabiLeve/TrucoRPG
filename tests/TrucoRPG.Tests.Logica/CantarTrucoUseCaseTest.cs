@@ -106,14 +106,25 @@ namespace TrucoRPG.Tests
             PartidaMemoriaServicio.Guardar(mano);
             var servicio = new CantarTrucoUseCase();
 
-            // When
-            var resultado = servicio.Ejecutar(id);
+            // Forzamos la tirada máxima (100): ninguna probabilidad la alcanza,
+            // así la máquina rechaza el truco de forma determinística.
+            var randomOriginal = DecisionMaquinaServicio.RandomNext;
+            DecisionMaquinaServicio.RandomNext = _ => 99;
+            try
+            {
+                // When
+                var resultado = servicio.Ejecutar(id);
 
-            // Then
-            Assert.True(resultado.TrucoResuelto);
-            Assert.Equal("Humano", resultado.GanadorMano);
-            Assert.Equal(1, resultado.PuntosTrucoMano);
-            Assert.Contains("La máquina no quiso el truco", resultado.EstadoTruco);
+                // Then
+                Assert.True(resultado.TrucoResuelto);
+                Assert.Equal("Humano", resultado.GanadorMano);
+                Assert.Equal(1, resultado.PuntosTrucoMano);
+                Assert.Contains("La máquina no quiso el truco", resultado.EstadoTruco);
+            }
+            finally
+            {
+                DecisionMaquinaServicio.RandomNext = randomOriginal;
+            }
         }
 
         [Fact]

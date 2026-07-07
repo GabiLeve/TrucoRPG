@@ -154,15 +154,24 @@ namespace TrucoRPG.Tests.Logica
             mano.NivelMentiraTrucoMaquina = 0;
             PartidaMemoriaServicio.Actualizar(mano);
 
-            //When
-            var resultado = useCase.Ejecutar(manoId, aceptar: true, escalarA: "retruco");
+            // Tirada fija 50: AceptarTruco (prob 90) => acepta,
+            // EscalarTruco en nivel 2 (prob 35) => no escala. Determinístico.
+            var randomOriginal = DecisionMaquinaServicio.RandomNext;
+            DecisionMaquinaServicio.RandomNext = _ => 49;
+            try
+            {
+                //When
+                var resultado = useCase.Ejecutar(manoId, aceptar: true, escalarA: "retruco");
 
-            //Then
-            bool esResuelto = resultado.TrucoResuelto;
-            int nivelCambiado = resultado.NivelTruco;
-            string estadoTexto = resultado.EstadoTruco;
-
-            Assert.False(esResuelto);
+                //Then
+                Assert.False(resultado.TrucoResuelto);
+                Assert.Equal(2, resultado.NivelTruco);
+                Assert.Contains("La máquina quiso el retruco", resultado.EstadoTruco);
+            }
+            finally
+            {
+                DecisionMaquinaServicio.RandomNext = randomOriginal;
+            }
         }
 
         //[Fact]
