@@ -19,22 +19,30 @@ namespace TrucoRPG.Dominio.UseCases
 
         public async Task<bool> Ejecutar(string idUsuario, string spriteKeyNuevo)
         {
-            var inventario = await _inventarioRepositorio.ObtenerInventarioDeUsuario(idUsuario);
+            
+            bool esDefault = System.Text.RegularExpressions.Regex.IsMatch(spriteKeyNuevo, @"^personaje\d+$");
 
-            bool tieneItem = false;
-
-            foreach (var linea in inventario)
+            if (!esDefault)
             {
-                if (linea.ItemTienda != null && linea.ItemTienda.SpriteKey == spriteKeyNuevo)
+                var inventario = await _inventarioRepositorio.ObtenerInventarioDeUsuario(idUsuario);
+                bool tieneItem = false;
+
+                foreach (var linea in inventario)
                 {
-                    tieneItem = true;
-                    break;
+                   
+                    if (linea.ItemTienda != null &&
+                        !string.IsNullOrEmpty(linea.ItemTienda.SpriteKey) &&
+                        spriteKeyNuevo.Contains(linea.ItemTienda.SpriteKey))
+                    {
+                        tieneItem = true;
+                        break;
+                    }
                 }
-            }
 
-            if (!tieneItem)
-            {
-                throw new InvalidOperationException("No podés equiparte una prenda que no compraste.");
+                if (!tieneItem)
+                {
+                    throw new InvalidOperationException("No podés equiparte una prenda que no compraste.");
+                }
             }
 
             var resultado = await _usuarioRepositorio.ActualizarSpriteAsync(idUsuario, spriteKeyNuevo);
