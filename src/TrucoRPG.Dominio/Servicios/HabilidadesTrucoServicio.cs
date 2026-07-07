@@ -5,10 +5,15 @@ namespace TrucoRPG.Dominio.Servicios
 {
     public static class HabilidadesTrucoServicio
     {
-        public static void NotificarTrucoAceptado(ManoTruco mano, string cantorId) =>
+        public static void NotificarTrucoAceptado(ManoTruco mano, string cantorId)
+        {
             HabilidadesOrquestador.Disparar(
                 mano,
                 EventoPartida.TrucoAceptado,
                 new CantoTrucoAceptado { CantorId = cantorId });
+
+            LunaLlenaServicio.IntentarAlAceptarTrucoMaquina(mano, cantorId);
+            HabilidadesRivalOrquestador.ActualizarVista(mano);
+        }
     }
 }

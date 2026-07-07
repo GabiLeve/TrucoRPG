@@ -107,6 +107,8 @@ public class EnvidoServicio2v2Tests
         // Do
         var mano = CrearMano("J1");
         AsignarCartasBasicas(mano);
+        // J1 realmente tiene 25 (4+1 de espada) para que el tanto declarado no se capee.
+        mano.EquipoA.Jugador1.Mano = new List<Carta> { C(4, "Espada"), C(1, "Espada"), C(7, "Basto") };
         mano.PuntosEnvido = 2;
         EnvidoServicio2v2.IniciarDeclaracionTantos(mano);
         // El mano (J1) declara primero
@@ -146,6 +148,10 @@ public class EnvidoServicio2v2Tests
         // Do - Empate → gana el equipo mano (EquipoA, J1 es mano). Orden: J1, J2, J3, J4.
         var mano = CrearMano("J1");
         AsignarCartasBasicas(mano);
+        // J1, J2 y J4 tienen 28 real (7+1 mismo palo) para empatar en el tanto declarado.
+        mano.EquipoA.Jugador1.Mano = new List<Carta> { C(7, "Espada"), C(1, "Espada"), C(2, "Basto") };
+        mano.EquipoB.Jugador1.Mano = new List<Carta> { C(7, "Copa"), C(1, "Copa"), C(2, "Oro") };
+        mano.EquipoB.Jugador2.Mano = new List<Carta> { C(7, "Oro"), C(1, "Oro"), C(2, "Copa") };
         mano.PuntosEnvido = 2;
         EnvidoServicio2v2.IniciarDeclaracionTantos(mano);
 
@@ -240,6 +246,10 @@ public class EnvidoServicio2v2Tests
         // (J3) NO necesita cantar; tras J2 el pendiente pasa directo a J4.
         var mano = CrearMano("J1");
         AsignarCartasBasicas(mano);
+        // J1 tiene 33 real (7+6 espada), J2 tiene 27 (6+1 copa) y J4 tiene 20 (dos figuras).
+        mano.EquipoA.Jugador1.Mano = new List<Carta> { C(7, "Espada"), C(6, "Espada"), C(2, "Basto") };
+        mano.EquipoB.Jugador1.Mano = new List<Carta> { C(6, "Copa"), C(1, "Copa"), C(2, "Oro") };
+        mano.EquipoB.Jugador2.Mano = new List<Carta> { C(10, "Oro"), C(12, "Oro"), C(2, "Copa") };
         mano.PuntosEnvido = 2;
         EnvidoServicio2v2.IniciarDeclaracionTantos(mano);
 
@@ -265,6 +275,10 @@ public class EnvidoServicio2v2Tests
         var mano = CrearMano("J2");
         mano.EquipoMano = "EquipoB";
         AsignarCartasBasicas(mano);
+        // J3 (EquipoA) tiene 31 real (7+4 espada) y gana; J2/J4 (EquipoB) tienen 20 y 25.
+        mano.EquipoB.Jugador1.Mano = new List<Carta> { C(10, "Copa"), C(11, "Copa"), C(2, "Oro") };
+        mano.EquipoA.Jugador2.Mano = new List<Carta> { C(7, "Espada"), C(4, "Espada"), C(2, "Basto") };
+        mano.EquipoB.Jugador2.Mano = new List<Carta> { C(4, "Oro"), C(1, "Oro"), C(2, "Copa") };
         mano.PuntosEnvido = 2;
         EnvidoServicio2v2.IniciarDeclaracionTantos(mano);
 

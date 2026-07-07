@@ -7,6 +7,9 @@ namespace TrucoRPG.Dominio.Habilidades.Heroes
     {
         public override ClaseHeroe Tipo => ClaseHeroe.Mentiroso;
 
+        /// <summary>Manos de espera tras usar la activa (recién entonces empieza a contar).</summary>
+        private const int CooldownManos = 2;
+
         public override void OnEvento(ContextoPartida contexto, EventoPartida evento, object? datos = null)
         {
             var estado = contexto.EstadoDe(IdJugador.Humano, ClaseHeroe.Mentiroso);
@@ -14,7 +17,7 @@ namespace TrucoRPG.Dominio.Habilidades.Heroes
             if (evento == EventoPartida.ManoIniciada)
             {
                 ReglasHabilidadActiva.ReiniciarUsoEnMano(estado);
-                estado.ActivaDisponible = contexto.Mano.NumeroDeMano % 2 == 1;
+                ReglasHabilidadActiva.ActualizarDisponibilidadPorCooldown(estado, CooldownManos);
             }
         }
 
@@ -43,11 +46,10 @@ namespace TrucoRPG.Dominio.Habilidades.Heroes
                 Palo = revelada.Palo,
                 ValorTruco = revelada.ValorTruco
             };
-            estado.ActivaUsadaEnEstaMano = true;
-            estado.ActivaDisponible = false;
+            ReglasHabilidadActiva.RegistrarUsoActiva(estado);
 
             var msg =
-                $"Mentiroso: revelaste {revelada.Numero} de {revelada.Palo} (Truco {revelada.ValorTruco}) del rival.";
+                $"Mentiroso: revelaste {revelada.Numero} de {revelada.Palo} del rival.";
             contexto.Mano.UltimoMensajeHabilidad = msg;
 
             return ResultadoActivarHabilidad.Ok(msg);

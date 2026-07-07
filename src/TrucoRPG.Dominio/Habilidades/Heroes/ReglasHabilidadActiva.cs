@@ -14,6 +14,33 @@ namespace TrucoRPG.Dominio.Habilidades.Heroes
             estado.CartaReveladaRival = null;
         }
 
+        /// <summary>
+        /// Calcula la disponibilidad de la activa al iniciar una mano siguiendo un cooldown
+        /// "perezoso": la habilidad está disponible cada mano hasta que el jugador la usa por
+        /// primera vez; recién ahí empieza a contar y vuelve a estar disponible después de
+        /// <paramref name="cooldownManos"/> manos. Llamar una sola vez por mano (en ManoIniciada).
+        /// </summary>
+        public static void ActualizarDisponibilidadPorCooldown(EstadoHabilidadesJugador estado, int cooldownManos)
+        {
+            if (!estado.ActivaUsadaAlgunaVez)
+            {
+                estado.ActivaDisponible = true;
+                return;
+            }
+
+            estado.ManosDesdeUltimaActiva++;
+            estado.ActivaDisponible = estado.ManosDesdeUltimaActiva >= cooldownManos;
+        }
+
+        /// <summary>Registra que la activa se usó: la bloquea esta mano y arranca el cooldown.</summary>
+        public static void RegistrarUsoActiva(EstadoHabilidadesJugador estado)
+        {
+            estado.ActivaUsadaEnEstaMano = true;
+            estado.ActivaDisponible = false;
+            estado.ActivaUsadaAlgunaVez = true;
+            estado.ManosDesdeUltimaActiva = 0;
+        }
+
         public static bool ValidarActivaBase(ContextoPartida ctx, EstadoHabilidadesJugador estado, out string? error)
         {
             error = null;

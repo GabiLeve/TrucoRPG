@@ -11,6 +11,8 @@ namespace TrucoRPG.Dominio.UseCases
             var mano = PartidaMemoriaServicio.Obtener(manoId)
                 ?? throw new KeyNotFoundException("No se encontró la mano.");
 
+            SalpicaduraBloqueoServicio.ValidarNoBloqueado(mano);
+
             if (mano.PartidaTerminada)
                 throw new InvalidOperationException("La partida ya terminó.");
             if (mano.GanadorMano != null)
@@ -25,6 +27,7 @@ namespace TrucoRPG.Dominio.UseCases
             mano.EstadoTruco        = $"Te fuiste al mazo. La máquina gana {puntosParaMaquina} punto(s).";
             JuegoServicio.SumarPuntos(
                 mano, IdJugador.Maquina, puntosParaMaquina, OrigenPuntos.TrucoMano, mano.CantorTruco);
+            MandingaServicio.RegistrarFinMano(mano);
 
             PartidaMemoriaServicio.Actualizar(mano);
             return mano;

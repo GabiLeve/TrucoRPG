@@ -21,6 +21,8 @@ public class HabilidadesActivasTests
 
         Assert.NotNull(actualizada.VistaHabilidadesHumano?.CartaReveladaRival);
         Assert.False(actualizada.VistaHabilidadesHumano!.ActivaDisponible);
+        Assert.Contains("revelaste", actualizada.UltimoMensajeHabilidad ?? "", StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("(Truco", actualizada.UltimoMensajeHabilidad ?? "", StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -71,8 +73,10 @@ public class HabilidadesActivasTests
     }
 
     [Fact]
-    public void Manipulador_ActivaNoDisponibleEnManoDos()
+    public void Manipulador_ActivaSigueDisponibleEnManoDos_SiNoSeUso()
     {
+        // Si el jugador no usa la activa, debe seguir disponible cada mano
+        // (el cooldown recién empieza a contar al usarla).
         var useCase = new NuevaManoUseCase();
         var primera = useCase.EjecutarNuevaPartida(new ConfiguracionPartida
         {
@@ -82,6 +86,29 @@ public class HabilidadesActivasTests
 
         var segunda = useCase.Ejecutar(primera.Id);
 
-        Assert.False(segunda.VistaHabilidadesHumano!.ActivaDisponible);
+        Assert.True(segunda.VistaHabilidadesHumano!.ActivaDisponible);
+    }
+
+    [Fact]
+    public void Manipulador_TrasUsar_NoDisponiblePorTresManos_LuegoVuelve()
+    {
+        var useCase = new NuevaManoUseCase();
+        var mano1 = useCase.EjecutarNuevaPartida(new ConfiguracionPartida
+        {
+            Modo = ModoJuego.Historia,
+            HeroeDelHumano = ClaseHeroe.Manipulador
+        });
+
+        // Usar la activa en la mano 1.
+        var carta = mano1.Humano.Mano[0];
+        new ActivarHabilidadUseCase().Ejecutar(mano1.Id, carta.Numero, carta.Palo);
+
+        var mano2 = useCase.Ejecutar(mano1.Id);
+        var mano3 = useCase.Ejecutar(mano2.Id);
+        var mano4 = useCase.Ejecutar(mano3.Id);
+
+        Assert.False(mano2.VistaHabilidadesHumano!.ActivaDisponible);
+        Assert.False(mano3.VistaHabilidadesHumano!.ActivaDisponible);
+        Assert.True(mano4.VistaHabilidadesHumano!.ActivaDisponible);
     }
 }
