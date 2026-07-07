@@ -21,6 +21,7 @@ namespace TrucoRPG.Tests.API
         private readonly Mock<IRivalRepositorio> _rivalesMock = new();
         private readonly Mock<IProgresoPartidaRepositorio> _progresoMock = new();
         private readonly Mock<IUsuarioRepositorio> _usuariosMock = new();
+        private readonly Mock<IInventarioRepositorio> _inventarioMock = new();
         private readonly Mock<IUsuarioActualServicio> _usuarioActualMock = new();
         private readonly HistoriaController _controller;
 
@@ -38,7 +39,8 @@ namespace TrucoRPG.Tests.API
                 _usuarioActualMock.Object,
                 new CrearPersonajeUseCase(_usuariosMock.Object),
                 new VerificarPersonajeUseCase(_usuariosMock.Object),
-                new ObtenerPersonajeDelUsuarioUseCase(_usuariosMock.Object));
+                new ObtenerPersonajeDelUsuarioUseCase(_usuariosMock.Object),
+                new EquiparAvatarUseCase(_inventarioMock.Object, _usuariosMock.Object));
 
             _usuarioActualMock.Setup(x => x.ObtenerId()).Returns(UserId);
         }

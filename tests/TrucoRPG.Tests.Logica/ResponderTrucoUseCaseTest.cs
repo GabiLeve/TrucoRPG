@@ -87,19 +87,30 @@ namespace TrucoRPG.Tests.Logica
             var useCase = new ResponderTrucoUseCase();
             Guid manoId = Guid.NewGuid();
             var mano = CrearManoBase(manoId);
-            mano.NivelTruco = 1; 
-            mano.Maquina.Mano = new List<Carta>(); 
+            mano.NivelTruco = 1;
+            mano.Maquina.Mano = new List<Carta>();
             mano.NivelMentiraTrucoMaquina = 0;
             PartidaMemoriaServicio.Actualizar(mano);
 
-            //When
-            var resultado = useCase.Ejecutar(manoId, aceptar: true, escalarA: "retruco");
+            // Tirada máxima: la máquina rechaza el retruco de forma determinística
+            // (con mano vacía la probabilidad de aceptar es 20%, nunca 0).
+            var randomOriginal = DecisionMaquinaServicio.RandomNext;
+            DecisionMaquinaServicio.RandomNext = _ => 99;
+            try
+            {
+                //When
+                var resultado = useCase.Ejecutar(manoId, aceptar: true, escalarA: "retruco");
 
-            //Then
-            Assert.True(resultado.TrucoResuelto);
-            Assert.Equal("Humano", resultado.GanadorMano);
-            Assert.Equal(2, resultado.PuntosTrucoMano);
-            Assert.Contains("La máquina no quiso el retruco", resultado.EstadoTruco);
+                //Then
+                Assert.True(resultado.TrucoResuelto);
+                Assert.Equal("Humano", resultado.GanadorMano);
+                Assert.Equal(2, resultado.PuntosTrucoMano);
+                Assert.Contains("La máquina no quiso el retruco", resultado.EstadoTruco);
+            }
+            finally
+            {
+                DecisionMaquinaServicio.RandomNext = randomOriginal;
+            }
         }
 
         //ESTANA SI XQ CUANDO CORRO UNO ME DA VERDE Y DESPUES LA CORRO DA ROJO

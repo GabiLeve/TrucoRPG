@@ -50,8 +50,13 @@ public class HabilidadesActivasTests
             HeroeDelHumano = ClaseHeroe.Manipulador
         });
 
-        var carta = mano.Humano.Mano[0];
-        var actualizada = new ActivarHabilidadUseCase().Ejecutar(mano.Id, carta.Numero, carta.Palo);
+        // Fijamos una carta baja para descartar: con una carta al azar del reparto
+        // el test era intermitente (si tocaba una muy alta, el mazo no tiene
+        // ninguna de valor igual o mayor y la habilidad falla).
+        var cartaBaja = new Carta { Numero = 4, Palo = "Copa", ValorTruco = 1 };
+        mano.Humano.Mano[0] = cartaBaja;
+
+        var actualizada = new ActivarHabilidadUseCase().Ejecutar(mano.Id, cartaBaja.Numero, cartaBaja.Palo);
 
         Assert.Equal(3, actualizada.Humano.Mano.Count);
         Assert.Contains("Manipulador", actualizada.UltimoMensajeHabilidad ?? "");
