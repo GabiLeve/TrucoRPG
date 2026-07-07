@@ -295,26 +295,30 @@ namespace TrucoRPG.Infraestructura.Migrations
             modelBuilder.Entity("TrucoRPG.Dominio.Entities.Inventario", b =>
                 {
                     b.Property<string>("UsuarioId")
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("usuarioid");
 
                     b.Property<int>("ItemTiendaId")
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnName("itemtiendaid");
 
                     b.Property<int>("Cantidad")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
-                        .HasDefaultValue(1);
+                        .HasDefaultValue(1)
+                        .HasColumnName("cantidad");
 
                     b.Property<bool>("Equipado")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("tinyint(1)")
-                        .HasDefaultValue(false);
+                        .HasDefaultValue(false)
+                        .HasColumnName("equipado");
 
                     b.HasKey("UsuarioId", "ItemTiendaId");
 
                     b.HasIndex("ItemTiendaId");
 
-                    b.ToTable("Inventarios");
+                    b.ToTable("inventarios");
                 });
 
             modelBuilder.Entity("TrucoRPG.Dominio.Entities.ItemTienda", b =>
@@ -326,7 +330,8 @@ namespace TrucoRPG.Infraestructura.Migrations
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<bool>("Acumulable")
-                        .HasColumnType("tinyint(1)");
+                        .HasColumnType("tinyint(1)")
+                        .HasColumnName("acumulable");
 
                     b.Property<string>("Categoria")
                         .IsRequired()
@@ -551,11 +556,11 @@ namespace TrucoRPG.Infraestructura.Migrations
                         {
                             Id = new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa4"),
                             Descripcion = "Cuarto jefe de la historia. Una presencia luminosa que desorienta al viajero.",
-                            DescripcionHabilidad = "Emite una luz radiante que te confunde y te hace jugar una carta al azar (puede ocurrir en cualquier momento de la ronda).",
+                            DescripcionHabilidad = "Destello: cada 2 turnos en bazas 1 o 2, te obliga a jugar una carta al azar. Espejismo (pasiva): si es mano y abre la baza 1, muestra una carta falsa en pantalla hasta que respondas.",
                             Nivel = 4,
                             Nombre = "La Luz Mala",
                             NombreHabilidad = "Destello",
-                            TipoHabilidad = 0,
+                            TipoHabilidad = 5,
                             TipoRival = 4
                         },
                         new

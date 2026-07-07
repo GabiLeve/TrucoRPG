@@ -26,6 +26,7 @@ namespace TrucoRPG.API.Controllers
         private readonly CrearPersonajeUseCase _crearPersonaje;
         private readonly VerificarPersonajeUseCase _verificarPersonaje;
         private readonly ObtenerPersonajeDelUsuarioUseCase _obtenerPersonaje;
+        private readonly EquiparAvatarUseCase _equiparAvatarUseCase;
 
         public HistoriaController(
             ObtenerRivalesHistoriaUseCase obtenerRivales,
@@ -35,7 +36,8 @@ namespace TrucoRPG.API.Controllers
             IUsuarioActualServicio usuarioActual,
             CrearPersonajeUseCase crearPersonaje,
             VerificarPersonajeUseCase verificarPersonaje,
-            ObtenerPersonajeDelUsuarioUseCase obtenerPersonaje)
+            ObtenerPersonajeDelUsuarioUseCase obtenerPersonaje,
+            EquiparAvatarUseCase equiparAvatarUseCase)
         {
             _obtenerRivales = obtenerRivales;
             _obtenerProgreso = obtenerProgreso;
@@ -45,6 +47,7 @@ namespace TrucoRPG.API.Controllers
             _crearPersonaje = crearPersonaje;
             _verificarPersonaje = verificarPersonaje;
             _obtenerPersonaje = obtenerPersonaje;
+            _equiparAvatarUseCase = equiparAvatarUseCase;
         }
 
         [HttpPost("crearPersonaje")]
@@ -131,6 +134,28 @@ namespace TrucoRPG.API.Controllers
                 request.DiferenciaPuntos);
 
             return Ok(await _obtenerProgreso.EjecutarAsync(_usuarioActual.ObtenerId()));
+        }
+
+        [HttpPut("equipar-avatar")]
+        [Authorize]
+        public async Task<IActionResult> EquiparAvatar([FromBody] EquiparSpriteDto dto)
+        {
+            try
+            {
+                var idUsuario = _usuarioActual.ObtenerId();
+
+                await _equiparAvatarUseCase.Ejecutar(idUsuario, dto.SpriteKeyNuevo);
+
+                return Ok(new { mensaje = "¡Ropa actualizada con éxito!" });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { mensaje = ex.Message });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { mensaje = "Ocurrió un error inesperado en el servidor." });
+            }
         }
     }
 }
