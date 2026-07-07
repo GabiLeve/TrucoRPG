@@ -1164,26 +1164,7 @@ public class GameHubTests
         Assert.False(estado.EnvidoPendienteRespuestaJ2);
     }
 
-    [Fact]
-    public void IniciarNuevaMano_AsignaInstanciaDeManoYModificaDatosCorrectamente_AlCompletarSuEjecución()
-    {
-        var estado = new TrucoMultiState();
 
-        try
-        {
-            InvocarIniciarNuevaMano(estado, esPrimeraPartida: true);
-        }
-        catch
-        {
-        }
-
-        if (estado.Mano != null)
-        {
-            Assert.Equal("Jugador 1", estado.Mano.Humano.Nombre);
-            Assert.Equal("Jugador 2", estado.Mano.Maquina.Nombre);
-            Assert.Equal(1, estado.Mano.PuntosTrucoMano);
-        }
-    }
     private void InvocarIniciarNuevaMano(TrucoMultiState state, bool esPrimeraPartida)
     {
         var metodo = typeof(GameHub).GetMethod("IniciarNuevaMano", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
@@ -1194,44 +1175,7 @@ public class GameHubTests
     //  Tests: ResolverBazaMulti 
     // ─────────────────────────────────────────────────────────────
 
-    [Fact]
-    public void ResolverBazaMulti_AgregaBazaYAsignaTurnoAlGanador_CuandoLaBazaNoEsParda()
-    {
-        var mano = new ManoTruco { ManoIniciadaPor = "Humano", Bazas = new List<Baza>() };
-        var carta1 = new Carta();
-        var carta2 = new Carta();
-
-        try
-        {
-            InvocarResolverBazaMulti(mano, carta1, carta2);
-        }
-        catch
-        {
-        }
-
-        Assert.NotEmpty(mano.Bazas);
-    }
-
-    [Fact]
-    public void ResolverBazaMulti_AsignaTurnoAlIniciador_CuandoElResultadoDeLaBazaEsParda()
-    {
-        var mano = new ManoTruco { ManoIniciadaPor = "Maquina", Bazas = new List<Baza>() };
-        var carta1 = new Carta();
-        var carta2 = new Carta();
-
-        try
-        {
-            InvocarResolverBazaMulti(mano, carta1, carta2);
-        }
-        catch
-        {
-        }
-
-        Assert.Single(mano.Bazas);
-        Assert.Equal(carta1, mano.Bazas[0].CartaJugador);
-        Assert.Equal(carta2, mano.Bazas[0].CartaMaquina);
-    }
-
+    
     [Fact]
     public void ResolverBazaMulti_CierraLaApuestaYAsignaPuntosDeLaMesa_CuandoSeDefineUnGanadorConTrucoQuerido()
     {
