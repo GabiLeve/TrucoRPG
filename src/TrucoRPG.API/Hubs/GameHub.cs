@@ -902,6 +902,32 @@ public class GameHub : Hub
             .SendAsync("RecibirSenia2v2", tipo);
     }
 
+    public async Task EnviarSenia3v3(string tipo)
+    {
+        //encontrar sala y estado
+        if (!ObtenerSalaYEstado3v3(out _, out var state))
+            return;
+
+        //encontrar mi posición y equipo (EquipoA = pos 1/3/5, EquipoB = pos 2/4/6)
+        if (!state!.Posiciones.TryGetValue(Context.ConnectionId, out var miPos))
+            return;
+
+        var miRol    = $"J{miPos}";
+        var miEquipo = state.Mano.ObtenerEquipoDeJugador(miRol);
+
+        //enviar la seña a los dos compañeros del equipo
+        foreach (var kv in state.Posiciones)
+        {
+            if (kv.Key == Context.ConnectionId) continue;
+
+            var rol = $"J{kv.Value}";
+            if (state.Mano.ObtenerEquipoDeJugador(rol) != miEquipo) continue;
+
+            await Clients.Client(kv.Key)
+                .SendAsync("RecibirSenia3v3", tipo, miRol);
+        }
+    }
+
     private async Task BroadcastTrucoEstado(string sala, TrucoMultiState state)
     {
         var mano = state.Mano;
