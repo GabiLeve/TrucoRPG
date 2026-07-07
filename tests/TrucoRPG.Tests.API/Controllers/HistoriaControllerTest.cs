@@ -36,6 +36,7 @@ namespace TrucoRPG.Tests.API
                 new ObtenerProgresoHistoriaUseCase(_progresoMock.Object),
                 new PuedePelearConRivalUseCase(validacion),
                 new RegistrarVictoriaHistoriaUseCase(_progresoMock.Object, validacion),
+                new ReiniciarRivalesHistoriaUseCase(_progresoMock.Object),
                 _usuarioActualMock.Object,
                 new CrearPersonajeUseCase(_usuariosMock.Object),
                 new VerificarPersonajeUseCase(_usuariosMock.Object),
@@ -233,6 +234,26 @@ namespace TrucoRPG.Tests.API
 
             await Assert.ThrowsAsync<KeyNotFoundException>(
                 () => _controller.RegistrarVictoria(request));
+        }
+
+        // ── Reiniciar rivales (rejugar historia) ──────────────────
+
+        [Fact]
+        public async Task ReiniciarRivales_ConUsuario_ReiniciaYRetornaProgreso()
+        {
+            var resultado = await _controller.ReiniciarRivales();
+
+            Assert.IsType<OkObjectResult>(resultado);
+            _progresoMock.Verify(r => r.ReiniciarRivalesAsync(UserId), Times.Once);
+        }
+
+        [Fact]
+        public async Task ReiniciarRivales_SinUsuario_LanzaUnauthorized()
+        {
+            _usuarioActualMock.Setup(x => x.ObtenerId()).Returns((string?)null);
+
+            await Assert.ThrowsAsync<UnauthorizedAccessException>(
+                () => _controller.ReiniciarRivales());
         }
     }
 }

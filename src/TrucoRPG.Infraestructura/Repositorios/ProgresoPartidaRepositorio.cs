@@ -51,5 +51,16 @@ namespace TrucoRPG.Infraestructura.Repositorios
 
             await _db.SaveChangesAsync();
         }
+
+        /// <summary>
+        /// Vuelve a 0 solo el nivel de rivales derrotados para poder rejugar la
+        /// historia. Los puntos acumulados (y todo lo demás del jugador) se conservan.
+        /// </summary>
+        public async Task ReiniciarRivalesAsync(string usuarioId)
+        {
+            var progreso = await ObtenerOCrearAsync(usuarioId);
+            progreso.UltimoRivalDerrotadoNivel = 0;
+            await _db.SaveChangesAsync();
+        }
     }
 }

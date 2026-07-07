@@ -106,6 +106,7 @@ builder.Services.AddScoped<ObtenerRivalesHistoriaUseCase>();
 builder.Services.AddScoped<ObtenerProgresoHistoriaUseCase>();
 builder.Services.AddScoped<PuedePelearConRivalUseCase>();
 builder.Services.AddScoped<RegistrarVictoriaHistoriaUseCase>();
+builder.Services.AddScoped<ReiniciarRivalesHistoriaUseCase>();
 builder.Services.AddScoped<IRegisterUseCase, RegisterUseCase>();
 builder.Services.AddScoped<ILoginUseCase, LoginUseCase>();
 builder.Services.AddScoped<ICambiarPasswordUseCase, CambiarPasswordUseCase>();

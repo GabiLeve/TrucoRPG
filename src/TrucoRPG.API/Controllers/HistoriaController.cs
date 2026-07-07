@@ -22,6 +22,7 @@ namespace TrucoRPG.API.Controllers
         private readonly ObtenerProgresoHistoriaUseCase _obtenerProgreso;
         private readonly PuedePelearConRivalUseCase _puedePelear;
         private readonly RegistrarVictoriaHistoriaUseCase _registrarVictoria;
+        private readonly ReiniciarRivalesHistoriaUseCase _reiniciarRivales;
         private readonly IUsuarioActualServicio _usuarioActual;
         private readonly CrearPersonajeUseCase _crearPersonaje;
         private readonly VerificarPersonajeUseCase _verificarPersonaje;
@@ -33,6 +34,7 @@ namespace TrucoRPG.API.Controllers
             ObtenerProgresoHistoriaUseCase obtenerProgreso,
             PuedePelearConRivalUseCase puedePelear,
             RegistrarVictoriaHistoriaUseCase registrarVictoria,
+            ReiniciarRivalesHistoriaUseCase reiniciarRivales,
             IUsuarioActualServicio usuarioActual,
             CrearPersonajeUseCase crearPersonaje,
             VerificarPersonajeUseCase verificarPersonaje,
@@ -43,6 +45,7 @@ namespace TrucoRPG.API.Controllers
             _obtenerProgreso = obtenerProgreso;
             _puedePelear = puedePelear;
             _registrarVictoria = registrarVictoria;
+            _reiniciarRivales = reiniciarRivales;
             _usuarioActual = usuarioActual;
             _crearPersonaje = crearPersonaje;
             _verificarPersonaje = verificarPersonaje;
@@ -133,6 +136,22 @@ namespace TrucoRPG.API.Controllers
                 request.RivalNivel,
                 request.DiferenciaPuntos);
 
+            return Ok(await _obtenerProgreso.EjecutarAsync(_usuarioActual.ObtenerId()));
+        }
+
+        /// <summary>
+        /// Reinicia solo el estado de rivales derrotados para poder rejugar la historia.
+        /// Los puntos acumulados y todo lo obtenido (monedas, habilidades, ropa) se conservan.
+        /// </summary>
+        /// <response code="200">Progreso actualizado (rivales en 0).</response>
+        /// <response code="401">No autenticado.</response>
+        [Authorize(Roles = "Jugador")]
+        [HttpPost("reiniciar-rivales")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> ReiniciarRivales()
+        {
+            await _reiniciarRivales.EjecutarAsync(_usuarioActual.ObtenerId());
             return Ok(await _obtenerProgreso.EjecutarAsync(_usuarioActual.ObtenerId()));
         }
 
