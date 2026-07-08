@@ -12,8 +12,8 @@ using TrucoRPG.Infraestructura.Data;
 namespace TrucoRPG.Infraestructura.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260628005940_ResetMinusculas")]
-    partial class ResetMinusculas
+    [Migration("20260706224251_AgregarCamposArmarioYMonedas")]
+    partial class AgregarCamposArmarioYMonedas
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -215,6 +215,10 @@ namespace TrucoRPG.Infraestructura.Migrations
                         .HasColumnType("datetime(6)")
                         .HasColumnName("lockoutend");
 
+                    b.Property<int>("Monedas")
+                        .HasColumnType("int")
+                        .HasColumnName("monedas");
+
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
                         .HasColumnType("varchar(256)")
@@ -240,6 +244,10 @@ namespace TrucoRPG.Infraestructura.Migrations
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("longtext")
                         .HasColumnName("securitystamp");
+
+                    b.Property<string>("SpriteKey")
+                        .HasColumnType("longtext")
+                        .HasColumnName("spritekey");
 
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("tinyint(1)")
@@ -332,6 +340,35 @@ namespace TrucoRPG.Infraestructura.Migrations
                         });
                 });
 
+            modelBuilder.Entity("TrucoRPG.Dominio.Entities.Inventario", b =>
+                {
+                    b.Property<string>("UsuarioId")
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("usuarioid");
+
+                    b.Property<int>("ItemTiendaId")
+                        .HasColumnType("int")
+                        .HasColumnName("itemtiendaid");
+
+                    b.Property<int>("Cantidad")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1)
+                        .HasColumnName("cantidad");
+
+                    b.Property<bool>("Equipado")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(false)
+                        .HasColumnName("equipado");
+
+                    b.HasKey("UsuarioId", "ItemTiendaId");
+
+                    b.HasIndex("ItemTiendaId");
+
+                    b.ToTable("inventarios");
+                });
+
             modelBuilder.Entity("TrucoRPG.Dominio.Entities.ItemTienda", b =>
                 {
                     b.Property<int>("Id")
@@ -340,6 +377,10 @@ namespace TrucoRPG.Infraestructura.Migrations
                         .HasColumnName("id");
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Acumulable")
+                        .HasColumnType("tinyint(1)")
+                        .HasColumnName("acumulable");
 
                     b.Property<string>("Categoria")
                         .IsRequired()
@@ -382,6 +423,7 @@ namespace TrucoRPG.Infraestructura.Migrations
                         new
                         {
                             Id = 1,
+                            Acumulable = false,
                             Categoria = "HABILIDADES",
                             Descripcion = "Te otorga la habilidad del manipulador en una partida",
                             Img = "/assets/objetos/objeto.png",
@@ -391,6 +433,7 @@ namespace TrucoRPG.Infraestructura.Migrations
                         new
                         {
                             Id = 2,
+                            Acumulable = false,
                             Categoria = "HABILIDADES",
                             Descripcion = "Te otorga la habilidad del timbero en una partida",
                             Img = "/assets/objetos/objeto.png",
@@ -400,6 +443,7 @@ namespace TrucoRPG.Infraestructura.Migrations
                         new
                         {
                             Id = 3,
+                            Acumulable = false,
                             Categoria = "HABILIDADES",
                             Descripcion = "Te otorga la habilidad del fanfarron en una partida",
                             Img = "/assets/objetos/objeto.png",
@@ -409,6 +453,7 @@ namespace TrucoRPG.Infraestructura.Migrations
                         new
                         {
                             Id = 4,
+                            Acumulable = false,
                             Categoria = "HABILIDADES",
                             Descripcion = "Te otorga la habilidad del mentiroso en una partida",
                             Img = "/assets/objetos/objeto.png",
@@ -418,6 +463,7 @@ namespace TrucoRPG.Infraestructura.Migrations
                         new
                         {
                             Id = 5,
+                            Acumulable = false,
                             Categoria = "ARMARIO",
                             Descripcion = "Cambia el color de tu Poncho a rosa",
                             Img = "/assets/objetos/GotaRosa.png",
@@ -428,6 +474,7 @@ namespace TrucoRPG.Infraestructura.Migrations
                         new
                         {
                             Id = 6,
+                            Acumulable = false,
                             Categoria = "ARMARIO",
                             Descripcion = "Cambia el color de tu Poncho a marrón",
                             Img = "/assets/objetos/GotaMarron.png",
@@ -438,6 +485,7 @@ namespace TrucoRPG.Infraestructura.Migrations
                         new
                         {
                             Id = 7,
+                            Acumulable = false,
                             Categoria = "ARMARIO",
                             Descripcion = "Cambia el color de tu Poncho a rojo",
                             Img = "/assets/objetos/GotaRoja.png",
@@ -448,6 +496,7 @@ namespace TrucoRPG.Infraestructura.Migrations
                         new
                         {
                             Id = 8,
+                            Acumulable = false,
                             Categoria = "ARMARIO",
                             Descripcion = "Cambia el color de tu Poncho a azul",
                             Img = "/assets/objetos/GotaAzul.png",
@@ -574,22 +623,22 @@ namespace TrucoRPG.Infraestructura.Migrations
                         {
                             Id = new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa4"),
                             Descripcion = "Cuarto jefe de la historia. Una presencia luminosa que desorienta al viajero.",
-                            DescripcionHabilidad = "Emite una luz radiante que te confunde y te hace jugar una carta al azar (puede ocurrir en cualquier momento de la ronda).",
+                            DescripcionHabilidad = "Destello: cada 2 turnos en bazas 1 o 2, te obliga a jugar una carta al azar. Espejismo (pasiva): si es mano y abre la baza 1, muestra una carta falsa en pantalla hasta que respondas.",
                             Nivel = 4,
                             Nombre = "La Luz Mala",
                             NombreHabilidad = "Destello",
-                            TipoHabilidad = 0,
+                            TipoHabilidad = 5,
                             TipoRival = 4
                         },
                         new
                         {
                             Id = new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa5"),
                             Descripcion = "Jefe final de la historia. Domina el trono con tres fases de combate.",
-                            DescripcionHabilidad = "Jefe final con 3 fases y distintas habilidades según los puntos que le quedan para ganar. (Próximamente.)",
+                            DescripcionHabilidad = "Fase I (siempre): cada 2 manos maldice la mesa. Fase II (10+ pts tuyos): El Engaño. Fase III (20+ pts tuyos): El Espejo.",
                             Nivel = 5,
                             Nombre = "Mandinga",
                             NombreHabilidad = "Fases",
-                            TipoHabilidad = 0,
+                            TipoHabilidad = 6,
                             TipoRival = 5
                         });
                 });
@@ -653,6 +702,25 @@ namespace TrucoRPG.Infraestructura.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("HeroeSeleccionado");
+                });
+
+            modelBuilder.Entity("TrucoRPG.Dominio.Entities.Inventario", b =>
+                {
+                    b.HasOne("TrucoRPG.Dominio.Entities.ItemTienda", "ItemTienda")
+                        .WithMany()
+                        .HasForeignKey("ItemTiendaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TrucoRPG.Dominio.Entities.ApplicationUser", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ItemTienda");
+
+                    b.Navigation("Usuario");
                 });
 
             modelBuilder.Entity("TrucoRPG.Dominio.Entities.ProgresoPartida", b =>

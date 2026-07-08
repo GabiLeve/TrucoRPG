@@ -35,8 +35,7 @@ builder.Host.UseSerilog((context, services, configuration) => configuration
         outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}"));
 
 // Escuchar en todas las interfaces de red (permite acceso desde la red local)
-var port = Environment.GetEnvironmentVariable("PORT") ?? "5001";
-builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+builder.WebHost.UseUrls("http://0.0.0.0:5001");
 
 builder.Configuration.AddJsonFile(
     "appsettings.Local.json",
@@ -47,12 +46,8 @@ builder.Configuration.AddJsonFile(
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' no encontrada.");
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseMySql(
-        connectionString,
-        new MySqlServerVersion(new Version(8, 4, 8))
-    )
-    );
+builder.Services.AddDbContext<AppDbContext>(opt =>
+    opt.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
 // ── Identity ──────────────────────────────────────────────────────
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(opt =>
@@ -111,6 +106,7 @@ builder.Services.AddScoped<ObtenerRivalesHistoriaUseCase>();
 builder.Services.AddScoped<ObtenerProgresoHistoriaUseCase>();
 builder.Services.AddScoped<PuedePelearConRivalUseCase>();
 builder.Services.AddScoped<RegistrarVictoriaHistoriaUseCase>();
+builder.Services.AddScoped<ReiniciarRivalesHistoriaUseCase>();
 builder.Services.AddScoped<IRegisterUseCase, RegisterUseCase>();
 builder.Services.AddScoped<ILoginUseCase, LoginUseCase>();
 builder.Services.AddScoped<ICambiarPasswordUseCase, CambiarPasswordUseCase>();
@@ -134,6 +130,7 @@ builder.Services.AddScoped<IInventarioRepositorio, InventarioRepositorio>();
 builder.Services.AddScoped<ComprarItemUseCase>();
 builder.Services.AddScoped<ObtenerInventarioDelUsuarioUseCase>();
 builder.Services.AddScoped<ObtenerMonedasUseCase>();
+builder.Services.AddScoped<EquiparAvatarUseCase>();
 
 // ── Use Cases de Truco (vs. Máquina) ─────────────────────────────
 builder.Services.AddScoped<NuevaManoUseCase>();
@@ -213,45 +210,47 @@ builder.Services.AddSignalR();
 // ── CORS ──────────────────────────────────────────────────────────
 builder.Services.AddCors(options =>
     options.AddPolicy("FrontPolicy", policy =>
-        policy.WithOrigins("https://trucoymana.vercel.app")
-              .AllowAnyHeader()
+        policy.WithOrigins(
+                "http://localhost:4200",
+                "http://192.168.1.45:4200"
+              )
               .AllowAnyMethod()
+              .AllowAnyHeader()
               .AllowCredentials()));
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-
-    try
-    {
-        var pendientes = await db.Database.GetPendingMigrationsAsync();
-        var listaPendientes = pendientes.ToList();
-        if (listaPendientes.Count > 0)
-        {
-            logger.LogInformation(
-                "Aplicando {Count} migración(es) pendiente(s): {Migrations}",
-                listaPendientes.Count,
-                string.Join(", ", listaPendientes));
-        }
-
-        await db.Database.MigrateAsync();
-        logger.LogInformation("Base de datos actualizada correctamente.");
-    }
-    catch (Exception ex)
-    {
-        logger.LogCritical(
-            ex,
-            "Error al aplicar migraciones. Verificá la configuración de la base de datos.");
-        throw;
-    }
-}
-
-// ── CONFIGURACIÓN POR ENTORNO ──
 if (app.Environment.IsDevelopment())
 {
+    using (var scope = app.Services.CreateScope())
+    {
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+
+        try
+        {
+            var pendientes = await db.Database.GetPendingMigrationsAsync();
+            var listaPendientes = pendientes.ToList();
+            if (listaPendientes.Count > 0)
+            {
+                logger.LogInformation(
+                    "Aplicando {Count} migración(es) pendiente(s): {Migrations}",
+                    listaPendientes.Count,
+                    string.Join(", ", listaPendientes));
+            }
+
+            await db.Database.MigrateAsync();
+            logger.LogInformation("Base de datos actualizada correctamente.");
+        }
+        catch (Exception ex)
+        {
+            logger.LogCritical(
+                ex,
+                "Error al aplicar migraciones. Verificá que MySQL esté encendido y la connection string en appsettings.Development.json o appsettings.Local.json.");
+            throw;
+        }
+    }
+
     app.UseSwagger();
     app.UseSwaggerUI();
 }
@@ -264,20 +263,17 @@ else
 // ── Inicialización de Roles ──────────────────────────────────────────────────────
 await InicializadorDatosIdentity.InicializarRolesAsync(app.Services);
 
-app.UseMiddleware<ExceptionMiddleware>();
-
 // Log estructurado de cada request HTTP (método, ruta, status, duración).
 app.UseSerilogRequestLogging();
 
 app.UseRouting();
-
 app.UseCors("FrontPolicy");
-
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.UseMiddleware<ExceptionMiddleware>();
+
 app.MapControllers();
 app.MapHub<GameHub>("/gamehub");
-
 
 app.Run();

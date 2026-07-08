@@ -6,9 +6,8 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using TrucoRPG.API.Controllers;
 using TrucoRPG.API.Models;
-using TrucoRPG.Dominio.DTOs;
 using TrucoRPG.Dominio.Repositorios;
-using TrucoRPG.Dominio.UseCases;
+using TrucoRPG.Dominio.DTOs;
 using Xunit;
 
 public class AuthControllerTests
@@ -85,7 +84,7 @@ public class AuthControllerTests
             .ThrowsAsync(new InvalidOperationException("El email ya está en uso."));
 
         // WHEN
-
+       
         Func<Task> accion = () => _authController.Registrar(dto);
 
         var excepcion = await Assert.ThrowsAsync<InvalidOperationException>(accion);
@@ -162,7 +161,7 @@ public class AuthControllerTests
 
         _cambiarPasswordUseCaseMock
             .Setup(x => x.EjecutarAsync(userId, dto.PasswordActual, dto.PasswordNueva))
-            .Returns(Task.CompletedTask);
+            .Returns(Task.CompletedTask); 
 
         // When
         var resultado = await _authController.CambiarPassword(dto);
@@ -173,7 +172,7 @@ public class AuthControllerTests
     }
 
     [Fact]
-    public async Task CambiarPassword_CuandoLaContrasenaActualEsIncorrecta_DebeRetornarBadRequest()
+    public async Task CambiarPassword_CuandoLaContrasenaActualEsIncorrecta_DebeRetornarInvalidate()
     {
         // Given
         var dto = new CambiarPasswordDto("Incorrecta!", "Nueva123!");
@@ -192,12 +191,12 @@ public class AuthControllerTests
             .Setup(x => x.EjecutarAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
             .ThrowsAsync(new InvalidOperationException("La contraseña actual no coincide."));
 
-        // When
-        var resultado = await _authController.CambiarPassword(dto);
+        // When & Then 
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _authController.CambiarPassword(dto)
+        );
 
-        // Then
-        var badRequestResult = Assert.IsType<BadRequestObjectResult>(resultado);
-        Assert.Equal(StatusCodes.Status400BadRequest, badRequestResult.StatusCode);
+        Assert.Equal("La contraseña actual no coincide.", ex.Message);
     }
 
     [Fact]
@@ -231,7 +230,7 @@ public class AuthControllerTests
 
         _solicitarResetUseCaseMock
             .Setup(x => x.EjecutarAsync(dto.Email))
-            .Returns(Task.CompletedTask);
+            .Returns(Task.CompletedTask); 
 
         // When
         var resultado = await _authController.RecuperarPassword(dto);
@@ -268,7 +267,7 @@ public class AuthControllerTests
 
         _resetPasswordUseCaseMock
             .Setup(x => x.EjecutarAsync(dto.Email, dto.Token, dto.NuevaPassword))
-            .Returns(Task.CompletedTask);
+            .Returns(Task.CompletedTask); 
 
         // When
         var resultado = await _authController.RestablecerPassword(dto);
@@ -289,11 +288,11 @@ public class AuthControllerTests
             .Setup(x => x.EjecutarAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
             .ThrowsAsync(new InvalidOperationException(mensajeError));
 
-        // When
-        var resultado = await _authController.RestablecerPassword(dto);
+        // When & Then
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _authController.RestablecerPassword(dto)
+        );
 
-        // Then
-        var badRequestResult = Assert.IsType<BadRequestObjectResult>(resultado);
-        Assert.Equal(StatusCodes.Status400BadRequest, badRequestResult.StatusCode);
+        Assert.Equal(mensajeError, ex.Message);
     }
 }

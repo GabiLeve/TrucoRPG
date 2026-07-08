@@ -12,88 +12,135 @@ namespace TrucoRPG.Infraestructura.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<bool>(
-                name: "acumulable",
+                name: "Acumulable",
                 table: "items",
                 type: "tinyint(1)",
                 nullable: false,
                 defaultValue: false);
 
             migrationBuilder.CreateTable(
-                name: "usuario",
+                name: "Usuario",
                 columns: table => new
                 {
-                    id = table.Column<string>(type: "varchar(255)", nullable: false)
+                    Id = table.Column<string>(type: "varchar(255)", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    username = table.Column<string>(type: "longtext", nullable: false)
+                    UserName = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    email = table.Column<string>(type: "longtext", nullable: false)
+                    Email = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    monedas = table.Column<int>(type: "int", nullable: false),
-                    spritekey = table.Column<string>(type: "longtext", nullable: true)
+                    Monedas = table.Column<int>(type: "int", nullable: false),
+                    SpriteKey = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    heroeseleccionadoid = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci")
+                    HeroeSeleccionadoId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci")
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_usuario", x => x.id);
+                    table.PrimaryKey("PK_Usuario", x => x.Id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "inventarios",
+                name: "Inventarios",
                 columns: table => new
                 {
-                    usuarioid = table.Column<string>(type: "varchar(255)", nullable: false)
+                    UsuarioId = table.Column<string>(type: "varchar(255)", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    itemtiendaid = table.Column<int>(type: "int", nullable: false),
-                    id = table.Column<int>(type: "int", nullable: false),
-                    cantidad = table.Column<int>(type: "int", nullable: false, defaultValue: 1),
-                    equipado = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: false)
+                    ItemTiendaId = table.Column<int>(type: "int", nullable: false),
+                    Id = table.Column<int>(type: "int", nullable: false),
+                    Cantidad = table.Column<int>(type: "int", nullable: false, defaultValue: 1),
+                    Equipado = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_inventarios", x => new { x.usuarioid, x.itemtiendaid });
+                    table.PrimaryKey("PK_Inventarios", x => new { x.UsuarioId, x.ItemTiendaId });
                     table.ForeignKey(
-                        name: "fk_inventarios_usuario_usuarioid",
-                        column: x => x.usuarioid,
-                        principalTable: "usuario",
-                        principalColumn: "id",
+                        name: "FK_Inventarios_Usuario_UsuarioId",
+                        column: x => x.UsuarioId,
+                        principalTable: "Usuario",
+                        principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "fk_inventarios_items_itemtiendaid",
-                        column: x => x.itemtiendaid,
+                        name: "FK_Inventarios_items_ItemTiendaId",
+                        column: x => x.ItemTiendaId,
                         principalTable: "items",
-                        principalColumn: "id",
+                        principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
-            migrationBuilder.UpdateData(table: "items", keyColumn: "Id", keyValue: 1, column: "Acumulable", value: false);
-            migrationBuilder.UpdateData(table: "items", keyColumn: "Id", keyValue: 2, column: "Acumulable", value: false);
-            migrationBuilder.UpdateData(table: "items", keyColumn: "Id", keyValue: 3, column: "Acumulable", value: false);
-            migrationBuilder.UpdateData(table: "items", keyColumn: "Id", keyValue: 4, column: "Acumulable", value: false);
-            migrationBuilder.UpdateData(table: "items", keyColumn: "Id", keyValue: 5, column: "Acumulable", value: false);
-            migrationBuilder.UpdateData(table: "items", keyColumn: "Id", keyValue: 6, column: "Acumulable", value: false);
-            migrationBuilder.UpdateData(table: "items", keyColumn: "Id", keyValue: 7, column: "Acumulable", value: false);
-            migrationBuilder.UpdateData(table: "items", keyColumn: "Id", keyValue: 8, column: "Acumulable", value: false);
+            migrationBuilder.UpdateData(
+                table: "items",
+                keyColumn: "Id",
+                keyValue: 1,
+                column: "Acumulable",
+                value: false);
+
+            migrationBuilder.UpdateData(
+                table: "items",
+                keyColumn: "Id",
+                keyValue: 2,
+                column: "Acumulable",
+                value: false);
+
+            migrationBuilder.UpdateData(
+                table: "items",
+                keyColumn: "Id",
+                keyValue: 3,
+                column: "Acumulable",
+                value: false);
+
+            migrationBuilder.UpdateData(
+                table: "items",
+                keyColumn: "Id",
+                keyValue: 4,
+                column: "Acumulable",
+                value: false);
+
+            migrationBuilder.UpdateData(
+                table: "items",
+                keyColumn: "Id",
+                keyValue: 5,
+                column: "Acumulable",
+                value: false);
+
+            migrationBuilder.UpdateData(
+                table: "items",
+                keyColumn: "Id",
+                keyValue: 6,
+                column: "Acumulable",
+                value: false);
+
+            migrationBuilder.UpdateData(
+                table: "items",
+                keyColumn: "Id",
+                keyValue: 7,
+                column: "Acumulable",
+                value: false);
+
+            migrationBuilder.UpdateData(
+                table: "items",
+                keyColumn: "Id",
+                keyValue: 8,
+                column: "Acumulable",
+                value: false);
 
             migrationBuilder.CreateIndex(
-                name: "ix_inventarios_itemtiendaid",
-                table: "inventarios",
-                column: "itemtiendaid");
+                name: "IX_Inventarios_ItemTiendaId",
+                table: "Inventarios",
+                column: "ItemTiendaId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "inventarios");
+                name: "Inventarios");
 
             migrationBuilder.DropTable(
-                name: "usuario");
+                name: "Usuario");
 
             migrationBuilder.DropColumn(
-                name: "acumulable",
+                name: "Acumulable",
                 table: "items");
         }
     }

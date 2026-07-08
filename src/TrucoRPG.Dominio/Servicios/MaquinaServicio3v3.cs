@@ -1,3 +1,4 @@
+﻿using System;
 using TrucoRPG.Dominio.Entities;
 
 namespace TrucoRPG.Dominio.Servicios
@@ -11,7 +12,8 @@ namespace TrucoRPG.Dominio.Servicios
     /// </summary>
     public static class MaquinaServicio3v3
     {
-        private static readonly Random _random = new Random();
+        //private static readonly Random _random = new Random();
+        public static Func<int, int> RandomNext = (max) => new Random().Next(max);
 
         /// <summary>
         /// Convierte un jugadorId al equipoId correcto antes de llamar a ObtenerResponsableTruco.
@@ -73,7 +75,7 @@ namespace TrucoRPG.Dominio.Servicios
                 >= 29 => 90, 28 => 80, 27 => 70, 26 => 60, 25 => 50,
                 24 => 40, 23 => 30, 22 => 20, 21 => 15, _ => 10
             };
-            return _random.Next(1, 101) <= probabilidad;
+            return RandomNext(100) + 1 <= probabilidad;
         }
 
         public static bool DebeCantarTruco(List<Carta> mano)
@@ -82,9 +84,9 @@ namespace TrucoRPG.Dominio.Servicios
             int fuerte = mano.Max(c => c.ValorTruco);
             int suma   = mano.Sum(c => c.ValorTruco);
             if (fuerte >= 12) return true;
-            if (fuerte >= 10) return _random.Next(100) < 60;
-            if (suma   >= 22) return _random.Next(100) < 35;
-            return _random.Next(100) < 12;
+            if (fuerte >= 10) return RandomNext(100) < 60;
+            if (suma   >= 22) return RandomNext(100) < 35;
+            return RandomNext(100) < 12;
         }
 
         public static bool AceptarTruco(List<Carta> mano)
@@ -94,7 +96,7 @@ namespace TrucoRPG.Dominio.Servicios
             {
                 >= 11 => 85, 10 => 75, 9 => 65, 8 => 55, 7 => 40, 6 => 30, _ => 20
             };
-            return _random.Next(1, 101) <= probabilidad;
+            return RandomNext(100) + 1 <= probabilidad;
         }
 
         private static int FuerzaEquipoEnMano(ManoTruco3v3 mano, string equipoId)
@@ -117,11 +119,11 @@ namespace TrucoRPG.Dominio.Servicios
             int ganadas  = mano.Vueltas.Count(v => v.GanadorVuelta == equipo);
             int perdidas = mano.Vueltas.Count(v => v.GanadorVuelta is not null and not "Parda" && v.GanadorVuelta != equipo);
 
-            if (ganadas > perdidas) return _random.Next(100) < 92;
-            if (mejorEquipo >= 12)  return _random.Next(100) < 88;
-            if (mejorEquipo >= 10)  return _random.Next(100) < 65;
-            if (perdidas > ganadas && mejorEquipo < 9) return _random.Next(100) < 15;
-            return (jugador?.Mano.Count ?? 0) > 0 ? AceptarTruco(jugador!.Mano) : _random.Next(100) < 30;
+            if (ganadas > perdidas) return RandomNext(100) < 92;
+            if (mejorEquipo >= 12)  return RandomNext(100) < 88;
+            if (mejorEquipo >= 10)  return RandomNext(100) < 65;
+            if (perdidas > ganadas && mejorEquipo < 9) return RandomNext(100) < 15;
+            return (jugador?.Mano.Count ?? 0) > 0 ? AceptarTruco(jugador!.Mano) : RandomNext(100) < 30;
         }
 
         /// <summary>Procesa el turno de la máquina: decide envido, truco o jugar carta.</summary>
@@ -210,7 +212,7 @@ namespace TrucoRPG.Dominio.Servicios
         {
             if (tanto < 30) return null;
             string t = (tipoActual ?? "Envido").ToLowerInvariant().Replace(" ", "");
-            int r = _random.Next(100);
+            int r = RandomNext(100);
             return t switch
             {
                 "envido"       => tanto >= 32 && r < 40 ? "Real Envido" : r < 50 ? "Envido Envido" : null,
@@ -269,7 +271,7 @@ namespace TrucoRPG.Dominio.Servicios
             // Con el equipo fuerte, a veces sube la apuesta (retruco / vale cuatro).
             int fuerte = FuerzaEquipoEnMano(mano, mano.ObtenerEquipoDeJugador(jugadorId));
             string? escalarA = null;
-            if (mano.NivelTruco < 3 && fuerte >= 12 && _random.Next(100) < 55
+            if (mano.NivelTruco < 3 && fuerte >= 12 && RandomNext(100) < 55
                 && TurnoServicio3v3.PuedeEscalarTruco(mano, jugadorId))
             {
                 escalarA = mano.NivelTruco == 1 ? "retruco" : "valecuatro";

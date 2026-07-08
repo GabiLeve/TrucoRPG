@@ -12,8 +12,8 @@ using TrucoRPG.Infraestructura.Data;
 namespace TrucoRPG.Infraestructura.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260629213905_SolucionMinusculasLocalDeLasNuevasInserciones")]
-    partial class SolucionMinusculasLocalDeLasNuevasInserciones
+    [Migration("20260627032024_AgregarPersonajeAUsuario")]
+    partial class AgregarPersonajeAUsuario
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -28,23 +28,19 @@ namespace TrucoRPG.Infraestructura.Migrations
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
                     b.Property<string>("Id")
-                        .HasColumnType("varchar(255)")
-                        .HasColumnName("id");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
-                        .HasColumnType("longtext")
-                        .HasColumnName("concurrencystamp");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Name")
                         .HasMaxLength(256)
-                        .HasColumnType("varchar(256)")
-                        .HasColumnName("name");
+                        .HasColumnType("varchar(256)");
 
                     b.Property<string>("NormalizedName")
                         .HasMaxLength(256)
-                        .HasColumnType("varchar(256)")
-                        .HasColumnName("normalizedname");
+                        .HasColumnType("varchar(256)");
 
                     b.HasKey("Id");
 
@@ -52,211 +48,175 @@ namespace TrucoRPG.Infraestructura.Migrations
                         .IsUnique()
                         .HasDatabaseName("RoleNameIndex");
 
-                    b.ToTable("aspnetroles", (string)null);
+                    b.ToTable("AspNetRoles", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("id");
+                        .HasColumnType("int");
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ClaimType")
-                        .HasColumnType("longtext")
-                        .HasColumnName("claimtype");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("ClaimValue")
-                        .HasColumnType("longtext")
-                        .HasColumnName("claimvalue");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("RoleId")
                         .IsRequired()
-                        .HasColumnType("varchar(255)")
-                        .HasColumnName("roleid");
+                        .HasColumnType("varchar(255)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("aspnetroleclaims", (string)null);
+                    b.ToTable("AspNetRoleClaims", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("id");
+                        .HasColumnType("int");
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ClaimType")
-                        .HasColumnType("longtext")
-                        .HasColumnName("claimtype");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("ClaimValue")
-                        .HasColumnType("longtext")
-                        .HasColumnName("claimvalue");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("varchar(255)")
-                        .HasColumnName("userid");
+                        .HasColumnType("varchar(255)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("aspnetuserclaims", (string)null);
+                    b.ToTable("AspNetUserClaims", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
                     b.Property<string>("LoginProvider")
-                        .HasColumnType("varchar(255)")
-                        .HasColumnName("loginprovider");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<string>("ProviderKey")
-                        .HasColumnType("varchar(255)")
-                        .HasColumnName("providerkey");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<string>("ProviderDisplayName")
-                        .HasColumnType("longtext")
-                        .HasColumnName("providerdisplayname");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("varchar(255)")
-                        .HasColumnName("userid");
+                        .HasColumnType("varchar(255)");
 
                     b.HasKey("LoginProvider", "ProviderKey");
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("aspnetuserlogins", (string)null);
+                    b.ToTable("AspNetUserLogins", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
                 {
                     b.Property<string>("UserId")
-                        .HasColumnType("varchar(255)")
-                        .HasColumnName("userid");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<string>("RoleId")
-                        .HasColumnType("varchar(255)")
-                        .HasColumnName("roleid");
+                        .HasColumnType("varchar(255)");
 
                     b.HasKey("UserId", "RoleId");
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("aspnetuserroles", (string)null);
+                    b.ToTable("AspNetUserRoles", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
                     b.Property<string>("UserId")
-                        .HasColumnType("varchar(255)")
-                        .HasColumnName("userid");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<string>("LoginProvider")
-                        .HasColumnType("varchar(255)")
-                        .HasColumnName("loginprovider");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<string>("Name")
-                        .HasColumnType("varchar(255)")
-                        .HasColumnName("name");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<string>("Value")
-                        .HasColumnType("longtext")
-                        .HasColumnName("value");
+                        .HasColumnType("longtext");
 
                     b.HasKey("UserId", "LoginProvider", "Name");
 
-                    b.ToTable("aspnetusertokens", (string)null);
+                    b.ToTable("AspNetUserTokens", (string)null);
                 });
 
             modelBuilder.Entity("TrucoRPG.Dominio.Entities.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
-                        .HasColumnType("varchar(255)")
-                        .HasColumnName("id");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<int>("AccessFailedCount")
-                        .HasColumnType("int")
-                        .HasColumnName("accessfailedcount");
+                        .HasColumnType("int");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
-                        .HasColumnType("longtext")
-                        .HasColumnName("concurrencystamp");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
-                        .HasColumnType("varchar(256)")
-                        .HasColumnName("email");
+                        .HasColumnType("varchar(256)");
 
                     b.Property<bool>("EmailConfirmed")
-                        .HasColumnType("tinyint(1)")
-                        .HasColumnName("emailconfirmed");
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<Guid?>("HeroeSeleccionadoId")
-                        .HasColumnType("char(36)")
-                        .HasColumnName("heroeseleccionadoid");
+                        .HasColumnType("char(36)");
 
                     b.Property<bool>("LockoutEnabled")
-                        .HasColumnType("tinyint(1)")
-                        .HasColumnName("lockoutenabled");
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<DateTimeOffset?>("LockoutEnd")
-                        .HasColumnType("datetime(6)")
-                        .HasColumnName("lockoutend");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<int>("Monedas")
-                        .HasColumnType("int")
-                        .HasColumnName("monedas");
+                        .HasColumnType("int");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
-                        .HasColumnType("varchar(256)")
-                        .HasColumnName("normalizedemail");
+                        .HasColumnType("varchar(256)");
 
                     b.Property<string>("NormalizedUserName")
                         .HasMaxLength(256)
-                        .HasColumnType("varchar(256)")
-                        .HasColumnName("normalizedusername");
+                        .HasColumnType("varchar(256)");
 
                     b.Property<string>("PasswordHash")
-                        .HasColumnType("longtext")
-                        .HasColumnName("passwordhash");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("PhoneNumber")
-                        .HasColumnType("longtext")
-                        .HasColumnName("phonenumber");
+                        .HasColumnType("longtext");
 
                     b.Property<bool>("PhoneNumberConfirmed")
-                        .HasColumnType("tinyint(1)")
-                        .HasColumnName("phonenumberconfirmed");
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<string>("SecurityStamp")
-                        .HasColumnType("longtext")
-                        .HasColumnName("securitystamp");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("SpriteKey")
-                        .HasColumnType("longtext")
-                        .HasColumnName("spritekey");
+                        .HasColumnType("longtext");
 
                     b.Property<bool>("TwoFactorEnabled")
-                        .HasColumnType("tinyint(1)")
-                        .HasColumnName("twofactorenabled");
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<string>("UserName")
                         .HasMaxLength(256)
-                        .HasColumnType("varchar(256)")
-                        .HasColumnName("username");
+                        .HasColumnType("varchar(256)");
 
                     b.HasKey("Id");
 
@@ -269,41 +229,36 @@ namespace TrucoRPG.Infraestructura.Migrations
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex");
 
-                    b.ToTable("aspnetusers", (string)null);
+                    b.ToTable("AspNetUsers", (string)null);
                 });
 
             modelBuilder.Entity("TrucoRPG.Dominio.Entities.Heroe", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)")
-                        .HasColumnName("id");
+                        .HasColumnType("char(36)");
 
                     b.Property<string>("DescripcionHabilidadActiva")
                         .IsRequired()
                         .HasMaxLength(1000)
-                        .HasColumnType("varchar(1000)")
-                        .HasColumnName("descripcionhabilidadactiva");
+                        .HasColumnType("varchar(1000)");
 
                     b.Property<string>("DescripcionHabilidadPasiva")
                         .IsRequired()
                         .HasMaxLength(1000)
-                        .HasColumnType("varchar(1000)")
-                        .HasColumnName("descripcionhabilidadpasiva");
+                        .HasColumnType("varchar(1000)");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("nombre");
+                        .HasColumnType("varchar(100)");
 
                     b.Property<int>("TipoHeroe")
-                        .HasColumnType("int")
-                        .HasColumnName("tipoheroe");
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.ToTable("heroes", (string)null);
+                    b.ToTable("Heroes", (string)null);
 
                     b.HasData(
                         new
@@ -344,43 +299,36 @@ namespace TrucoRPG.Infraestructura.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("id");
+                        .HasColumnType("int");
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Categoria")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("categoria");
+                        .HasColumnType("varchar(50)");
 
                     b.Property<string>("Descripcion")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("varchar(255)")
-                        .HasColumnName("descripcion");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<string>("Img")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("varchar(255)")
-                        .HasColumnName("img");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("nombre");
+                        .HasColumnType("varchar(100)");
 
                     b.Property<int>("Precio")
-                        .HasColumnType("int")
-                        .HasColumnName("precio");
+                        .HasColumnType("int");
 
                     b.Property<string>("SpriteKey")
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("spritekey");
+                        .HasColumnType("varchar(100)");
 
                     b.HasKey("Id");
 
@@ -469,80 +417,68 @@ namespace TrucoRPG.Infraestructura.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)")
-                        .HasColumnName("id");
+                        .HasColumnType("char(36)");
 
                     b.Property<int>("PuntosAcumulados")
-                        .HasColumnType("int")
-                        .HasColumnName("puntosacumulados");
+                        .HasColumnType("int");
 
                     b.Property<int>("UltimoRivalDerrotadoNivel")
-                        .HasColumnType("int")
-                        .HasColumnName("ultimorivalderrotadonivel");
+                        .HasColumnType("int");
 
                     b.Property<string>("UsuarioId")
                         .IsRequired()
                         .HasMaxLength(450)
-                        .HasColumnType("varchar(450)")
-                        .HasColumnName("usuarioid");
+                        .HasColumnType("varchar(450)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("UsuarioId")
                         .IsUnique();
 
-                    b.ToTable("progresopartida", (string)null);
+                    b.ToTable("ProgresoPartida", (string)null);
                 });
 
             modelBuilder.Entity("TrucoRPG.Dominio.Entities.Rival", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)")
-                        .HasColumnName("id");
+                        .HasColumnType("char(36)");
 
                     b.Property<string>("Descripcion")
                         .IsRequired()
                         .HasMaxLength(1000)
-                        .HasColumnType("varchar(1000)")
-                        .HasColumnName("descripcion");
+                        .HasColumnType("varchar(1000)");
 
                     b.Property<string>("DescripcionHabilidad")
                         .IsRequired()
                         .HasMaxLength(1000)
-                        .HasColumnType("varchar(1000)")
-                        .HasColumnName("descripcionhabilidad");
+                        .HasColumnType("varchar(1000)");
 
                     b.Property<int>("Nivel")
-                        .HasColumnType("int")
-                        .HasColumnName("nivel");
+                        .HasColumnType("int");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("nombre");
+                        .HasColumnType("varchar(100)");
 
                     b.Property<string>("NombreHabilidad")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("nombrehabilidad");
+                        .HasColumnType("varchar(100)");
 
                     b.Property<int>("TipoHabilidad")
-                        .HasColumnType("int")
-                        .HasColumnName("tipohabilidad");
+                        .HasColumnType("int");
 
                     b.Property<int>("TipoRival")
-                        .HasColumnType("int")
-                        .HasColumnName("tiporival");
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("Nivel")
                         .IsUnique();
 
-                    b.ToTable("rivales", (string)null);
+                    b.ToTable("Rivales", (string)null);
 
                     b.HasData(
                         new

@@ -34,6 +34,9 @@ public class TrucoControllerTests
 
         public Task RegistrarVictoriaAsync(string usuarioId, int rivalNivelDerrotado, int diferenciaPuntos) =>
             Task.CompletedTask;
+
+        public Task ReiniciarRivalesAsync(string usuarioId) =>
+            Task.CompletedTask;
     }
 
     private class UsuarioActualServicioFake : IUsuarioActualServicio

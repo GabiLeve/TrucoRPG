@@ -1,4 +1,4 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using TrucoRPG.API.Hubs;
 using TrucoRPG.Dominio.Entities;
 using TrucoRPG.Dominio.Servicios;
@@ -69,7 +69,7 @@ public class SalaService
 
     // ── Sala: crear ───────────────────────────────────────────────────────────
 
-    public string CrearSala(string connectionId, string modo, bool publica)
+    public virtual string CrearSala(string connectionId, string modo, bool publica)
     {
         string codigo;
         do { codigo = Guid.NewGuid().ToString("N")[..6].ToUpper(); }
@@ -83,7 +83,7 @@ public class SalaService
 
     // ── Sala: unirse ──────────────────────────────────────────────────────────
 
-    public ResultadoUnirse UnirseASala(string connectionId, string codigo)
+    public virtual ResultadoUnirse UnirseASala(string connectionId, string codigo)
     {
         if (!_salas.TryGetValue(codigo, out var jugadores))
             return new ResultadoUnirse(false, "", 0, 0);

@@ -6,6 +6,10 @@ namespace TrucoRPG.Dominio.Servicios
     {
         private static readonly Random _random = new Random();
 
+        // Seam para tests (mismo patrón que MaquinaServicio2v2/3v3):
+        // devuelve un valor en [0, max). En producción usa Random.
+        public static Func<int, int> RandomNext = (max) => _random.Next(max);
+
         public static bool AceptarEnvido(List<Carta> manoMaquina, int nivelMentira)
         {
             int tanto = EnvidoServicio.CalcularTanto(manoMaquina);
@@ -42,7 +46,7 @@ namespace TrucoRPG.Dominio.Servicios
 
             probabilidadAceptar = Math.Clamp(probabilidadAceptar, 0, 100);
 
-            int tirada = _random.Next(1, 101);
+            int tirada = RandomNext(100) + 1;
             return tirada <= probabilidadAceptar;
         }
 
@@ -66,7 +70,7 @@ namespace TrucoRPG.Dominio.Servicios
             int bonusPorCaradurez = (int)Math.Round(nivelMentira * 0.35);
             probabilidadAceptar = Math.Clamp(probabilidadAceptar + bonusPorCaradurez, 0, 100);
 
-            int tirada = _random.Next(1, 101);
+            int tirada = RandomNext(100) + 1;
             return tirada <= probabilidadAceptar;
         }
 
@@ -94,7 +98,7 @@ namespace TrucoRPG.Dominio.Servicios
             probabilidad += (int)Math.Round(nivelMentira * 0.28);
             probabilidad = Math.Clamp(probabilidad, 0, 100);
 
-            return _random.Next(1, 101) <= probabilidad;
+            return RandomNext(100) + 1 <= probabilidad;
         }
     }
 }

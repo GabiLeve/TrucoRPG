@@ -1,5 +1,4 @@
 ﻿using System;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -7,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace TrucoRPG.Infraestructura.Migrations
 {
     /// <inheritdoc />
-    public partial class SolucionMinusculasLocalDeLasNuevasInserciones : Migration
+    public partial class SincronizacionMonedasYRoles : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

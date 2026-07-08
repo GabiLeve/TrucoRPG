@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using TrucoRPG.Dominio.DTOs;
 using TrucoRPG.Dominio.Entities;
 using TrucoRPG.Dominio.Repositorios;
@@ -166,6 +167,17 @@ namespace TrucoRPG.Infraestructura.Repositorios
             if (appUser is null) return false;
 
             appUser.Monedas = nuevasMonedas;
+            var result = await _userManager.UpdateAsync(appUser);
+            return result.Succeeded;
+        }
+
+        public async Task<bool> ActualizarSpriteAsync(string userId, string spriteKey)
+        {
+            var appUser = await _userManager.FindByIdAsync(userId);
+            if (appUser is null) return false;
+
+            appUser.SpriteKey = spriteKey;
+
             var result = await _userManager.UpdateAsync(appUser);
             return result.Succeeded;
         }
