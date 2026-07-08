@@ -22,43 +22,44 @@ namespace TrucoRPG.API.Controllers
         private readonly ObtenerProgresoHistoriaUseCase _obtenerProgreso;
         private readonly PuedePelearConRivalUseCase _puedePelear;
         private readonly RegistrarVictoriaHistoriaUseCase _registrarVictoria;
+        private readonly ReiniciarRivalesHistoriaUseCase _reiniciarRivales;
         private readonly IUsuarioActualServicio _usuarioActual;
         private readonly CrearPersonajeUseCase _crearPersonaje;
         private readonly VerificarPersonajeUseCase _verificarPersonaje;
         private readonly ObtenerPersonajeDelUsuarioUseCase _obtenerPersonaje;
+        private readonly EquiparAvatarUseCase _equiparAvatarUseCase;
 
         public HistoriaController(
             ObtenerRivalesHistoriaUseCase obtenerRivales,
             ObtenerProgresoHistoriaUseCase obtenerProgreso,
             PuedePelearConRivalUseCase puedePelear,
             RegistrarVictoriaHistoriaUseCase registrarVictoria,
+            ReiniciarRivalesHistoriaUseCase reiniciarRivales,
             IUsuarioActualServicio usuarioActual,
             CrearPersonajeUseCase crearPersonaje,
             VerificarPersonajeUseCase verificarPersonaje,
-            ObtenerPersonajeDelUsuarioUseCase obtenerPersonaje)
+            ObtenerPersonajeDelUsuarioUseCase obtenerPersonaje,
+            EquiparAvatarUseCase equiparAvatarUseCase)
         {
             _obtenerRivales = obtenerRivales;
             _obtenerProgreso = obtenerProgreso;
             _puedePelear = puedePelear;
             _registrarVictoria = registrarVictoria;
+            _reiniciarRivales = reiniciarRivales;
             _usuarioActual = usuarioActual;
             _crearPersonaje = crearPersonaje;
             _verificarPersonaje = verificarPersonaje;
             _obtenerPersonaje = obtenerPersonaje;
+            _equiparAvatarUseCase = equiparAvatarUseCase;
         }
 
         [HttpPost("crearPersonaje")]
         public async Task<IActionResult> CrearPersonaje([FromBody] PersonajeDto personaje)
         {
-            try
-            {
                 var usuarioId = _usuarioActual.ObtenerId();
                 await _crearPersonaje.Ejecutar(usuarioId, personaje.SpriteKey, personaje.HeroeId);
                 return Ok(new { mensaje = "Personaje guardado correctamente!" });
-            }
-            catch (InvalidOperationException ex){
-                return BadRequest(ex.Message);
-            }
+ 
         }
 
         [HttpGet("verificarPersonaje")]
@@ -73,8 +74,6 @@ namespace TrucoRPG.API.Controllers
         [HttpGet("obtenerPersonaje")]
         public async Task<IActionResult> ObtenerPersonaje()
         {
-            try
-            {
                 var usuarioId = _usuarioActual.ObtenerId();
 
                 if (string.IsNullOrEmpty(usuarioId))
@@ -83,11 +82,7 @@ namespace TrucoRPG.API.Controllers
                 var personaje = await _obtenerPersonaje.Ejecutar(usuarioId);
 
                 return Ok(personaje);
-            }
-            catch (InvalidOperationException ex)
-            {
-                return NotFound(new { mensaje = ex.Message });
-            }
+            
         }
 
         /// <summary>Devuelve la lista completa de rivales del modo historia, ordenados por nivel.</summary>
@@ -142,6 +137,44 @@ namespace TrucoRPG.API.Controllers
                 request.DiferenciaPuntos);
 
             return Ok(await _obtenerProgreso.EjecutarAsync(_usuarioActual.ObtenerId()));
+        }
+
+        /// <summary>
+        /// Reinicia solo el estado de rivales derrotados para poder rejugar la historia.
+        /// Los puntos acumulados y todo lo obtenido (monedas, habilidades, ropa) se conservan.
+        /// </summary>
+        /// <response code="200">Progreso actualizado (rivales en 0).</response>
+        /// <response code="401">No autenticado.</response>
+        [Authorize(Roles = "Jugador")]
+        [HttpPost("reiniciar-rivales")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> ReiniciarRivales()
+        {
+            await _reiniciarRivales.EjecutarAsync(_usuarioActual.ObtenerId());
+            return Ok(await _obtenerProgreso.EjecutarAsync(_usuarioActual.ObtenerId()));
+        }
+
+        [HttpPut("equipar-avatar")]
+        [Authorize]
+        public async Task<IActionResult> EquiparAvatar([FromBody] EquiparSpriteDto dto)
+        {
+            try
+            {
+                var idUsuario = _usuarioActual.ObtenerId();
+
+                await _equiparAvatarUseCase.Ejecutar(idUsuario, dto.SpriteKeyNuevo);
+
+                return Ok(new { mensaje = "¡Ropa actualizada con éxito!" });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { mensaje = ex.Message });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { mensaje = "Ocurrió un error inesperado en el servidor." });
+            }
         }
     }
 }

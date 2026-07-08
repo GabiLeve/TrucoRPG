@@ -511,7 +511,7 @@ namespace TrucoRPG.Tests.API
                 TurnoActual = jugadorHumanoId,
                 TrucoCantado = true,
                 TrucoResuelto = true,
-                NivelTruco = 1
+                NivelTruco = 1 
             };
 
             manoSimulada.Posicion1 = new Jugador { Id = jugadorHumanoId, EsMaquina = false };
@@ -539,7 +539,7 @@ namespace TrucoRPG.Tests.API
             {
                 Id = manoId,
                 TurnoActual = jugadorHumanoId,
-                TrucoCantado = false,
+                TrucoCantado = false, 
                 NivelTruco = 0
             };
 
@@ -601,8 +601,8 @@ namespace TrucoRPG.Tests.API
             {
                 Id = manoId,
                 TurnoActual = jugadorHumanoId,
-                TrucoCantado = false,
-                ManoTerminada = true
+                TrucoCantado = false, 
+                ManoTerminada = true  
             };
 
             manoSimulada.Posicion1 = new Jugador { Id = jugadorHumanoId, EsMaquina = false };
@@ -689,8 +689,8 @@ namespace TrucoRPG.Tests.API
                 NumeroDeMano = 1,
                 PuntosEquipoA = 12,
                 PuntosEquipoB = 8,
-                GanadorMano = "EquipoA",
-                PartidaTerminada = false
+                GanadorMano = "EquipoA",   
+                PartidaTerminada = false    
             };
 
             Truco2v2MemoriaServicio.Guardar(manoAnteriorSimulada);
@@ -716,7 +716,7 @@ namespace TrucoRPG.Tests.API
             var manoAnteriorSimulada = new ManoTruco2v2
             {
                 Id = manoId,
-                GanadorMano = null,
+                GanadorMano = null,       
                 PartidaTerminada = false
             };
 
@@ -740,7 +740,7 @@ namespace TrucoRPG.Tests.API
             {
                 Id = manoId,
                 GanadorMano = "EquipoB",
-                PartidaTerminada = true
+                PartidaTerminada = true 
             };
 
             Truco2v2MemoriaServicio.Guardar(manoAnteriorSimulada);
@@ -759,15 +759,15 @@ namespace TrucoRPG.Tests.API
             // Given
             var controller = new Truco2v2Controller();
             var manoId = Guid.NewGuid();
-            string jugadorHumanoId = "J1";
+            string jugadorHumanoId = "J1"; 
             var request = new Truco2v2ConsultaEnvidoRequest(manoId, true);
             var manoSimulada = new ManoTruco2v2
             {
                 Id = manoId,
                 TurnoActual = jugadorHumanoId,
-                CompaConsultaEnvido = true,
-                CompaEnvidoConsultado = false,
-                CompaPista = "Tengo mucho"
+                CompaConsultaEnvido = true,        
+                CompaEnvidoConsultado = false,     
+                CompaPista = "Tengo mucho"          
             };
 
             manoSimulada.Posicion1 = new Jugador { Id = jugadorHumanoId, EsMaquina = false };
@@ -795,7 +795,7 @@ namespace TrucoRPG.Tests.API
             var manoSimulada = new ManoTruco2v2
             {
                 Id = manoId,
-                CompaConsultaTruco = true,
+                CompaConsultaTruco = true,       
                 CompaTrucoConsultado = false
             };
 
@@ -846,7 +846,7 @@ namespace TrucoRPG.Tests.API
             var manoSimulada = new ManoTruco2v2
             {
                 Id = manoId,
-                TurnoActual = "J2",
+                TurnoActual = "J2", 
                 ManoTerminada = false
             };
             manoSimulada.Posicion2 = new Jugador

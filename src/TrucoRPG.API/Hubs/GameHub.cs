@@ -29,7 +29,7 @@ public class GameHub : Hub
     public Task<List<SalaPublicaInfo>> ListarSalasPublicas(string modo = "1v1") =>
         Task.FromResult(_salas.ListarSalasPublicas(modo));
 
-    public async Task<bool> UnirseASala(string codigo)
+    public virtual async Task<bool> UnirseASala(string codigo)
     {
         // Normalizar una sola vez: el grupo de SignalR debe ser EXACTAMENTE el mismo
         // string que usó CrearSala (mayúsculas), si no el jugador queda en otro grupo
@@ -513,6 +513,43 @@ public class GameHub : Hub
         var nuevo = _salas.IniciarNuevaMano3v3(sala!, esPrimeraPartida: false, estadoAnterior: state.Mano);
         _salas.SetEstado3v3(sala!, nuevo);
         await BroadcastTrucoEstado3v3(sala!, nuevo);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    //  Señas — solo llegan a los compañeros de equipo
+    // ─────────────────────────────────────────────────────────────
+
+    public async Task EnviarSenia2v2(string tipo)
+    {
+        if (!_salas.TryGetEstado2v2(Context.ConnectionId, out _, out var state)) return;
+        if (!state!.Posiciones.TryGetValue(Context.ConnectionId, out var miPos)) return;
+
+        // Compañero: 1↔3, 2↔4
+        int posCompanero = miPos switch { 1 => 3, 3 => 1, 2 => 4, 4 => 2, _ => 0 };
+        var companero = state.Posiciones.FirstOrDefault(x => x.Value == posCompanero).Key;
+        if (string.IsNullOrEmpty(companero)) return;
+
+        await Clients.Client(companero).SendAsync("RecibirSenia2v2", tipo);
+    }
+
+    public async Task EnviarSenia3v3(string tipo)
+    {
+        if (!_salas.TryGetEstado3v3(Context.ConnectionId, out _, out var state)) return;
+        if (!state!.Posiciones.TryGetValue(Context.ConnectionId, out var miPos)) return;
+
+        var miRol    = $"J{miPos}";
+        var miEquipo = state.Mano.ObtenerEquipoDeJugador(miRol);
+
+        // Enviar a los dos compañeros (EquipoA = pos 1/3/5, EquipoB = pos 2/4/6)
+        foreach (var kv in state.Posiciones)
+        {
+            if (kv.Key == Context.ConnectionId) continue;
+
+            var rol = $"J{kv.Value}";
+            if (state.Mano.ObtenerEquipoDeJugador(rol) != miEquipo) continue;
+
+            await Clients.Client(kv.Key).SendAsync("RecibirSenia3v3", tipo, miRol);
+        }
     }
 
     // ─────────────────────────────────────────────────────────────

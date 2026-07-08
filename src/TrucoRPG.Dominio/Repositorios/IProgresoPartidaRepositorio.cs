@@ -7,5 +7,6 @@ namespace TrucoRPG.Dominio.Repositorios
         Task<ProgresoPartida?> ObtenerPorUsuarioIdAsync(string usuarioId);
         Task<ProgresoPartida> ObtenerOCrearAsync(string usuarioId);
         Task RegistrarVictoriaAsync(string usuarioId, int rivalNivelDerrotado, int diferenciaPuntos);
+        Task ReiniciarRivalesAsync(string usuarioId);
     }
 }
