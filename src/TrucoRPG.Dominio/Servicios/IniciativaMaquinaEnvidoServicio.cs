@@ -4,8 +4,6 @@ namespace TrucoRPG.Dominio.Servicios
 {
     public static class IniciativaMaquinaEnvidoServicio
     {
-        private static readonly Random _random = new Random();
-
         public static bool DebeCantarEnvido(List<Carta> manoMaquina, int nivelMentira)
         {
             int tanto = EnvidoServicio.CalcularTanto(manoMaquina);
@@ -38,8 +36,9 @@ namespace TrucoRPG.Dominio.Servicios
 
             probabilidad = Math.Clamp(probabilidad, 0, 100);
 
-            int tirada = _random.Next(1, 101);
-            return tirada <= probabilidad;
+            // Vía AzarServicio para que los tests puedan fijar el resultado
+            // (TirarProbabilidadOverride); en runtime es la misma probabilidad.
+            return AzarServicio.TirarProbabilidad(probabilidad / 100.0);
         }
     }
 }

@@ -9,7 +9,48 @@ namespace TrucoRPG.Dominio.Entities
         public ConfiguracionPartida Configuracion { get; set; } = new();
         public EstadoHabilidadesPartida EstadoHabilidades { get; set; } = new();
         public VistaHabilidadesJugador? VistaHabilidadesHumano { get; set; }
+        public VistaHabilidadesRival? VistaHabilidadesRival { get; set; }
         public string? UltimoMensajeHabilidad { get; set; }
+        public string? UltimoMensajeHabilidadRival { get; set; }
+        public bool SalpicaduraActiva { get; set; }
+        public bool SalpicaduraBloqueando { get; set; }
+        public bool TravesuraActiva { get; set; }
+        public bool TravesuraBloqueando { get; set; }
+        public bool RasgunoActivo { get; set; }
+        public bool RasgunoBloqueando { get; set; }
+        public bool LunaLlenaUsadaEnMano { get; set; }
+        public bool AullidoBloqueando { get; set; }
+        public bool AullidoUsadoEnMano { get; set; }
+        public bool DestelloBloqueando { get; set; }
+        /// <summary>Destello programado: espera la baza objetivo (1 o 2).</summary>
+        public bool DestelloPendiente { get; set; }
+        /// <summary>Baza en la que se dispara el Destello pendiente (1 o 2).</summary>
+        public int DestelloBazaObjetivo { get; set; }
+        /// <summary>Jugadas del humano en bazas 1 y 2 acumuladas en la partida (para Destello).</summary>
+        public int ContadorTurnosHumanoPartida { get; set; }
+        public bool EspejismoActivo { get; set; }
+        public bool EspejismoBloqueando { get; set; }
+        public bool EspejismoAlternando { get; set; }
+        public bool EspejismoMostrarFakePrimero { get; set; }
+        public Carta? EspejismoCartaFalsa { get; set; }
+        /// <summary>Si Espejismo se activó en esta mano, Destello no puede dispararse hasta la siguiente.</summary>
+        public bool EspejismoUsadoEnMano { get; set; }
+        public List<Carta> CartasOcultasTravesura { get; set; } = new();
+
+        // ── Mandinga (jefe final) ───────────────────────────────────────────
+        public bool MandingaFase2Desbloqueada { get; set; }
+        public bool MandingaFase3Desbloqueada { get; set; }
+        public int MandingaPrimeraManoEngano { get; set; }
+        public List<Carta> MandingaJugadasHumanoManoAnterior { get; set; } = new();
+        public bool MandingaEspejoBloqueando { get; set; }
+        public bool MandingaEnganoBloqueando { get; set; }
+        public bool MandingaEnganoManoOculta { get; set; }
+        public bool MandingaEnganoProgramadoEstaMano { get; set; }
+        public bool MandingaMaldicionBloqueando { get; set; }
+        public bool MandingaMaldicionActivaEnMano { get; set; }
+        public bool MandingaMaldicionProgramadaEstaMano { get; set; }
+        public int PuntosHumanoAcumuladosMano { get; set; }
+        public int PuntosMaquinaAcumuladosMano { get; set; }
 
         public List<Carta> CartasRestantesMazo { get; set; } = new();
 
@@ -23,6 +64,7 @@ namespace TrucoRPG.Dominio.Entities
         public int NumeroDeMano { get; set; } = 1;
         public string? GanadorMano { get; set; }
         public Carta? CartaMaquinaEnMesa { get; set; }
+        public Carta? CartaHumanoEnMesa { get; set; }
 
         public bool EnvidoCantado { get; set; } = false;
         public bool EnvidoResuelto { get; set; } = false;

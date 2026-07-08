@@ -119,6 +119,9 @@ namespace TrucoRPG.Dominio.Servicios
             if (mano.EnvidoCantado || mano.EnvidoResuelto) return false;
             if (mano.Bazas.Count > 0) return false;
             if (mano.PartidaTerminada || mano.GanadorMano != null) return false;
+            // "El envido va primero" solo vale contra un truco SIN responder:
+            // una vez aceptado el truco, ya no se puede cantar envido (igual que en 1v1 solo).
+            if (mano.TrucoCantado && mano.TrucoResuelto) return false;
 
             mano.EnvidoCantado     = true;
             mano.CantorEnvido      = Rol(esJ1);
@@ -337,6 +340,18 @@ namespace TrucoRPG.Dominio.Servicios
             if (!mano.TrucoCantado)            pts = 1;
             else if (hayCantoSinResponder)     pts = Math.Max(1, mano.NivelTruco);
             else                               pts = Math.Max(1, mano.PuntosTrucoMano);
+
+            // Si había un envido cantado sin responder, irse al mazo equivale a "no quiero":
+            // el cantor (si es el rival) se lleva los puntos del rechazo.
+            if (mano.EnvidoCantado && !mano.EnvidoResuelto && mano.CantorEnvido != null
+                && mano.CantorEnvido != (esJ1 ? "Humano" : "Maquina"))
+            {
+                int ptsEnvido       = Math.Max(1, estado.PuntosEnvidoNoQuiero);
+                mano.EnvidoResuelto = true;
+                mano.GanadorEnvido  = mano.CantorEnvido;
+                mano.PuntosEnvido   = ptsEnvido;
+                JuegoServicio.SumarPuntos(mano, mano.CantorEnvido, ptsEnvido);
+            }
 
             mano.GanadorMano   = ganador;
             mano.TrucoResuelto = true;
