@@ -295,30 +295,26 @@ namespace TrucoRPG.Infraestructura.Migrations
             modelBuilder.Entity("TrucoRPG.Dominio.Entities.Inventario", b =>
                 {
                     b.Property<string>("UsuarioId")
-                        .HasColumnType("varchar(255)")
-                        .HasColumnName("usuarioid");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<int>("ItemTiendaId")
-                        .HasColumnType("int")
-                        .HasColumnName("itemtiendaid");
+                        .HasColumnType("int");
 
                     b.Property<int>("Cantidad")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
-                        .HasDefaultValue(1)
-                        .HasColumnName("cantidad");
+                        .HasDefaultValue(1);
 
                     b.Property<bool>("Equipado")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("tinyint(1)")
-                        .HasDefaultValue(false)
-                        .HasColumnName("equipado");
+                        .HasDefaultValue(false);
 
                     b.HasKey("UsuarioId", "ItemTiendaId");
 
                     b.HasIndex("ItemTiendaId");
 
-                    b.ToTable("inventarios");
+                    b.ToTable("Inventarios");
                 });
 
             modelBuilder.Entity("TrucoRPG.Dominio.Entities.ItemTienda", b =>
@@ -330,8 +326,7 @@ namespace TrucoRPG.Infraestructura.Migrations
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<bool>("Acumulable")
-                        .HasColumnType("tinyint(1)")
-                        .HasColumnName("acumulable");
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<string>("Categoria")
                         .IsRequired()
