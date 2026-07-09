@@ -87,8 +87,8 @@ public class GameHubTests
             });
 
         _mockSalaService
-            .Setup(s => s.UnirseASala(It.IsAny<string>(), It.IsAny<string>()))
-            .Returns((string connectionId, string codigo) =>
+            .Setup(s => s.UnirseASala(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string?>()))
+            .Returns((string connectionId, string codigo, string? modoEsperado) =>
             {
                 if (!_salas.TryGetValue(codigo, out var jugadores))
                 {

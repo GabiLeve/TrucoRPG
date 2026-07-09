@@ -83,13 +83,18 @@ public class SalaService
 
     // ── Sala: unirse ──────────────────────────────────────────────────────────
 
-    public virtual ResultadoUnirse UnirseASala(string connectionId, string codigo)
+    public virtual ResultadoUnirse UnirseASala(string connectionId, string codigo, string? modoEsperado = null)
     {
         if (!_salas.TryGetValue(codigo, out var jugadores))
             return new ResultadoUnirse(false, "", 0, 0);
 
         var modo = _salasModo.TryGetValue(codigo, out var m) ? m : "1v1";
         int max  = ModoJuegoConfig.JugadoresRequeridos(modo);
+
+        // El código solo es válido para el modo desde el que se intenta entrar:
+        // una sala 2v2 no puede usarse desde el lobby 1v1 o 3v3 (y viceversa).
+        if (modoEsperado != null && !string.Equals(modo, modoEsperado, StringComparison.OrdinalIgnoreCase))
+            return new ResultadoUnirse(false, modo, jugadores.Count, max);
 
         int cantidad;
         lock (jugadores)
