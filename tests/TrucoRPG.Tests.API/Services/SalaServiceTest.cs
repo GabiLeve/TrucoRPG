@@ -84,6 +84,26 @@ namespace TrucoRPG.Tests.API
             Assert.Equal(1, resultado.Cantidad); 
         }
 
+        [Fact]
+        public void UnirseASala_CuandoElModoEsperadoNoCoincide_DeberiaRetornarFalso()
+        {
+            // Given: una sala 2v2 ya creada
+            var salaService = new SalaService();
+            var codigoSala = salaService.CrearSala("jugador_1", "2v2", publica: false);
+
+            // When: alguien intenta entrar con ese código desde el lobby 1v1 y 3v3
+            var desde1v1 = salaService.UnirseASala("jugador_2", codigoSala, modoEsperado: "1v1");
+            var desde3v3 = salaService.UnirseASala("jugador_3", codigoSala, modoEsperado: "3v3");
+            // Y desde el lobby correcto (2v2)
+            var desde2v2 = salaService.UnirseASala("jugador_4", codigoSala, modoEsperado: "2v2");
+
+            // Then: solo entra el que vino del modo correcto
+            Assert.False(desde1v1.Ok);
+            Assert.False(desde3v3.Ok);
+            Assert.True(desde2v2.Ok);
+            Assert.Equal("2v2", desde1v1.Modo); // informa el modo real de la sala
+        }
+
         //abandonar sala
         [Fact]
         public void AbandonarSala_CuandoElJugadorNoEstaEnNingunaSala_DeberiaRetornarResultadoVacio()
