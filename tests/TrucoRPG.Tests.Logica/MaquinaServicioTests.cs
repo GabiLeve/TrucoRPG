@@ -130,7 +130,10 @@ public class MaquinaServicioTests
         var mano = CrearManoBase();
         mano.EnvidoCantado = false;
         mano.EnvidoResuelto = false;
-        mano.Bazas = new List<Baza>(); 
+        mano.TrucoCantado = false;
+        mano.TrucoResuelto = false;
+        mano.Bazas = new List<Baza>();
+        mano.NivelMentiraEnvidoMaquina = 100;
 
         mano.Maquina.Mano = new List<Carta> {
         new Carta { Numero = 7, Palo = "Espada" },
@@ -141,10 +144,8 @@ public class MaquinaServicioTests
         var resultado = MaquinaServicio.AvanzarUnPaso(mano);
 
         // Then
-        if (resultado != null) 
-        {
-            Assert.Equal("envido", resultado.Tipo);
-        }
+        Assert.NotNull(resultado);
+        Assert.Equal("envido", resultado.Tipo);
     }
 
     [Fact]
@@ -184,6 +185,8 @@ public class MaquinaServicioTests
 
         mano.EnvidoCantado = false;
         mano.EnvidoResuelto = false;
+        mano.TrucoCantado = false;
+        mano.TrucoResuelto = false;
         mano.Bazas = new List<Baza>(); 
 
         mano.Maquina = new Jugador
@@ -194,7 +197,7 @@ public class MaquinaServicioTests
             new Carta { Numero = 6, Palo = "Espada", ValorTruco = 6 }
         }
         };
-        mano.NivelMentiraEnvidoMaquina = 0; 
+        mano.NivelMentiraEnvidoMaquina = 100; 
 
         //When
         var resultado = MaquinaServicio.AvanzarUnPaso(mano);
@@ -208,6 +211,56 @@ public class MaquinaServicioTests
         Assert.Equal("Envido", mano.TipoEnvidoCantado);
         Assert.True(mano.EnvidoPendienteRespuestaHumano);
         Assert.Equal("La máquina cantó Envido.", mano.EstadoEnvido);
+    }
+
+    [Fact]
+    public void AvanzarUnPaso_DespuesDeAceptarTruco_NoCantaEnvido()
+    {
+        var mano = CrearManoBase();
+        mano.Configuracion = new() { Modo = ModoJuego.Historia };
+        mano.EnvidoCantado = false;
+        mano.EnvidoResuelto = false;
+        mano.TrucoCantado = true;
+        mano.TrucoResuelto = false;
+        mano.TrucoPendienteRespuestaHumano = false;
+        mano.TurnoActual = "Maquina";
+        mano.Bazas = new List<Baza>();
+        mano.NivelMentiraEnvidoMaquina = 100;
+        mano.Maquina.Mano =
+        [
+            new Carta { Numero = 7, Palo = "Espada", ValorTruco = 10 },
+            new Carta { Numero = 6, Palo = "Espada", ValorTruco = 1 },
+        ];
+
+        var resultado = MaquinaServicio.AvanzarUnPaso(mano);
+
+        Assert.NotEqual("envido", resultado?.Tipo);
+        Assert.False(mano.EnvidoCantado);
+    }
+
+    [Fact]
+    public void AvanzarUnPaso_ConTrucoPendienteDeRespuestaHumana_PermiteEnvidoVaPrimero()
+    {
+        var mano = CrearManoBase();
+        mano.Configuracion = new() { Modo = ModoJuego.Historia };
+        mano.EnvidoCantado = false;
+        mano.EnvidoResuelto = false;
+        mano.TrucoCantado = true;
+        mano.TrucoResuelto = false;
+        mano.TrucoPendienteRespuestaHumano = true;
+        mano.TurnoActual = "Humano";
+        mano.Bazas = new List<Baza>();
+        mano.NivelMentiraEnvidoMaquina = 100;
+        mano.Maquina.Mano =
+        [
+            new Carta { Numero = 7, Palo = "Espada", ValorTruco = 10 },
+            new Carta { Numero = 6, Palo = "Espada", ValorTruco = 1 },
+        ];
+
+        var resultado = MaquinaServicio.AvanzarUnPaso(mano);
+
+        Assert.Null(resultado);
+        Assert.False(mano.EnvidoCantado);
     }
 
     [Fact]
@@ -443,6 +496,8 @@ public class MaquinaServicioTests
         var mano = CrearManoBase();
         mano.EnvidoCantado = false;
         mano.EnvidoResuelto = false;
+        mano.TrucoCantado = false;
+        mano.TrucoResuelto = false;
         mano.Bazas = new List<Baza>();
         mano.NivelMentiraEnvidoMaquina = 100;
         mano.Maquina.Mano = new List<Carta>

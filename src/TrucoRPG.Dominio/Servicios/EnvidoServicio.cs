@@ -5,6 +5,23 @@ namespace TrucoRPG.Dominio.Servicios
 {
     public static class EnvidoServicio
     {
+        /// <summary>
+        /// Reglas 1v1: envido antes de la primera baza. Si ya se cantó truco,
+        /// solo se puede cantar envido mientras el truco sigue sin responder
+        /// ("el envido va primero"); una vez respondido, no hay más envido.
+        /// </summary>
+        public static bool PuedeCantarEnvido(ManoTruco mano)
+        {
+            if (mano.EnvidoCantado || mano.EnvidoResuelto) return false;
+            if (mano.Bazas.Count > 0) return false;
+            if (mano.PartidaTerminada || mano.GanadorMano != null) return false;
+
+            if (mano.TrucoCantado && !mano.TrucoPendienteRespuestaHumano)
+                return false;
+
+            return true;
+        }
+
         public static int CalcularTanto(List<Carta> cartas)
         {
             if (!cartas.Any()) return 0;

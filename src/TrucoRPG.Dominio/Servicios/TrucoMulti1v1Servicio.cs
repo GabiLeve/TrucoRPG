@@ -119,9 +119,8 @@ namespace TrucoRPG.Dominio.Servicios
             if (mano.EnvidoCantado || mano.EnvidoResuelto) return false;
             if (mano.Bazas.Count > 0) return false;
             if (mano.PartidaTerminada || mano.GanadorMano != null) return false;
-            // "El envido va primero" solo vale contra un truco SIN responder:
-            // una vez aceptado el truco, ya no se puede cantar envido (igual que en 1v1 solo).
-            if (mano.TrucoCantado && mano.TrucoResuelto) return false;
+            // "El envido va primero" solo mientras el truco sigue sin responder.
+            if (mano.TrucoCantado && !mano.TrucoPendienteRespuestaHumano) return false;
 
             mano.EnvidoCantado     = true;
             mano.CantorEnvido      = Rol(esJ1);

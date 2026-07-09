@@ -23,6 +23,50 @@ namespace TrucoRPG.Tests.Logica
             new Carta { Numero = b, Palo = "Espada" }
         };
 
+        // ── EnvidoServicio.PuedeCantarEnvido ─────────────────────────────
+
+        private static ManoTruco ManoEnvidoLimpia() => new()
+        {
+            Humano = new Jugador(),
+            Maquina = new Jugador(),
+        };
+
+        [Fact]
+        public void PuedeCantarEnvido_SinTrucoAntesDeLaPrimeraBaza_DevuelveTrue()
+        {
+            Assert.True(EnvidoServicio.PuedeCantarEnvido(ManoEnvidoLimpia()));
+        }
+
+        [Fact]
+        public void PuedeCantarEnvido_ConTrucoAceptado_DevuelveFalse()
+        {
+            var mano = ManoEnvidoLimpia();
+            mano.TrucoCantado = true;
+            mano.TrucoResuelto = false;
+            mano.TrucoPendienteRespuestaHumano = false;
+
+            Assert.False(EnvidoServicio.PuedeCantarEnvido(mano));
+        }
+
+        [Fact]
+        public void PuedeCantarEnvido_ConTrucoPendiente_EnvidoVaPrimero()
+        {
+            var mano = ManoEnvidoLimpia();
+            mano.TrucoCantado = true;
+            mano.TrucoPendienteRespuestaHumano = true;
+
+            Assert.True(EnvidoServicio.PuedeCantarEnvido(mano));
+        }
+
+        [Fact]
+        public void PuedeCantarEnvido_DespuesDePrimeraBaza_DevuelveFalse()
+        {
+            var mano = ManoEnvidoLimpia();
+            mano.Bazas.Add(new Baza());
+
+            Assert.False(EnvidoServicio.PuedeCantarEnvido(mano));
+        }
+
         // ── IniciativaMaquinaEnvidoServicio ──────────────────────────────
 
         [Fact]
