@@ -54,6 +54,7 @@ namespace TrucoRPG.API.Controllers
         }
 
         [HttpPost("crearPersonaje")]
+        [Authorize]
         public async Task<IActionResult> CrearPersonaje([FromBody] PersonajeDto personaje)
         {
                 var usuarioId = _usuarioActual.ObtenerId();
@@ -64,6 +65,7 @@ namespace TrucoRPG.API.Controllers
         }
 
         [HttpGet("verificarPersonaje")]
+        [Authorize]
         public async Task<IActionResult> VerificarPersonaje()
         {
             var usuarioId = _usuarioActual.ObtenerId();
@@ -73,6 +75,7 @@ namespace TrucoRPG.API.Controllers
 
 
         [HttpGet("obtenerPersonaje")]
+        [Authorize]
         public async Task<IActionResult> ObtenerPersonaje()
         {
                 var usuarioId = _usuarioActual.ObtenerId();
