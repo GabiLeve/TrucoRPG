@@ -12,8 +12,8 @@ using TrucoRPG.Infraestructura.Data;
 namespace TrucoRPG.Infraestructura.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260627032024_AgregarPersonajeAUsuario")]
-    partial class AgregarPersonajeAUsuario
+    [Migration("20260708193347_ResetInicialMinusculas")]
+    partial class ResetInicialMinusculas
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -28,19 +28,23 @@ namespace TrucoRPG.Infraestructura.Migrations
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
                     b.Property<string>("Id")
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("id");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
-                        .HasColumnType("longtext");
+                        .HasColumnType("longtext")
+                        .HasColumnName("concurrencystamp");
 
                     b.Property<string>("Name")
                         .HasMaxLength(256)
-                        .HasColumnType("varchar(256)");
+                        .HasColumnType("varchar(256)")
+                        .HasColumnName("name");
 
                     b.Property<string>("NormalizedName")
                         .HasMaxLength(256)
-                        .HasColumnType("varchar(256)");
+                        .HasColumnType("varchar(256)")
+                        .HasColumnName("normalizedname");
 
                     b.HasKey("Id");
 
@@ -48,175 +52,211 @@ namespace TrucoRPG.Infraestructura.Migrations
                         .IsUnique()
                         .HasDatabaseName("RoleNameIndex");
 
-                    b.ToTable("AspNetRoles", (string)null);
+                    b.ToTable("aspnetroles", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnName("id");
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ClaimType")
-                        .HasColumnType("longtext");
+                        .HasColumnType("longtext")
+                        .HasColumnName("claimtype");
 
                     b.Property<string>("ClaimValue")
-                        .HasColumnType("longtext");
+                        .HasColumnType("longtext")
+                        .HasColumnName("claimvalue");
 
                     b.Property<string>("RoleId")
                         .IsRequired()
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("roleid");
 
                     b.HasKey("Id");
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("AspNetRoleClaims", (string)null);
+                    b.ToTable("aspnetroleclaims", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnName("id");
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ClaimType")
-                        .HasColumnType("longtext");
+                        .HasColumnType("longtext")
+                        .HasColumnName("claimtype");
 
                     b.Property<string>("ClaimValue")
-                        .HasColumnType("longtext");
+                        .HasColumnType("longtext")
+                        .HasColumnName("claimvalue");
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("userid");
 
                     b.HasKey("Id");
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AspNetUserClaims", (string)null);
+                    b.ToTable("aspnetuserclaims", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
                     b.Property<string>("LoginProvider")
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("loginprovider");
 
                     b.Property<string>("ProviderKey")
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("providerkey");
 
                     b.Property<string>("ProviderDisplayName")
-                        .HasColumnType("longtext");
+                        .HasColumnType("longtext")
+                        .HasColumnName("providerdisplayname");
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("userid");
 
                     b.HasKey("LoginProvider", "ProviderKey");
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AspNetUserLogins", (string)null);
+                    b.ToTable("aspnetuserlogins", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
                 {
                     b.Property<string>("UserId")
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("userid");
 
                     b.Property<string>("RoleId")
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("roleid");
 
                     b.HasKey("UserId", "RoleId");
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("AspNetUserRoles", (string)null);
+                    b.ToTable("aspnetuserroles", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
                     b.Property<string>("UserId")
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("userid");
 
                     b.Property<string>("LoginProvider")
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("loginprovider");
 
                     b.Property<string>("Name")
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("name");
 
                     b.Property<string>("Value")
-                        .HasColumnType("longtext");
+                        .HasColumnType("longtext")
+                        .HasColumnName("value");
 
                     b.HasKey("UserId", "LoginProvider", "Name");
 
-                    b.ToTable("AspNetUserTokens", (string)null);
+                    b.ToTable("aspnetusertokens", (string)null);
                 });
 
             modelBuilder.Entity("TrucoRPG.Dominio.Entities.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("id");
 
                     b.Property<int>("AccessFailedCount")
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnName("accessfailedcount");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
-                        .HasColumnType("longtext");
+                        .HasColumnType("longtext")
+                        .HasColumnName("concurrencystamp");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
-                        .HasColumnType("varchar(256)");
+                        .HasColumnType("varchar(256)")
+                        .HasColumnName("email");
 
                     b.Property<bool>("EmailConfirmed")
-                        .HasColumnType("tinyint(1)");
+                        .HasColumnType("tinyint(1)")
+                        .HasColumnName("emailconfirmed");
 
                     b.Property<Guid?>("HeroeSeleccionadoId")
-                        .HasColumnType("char(36)");
+                        .HasColumnType("char(36)")
+                        .HasColumnName("heroeseleccionadoid");
 
                     b.Property<bool>("LockoutEnabled")
-                        .HasColumnType("tinyint(1)");
+                        .HasColumnType("tinyint(1)")
+                        .HasColumnName("lockoutenabled");
 
                     b.Property<DateTimeOffset?>("LockoutEnd")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("lockoutend");
 
                     b.Property<int>("Monedas")
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnName("monedas");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
-                        .HasColumnType("varchar(256)");
+                        .HasColumnType("varchar(256)")
+                        .HasColumnName("normalizedemail");
 
                     b.Property<string>("NormalizedUserName")
                         .HasMaxLength(256)
-                        .HasColumnType("varchar(256)");
+                        .HasColumnType("varchar(256)")
+                        .HasColumnName("normalizedusername");
 
                     b.Property<string>("PasswordHash")
-                        .HasColumnType("longtext");
+                        .HasColumnType("longtext")
+                        .HasColumnName("passwordhash");
 
                     b.Property<string>("PhoneNumber")
-                        .HasColumnType("longtext");
+                        .HasColumnType("longtext")
+                        .HasColumnName("phonenumber");
 
                     b.Property<bool>("PhoneNumberConfirmed")
-                        .HasColumnType("tinyint(1)");
+                        .HasColumnType("tinyint(1)")
+                        .HasColumnName("phonenumberconfirmed");
 
                     b.Property<string>("SecurityStamp")
-                        .HasColumnType("longtext");
+                        .HasColumnType("longtext")
+                        .HasColumnName("securitystamp");
 
                     b.Property<string>("SpriteKey")
-                        .HasColumnType("longtext");
+                        .HasColumnType("longtext")
+                        .HasColumnName("spritekey");
 
                     b.Property<bool>("TwoFactorEnabled")
-                        .HasColumnType("tinyint(1)");
+                        .HasColumnType("tinyint(1)")
+                        .HasColumnName("twofactorenabled");
 
                     b.Property<string>("UserName")
                         .HasMaxLength(256)
-                        .HasColumnType("varchar(256)");
+                        .HasColumnType("varchar(256)")
+                        .HasColumnName("username");
 
                     b.HasKey("Id");
 
@@ -229,36 +269,41 @@ namespace TrucoRPG.Infraestructura.Migrations
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex");
 
-                    b.ToTable("AspNetUsers", (string)null);
+                    b.ToTable("aspnetusers", (string)null);
                 });
 
             modelBuilder.Entity("TrucoRPG.Dominio.Entities.Heroe", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)");
+                        .HasColumnType("char(36)")
+                        .HasColumnName("id");
 
                     b.Property<string>("DescripcionHabilidadActiva")
                         .IsRequired()
                         .HasMaxLength(1000)
-                        .HasColumnType("varchar(1000)");
+                        .HasColumnType("varchar(1000)")
+                        .HasColumnName("descripcionhabilidadactiva");
 
                     b.Property<string>("DescripcionHabilidadPasiva")
                         .IsRequired()
                         .HasMaxLength(1000)
-                        .HasColumnType("varchar(1000)");
+                        .HasColumnType("varchar(1000)")
+                        .HasColumnName("descripcionhabilidadpasiva");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("nombre");
 
                     b.Property<int>("TipoHeroe")
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnName("tipoheroe");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Heroes", (string)null);
+                    b.ToTable("heroes", (string)null);
 
                     b.HasData(
                         new
@@ -295,40 +340,80 @@ namespace TrucoRPG.Infraestructura.Migrations
                         });
                 });
 
+            modelBuilder.Entity("TrucoRPG.Dominio.Entities.Inventario", b =>
+                {
+                    b.Property<string>("UsuarioId")
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("usuarioid");
+
+                    b.Property<int>("ItemTiendaId")
+                        .HasColumnType("int")
+                        .HasColumnName("itemtiendaid");
+
+                    b.Property<int>("Cantidad")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1)
+                        .HasColumnName("cantidad");
+
+                    b.Property<bool>("Equipado")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(false)
+                        .HasColumnName("equipado");
+
+                    b.HasKey("UsuarioId", "ItemTiendaId");
+
+                    b.HasIndex("ItemTiendaId");
+
+                    b.ToTable("inventarios");
+                });
+
             modelBuilder.Entity("TrucoRPG.Dominio.Entities.ItemTienda", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnName("id");
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Acumulable")
+                        .HasColumnType("tinyint(1)")
+                        .HasColumnName("acumulable");
 
                     b.Property<string>("Categoria")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("categoria");
 
                     b.Property<string>("Descripcion")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("descripcion");
 
                     b.Property<string>("Img")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("img");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("nombre");
 
                     b.Property<int>("Precio")
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnName("precio");
 
                     b.Property<string>("SpriteKey")
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("spritekey");
 
                     b.HasKey("Id");
 
@@ -338,6 +423,7 @@ namespace TrucoRPG.Infraestructura.Migrations
                         new
                         {
                             Id = 1,
+                            Acumulable = false,
                             Categoria = "HABILIDADES",
                             Descripcion = "Te otorga la habilidad del manipulador en una partida",
                             Img = "/assets/objetos/objeto.png",
@@ -347,6 +433,7 @@ namespace TrucoRPG.Infraestructura.Migrations
                         new
                         {
                             Id = 2,
+                            Acumulable = false,
                             Categoria = "HABILIDADES",
                             Descripcion = "Te otorga la habilidad del timbero en una partida",
                             Img = "/assets/objetos/objeto.png",
@@ -356,6 +443,7 @@ namespace TrucoRPG.Infraestructura.Migrations
                         new
                         {
                             Id = 3,
+                            Acumulable = false,
                             Categoria = "HABILIDADES",
                             Descripcion = "Te otorga la habilidad del fanfarron en una partida",
                             Img = "/assets/objetos/objeto.png",
@@ -365,6 +453,7 @@ namespace TrucoRPG.Infraestructura.Migrations
                         new
                         {
                             Id = 4,
+                            Acumulable = false,
                             Categoria = "HABILIDADES",
                             Descripcion = "Te otorga la habilidad del mentiroso en una partida",
                             Img = "/assets/objetos/objeto.png",
@@ -374,6 +463,7 @@ namespace TrucoRPG.Infraestructura.Migrations
                         new
                         {
                             Id = 5,
+                            Acumulable = false,
                             Categoria = "ARMARIO",
                             Descripcion = "Cambia el color de tu Poncho a rosa",
                             Img = "/assets/objetos/GotaRosa.png",
@@ -384,6 +474,7 @@ namespace TrucoRPG.Infraestructura.Migrations
                         new
                         {
                             Id = 6,
+                            Acumulable = false,
                             Categoria = "ARMARIO",
                             Descripcion = "Cambia el color de tu Poncho a marrón",
                             Img = "/assets/objetos/GotaMarron.png",
@@ -394,6 +485,7 @@ namespace TrucoRPG.Infraestructura.Migrations
                         new
                         {
                             Id = 7,
+                            Acumulable = false,
                             Categoria = "ARMARIO",
                             Descripcion = "Cambia el color de tu Poncho a rojo",
                             Img = "/assets/objetos/GotaRoja.png",
@@ -404,6 +496,7 @@ namespace TrucoRPG.Infraestructura.Migrations
                         new
                         {
                             Id = 8,
+                            Acumulable = false,
                             Categoria = "ARMARIO",
                             Descripcion = "Cambia el color de tu Poncho a azul",
                             Img = "/assets/objetos/GotaAzul.png",
@@ -417,68 +510,80 @@ namespace TrucoRPG.Infraestructura.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)");
+                        .HasColumnType("char(36)")
+                        .HasColumnName("id");
 
                     b.Property<int>("PuntosAcumulados")
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnName("puntosacumulados");
 
                     b.Property<int>("UltimoRivalDerrotadoNivel")
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnName("ultimorivalderrotadonivel");
 
                     b.Property<string>("UsuarioId")
                         .IsRequired()
                         .HasMaxLength(450)
-                        .HasColumnType("varchar(450)");
+                        .HasColumnType("varchar(450)")
+                        .HasColumnName("usuarioid");
 
                     b.HasKey("Id");
 
                     b.HasIndex("UsuarioId")
                         .IsUnique();
 
-                    b.ToTable("ProgresoPartida", (string)null);
+                    b.ToTable("progresopartida", (string)null);
                 });
 
             modelBuilder.Entity("TrucoRPG.Dominio.Entities.Rival", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)");
+                        .HasColumnType("char(36)")
+                        .HasColumnName("id");
 
                     b.Property<string>("Descripcion")
                         .IsRequired()
                         .HasMaxLength(1000)
-                        .HasColumnType("varchar(1000)");
+                        .HasColumnType("varchar(1000)")
+                        .HasColumnName("descripcion");
 
                     b.Property<string>("DescripcionHabilidad")
                         .IsRequired()
                         .HasMaxLength(1000)
-                        .HasColumnType("varchar(1000)");
+                        .HasColumnType("varchar(1000)")
+                        .HasColumnName("descripcionhabilidad");
 
                     b.Property<int>("Nivel")
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnName("nivel");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("nombre");
 
                     b.Property<string>("NombreHabilidad")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("nombrehabilidad");
 
                     b.Property<int>("TipoHabilidad")
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnName("tipohabilidad");
 
                     b.Property<int>("TipoRival")
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnName("tiporival");
 
                     b.HasKey("Id");
 
                     b.HasIndex("Nivel")
                         .IsUnique();
 
-                    b.ToTable("Rivales", (string)null);
+                    b.ToTable("rivales", (string)null);
 
                     b.HasData(
                         new
@@ -518,22 +623,22 @@ namespace TrucoRPG.Infraestructura.Migrations
                         {
                             Id = new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa4"),
                             Descripcion = "Cuarto jefe de la historia. Una presencia luminosa que desorienta al viajero.",
-                            DescripcionHabilidad = "Emite una luz radiante que te confunde y te hace jugar una carta al azar (puede ocurrir en cualquier momento de la ronda).",
+                            DescripcionHabilidad = "Destello: cada 2 turnos en bazas 1 o 2, te obliga a jugar una carta al azar. Espejismo (pasiva): si es mano y abre la baza 1, muestra una carta falsa en pantalla hasta que respondas.",
                             Nivel = 4,
                             Nombre = "La Luz Mala",
                             NombreHabilidad = "Destello",
-                            TipoHabilidad = 0,
+                            TipoHabilidad = 5,
                             TipoRival = 4
                         },
                         new
                         {
                             Id = new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa5"),
                             Descripcion = "Jefe final de la historia. Domina el trono con tres fases de combate.",
-                            DescripcionHabilidad = "Jefe final con 3 fases y distintas habilidades según los puntos que le quedan para ganar. (Próximamente.)",
+                            DescripcionHabilidad = "Fase I (siempre): cada 2 manos maldice la mesa. Fase II (10+ pts tuyos): El Engaño. Fase III (20+ pts tuyos): El Espejo.",
                             Nivel = 5,
                             Nombre = "Mandinga",
                             NombreHabilidad = "Fases",
-                            TipoHabilidad = 0,
+                            TipoHabilidad = 6,
                             TipoRival = 5
                         });
                 });
@@ -597,6 +702,25 @@ namespace TrucoRPG.Infraestructura.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("HeroeSeleccionado");
+                });
+
+            modelBuilder.Entity("TrucoRPG.Dominio.Entities.Inventario", b =>
+                {
+                    b.HasOne("TrucoRPG.Dominio.Entities.ItemTienda", "ItemTienda")
+                        .WithMany()
+                        .HasForeignKey("ItemTiendaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TrucoRPG.Dominio.Entities.ApplicationUser", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ItemTienda");
+
+                    b.Navigation("Usuario");
                 });
 
             modelBuilder.Entity("TrucoRPG.Dominio.Entities.ProgresoPartida", b =>

@@ -68,6 +68,14 @@ public class GameHub : Hub
                         || _trucoGames2v2.ContainsKey(codigo)
                         || _trucoGames3v3.ContainsKey(codigo);
             if (enJuego) continue;
+    public virtual async Task<bool> UnirseASala(string codigo, string? modoEsperado = null)
+    {
+        // Normalizar una sola vez: el grupo de SignalR debe ser EXACTAMENTE el mismo
+        // string que usó CrearSala (mayúsculas), si no el jugador queda en otro grupo
+        // y nunca recibe los broadcasts de la sala.
+        codigo = codigo.ToUpperInvariant().Trim();
+        var r = _salas.UnirseASala(Context.ConnectionId, codigo, modoEsperado);
+        if (!r.Ok) return false;
 
             int max = JugadoresRequeridos(modoSala);
             int cantidad;
