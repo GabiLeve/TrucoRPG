@@ -111,15 +111,18 @@ namespace TrucoRPG.API.Controllers
         [HttpGet("progreso")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> ObtenerProgreso() =>
-            Ok(await _obtenerProgreso.EjecutarAsync(_usuarioActual.ObtenerId()));
+            Ok(ProgresoPartidaDto.FromDomain(await _obtenerProgreso.EjecutarAsync(_usuarioActual.ObtenerId())));
 
         /// <summary>Indica si el jugador actual puede pelear contra el rival de ese nivel.</summary>
         /// <param name="nivel">Nivel del rival a evaluar.</param>
         /// <response code="200">Resultado de la validación (puede pelear y motivo).</response>
         [HttpGet("rivales/{nivel:int}/puedePelear")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<IActionResult> PuedePelear(int nivel) =>
-            Ok(await _puedePelear.EjecutarAsync(_usuarioActual.ObtenerId(), nivel));
+        public async Task<IActionResult> PuedePelear(int nivel)
+        {
+            var (puede, motivo) = await _puedePelear.EjecutarAsync(_usuarioActual.ObtenerId(), nivel);
+            return Ok(PuedePelearRivalDto.FromResultado(nivel, puede, motivo));
+        }
 
         /// <summary>Registra una victoria del jugador y devuelve su progreso actualizado. Requiere JWT.</summary>
         /// <param name="request">Nivel del rival vencido y la diferencia de puntos.</param>
@@ -137,7 +140,7 @@ namespace TrucoRPG.API.Controllers
                 request.RivalNivel,
                 request.DiferenciaPuntos);
 
-            return Ok(await _obtenerProgreso.EjecutarAsync(_usuarioActual.ObtenerId()));
+            return Ok(ProgresoPartidaDto.FromDomain(await _obtenerProgreso.EjecutarAsync(_usuarioActual.ObtenerId())));
         }
 
         /// <summary>
@@ -153,7 +156,7 @@ namespace TrucoRPG.API.Controllers
         public async Task<IActionResult> ReiniciarRivales()
         {
             await _reiniciarRivales.EjecutarAsync(_usuarioActual.ObtenerId());
-            return Ok(await _obtenerProgreso.EjecutarAsync(_usuarioActual.ObtenerId()));
+            return Ok(ProgresoPartidaDto.FromDomain(await _obtenerProgreso.EjecutarAsync(_usuarioActual.ObtenerId())));
         }
 
         [HttpPut("equiparAvatar")]

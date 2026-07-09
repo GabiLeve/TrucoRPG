@@ -32,7 +32,8 @@ namespace TrucoRPG.API.Controllers
             try
             {
                 var idUsuario = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-                var datosTienda = await _obtenerTiendaUseCase.EjecutarAsync();
+                var items = await _obtenerTiendaUseCase.EjecutarAsync();
+                var datosTienda = CategoriaTiendaDto.FromItems(items);
 
                 int monedas = 0;
                 if (!string.IsNullOrEmpty(idUsuario))

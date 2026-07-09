@@ -4,7 +4,6 @@ using Moq;
 using TrucoRPG.API.Controllers;
 using TrucoRPG.API.DTO;
 using TrucoRPG.API.Models;
-using TrucoRPG.Dominio.DTOs;
 using TrucoRPG.Dominio.Entities;
 using TrucoRPG.Dominio.Repositorios;
 using TrucoRPG.Dominio.Servicios;

@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using TrucoRPG.Dominio.DTOs;
-using TrucoRPG.Dominio.Mapeos;
+using TrucoRPG.Dominio.Entities;
 using TrucoRPG.Dominio.Repositorios;
 
 namespace TrucoRPG.Dominio.UseCases
@@ -10,15 +9,10 @@ namespace TrucoRPG.Dominio.UseCases
     {
         private readonly IItemTiendaRepositorio _repositorio;
 
-        public ObtenerTiendaUseCase(IItemTiendaRepositorio repositorio)
-        {
+        public ObtenerTiendaUseCase(IItemTiendaRepositorio repositorio) =>
             _repositorio = repositorio;
-        }
 
-        public async Task<List<CategoriaTiendaDto>> EjecutarAsync()
-        {
-            var items = await _repositorio.ObtenerTodosLosItemsAsync();
-            return items.ToCategoriasDto();
-        }
+        public Task<List<ItemTienda>> EjecutarAsync() =>
+            _repositorio.ObtenerTodosLosItemsAsync();
     }
 }

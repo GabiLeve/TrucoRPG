@@ -1,5 +1,4 @@
-using TrucoRPG.Dominio.DTOs;
-using TrucoRPG.Dominio.Mapeos;
+using TrucoRPG.Dominio.Entities;
 using TrucoRPG.Dominio.Repositorios;
 
 namespace TrucoRPG.Dominio.UseCases
@@ -11,13 +10,13 @@ namespace TrucoRPG.Dominio.UseCases
         public ObtenerProgresoHistoriaUseCase(IProgresoPartidaRepositorio progreso) =>
             _progreso = progreso;
 
-        public async Task<ProgresoPartidaDto> EjecutarAsync(string? usuarioId)
+        public async Task<ProgresoPartida> EjecutarAsync(string? usuarioId)
         {
             if (string.IsNullOrWhiteSpace(usuarioId))
-                return ProgresoPartidaMapper.VacioDto();
+                return new ProgresoPartida();
 
             var progreso = await _progreso.ObtenerPorUsuarioIdAsync(usuarioId);
-            return progreso?.ToDto() ?? ProgresoPartidaMapper.VacioDto();
+            return progreso ?? new ProgresoPartida();
         }
     }
 }
