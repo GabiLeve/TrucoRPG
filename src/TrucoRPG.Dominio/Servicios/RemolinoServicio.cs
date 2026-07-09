@@ -17,7 +17,7 @@ namespace TrucoRPG.Dominio.Servicios
             if (!AzarServicio.TirarProbabilidad(ProbabilidadActivacion))
                 return false;
 
-            SalpicaduraServicio.CambiarPaloCarta(cartaEnMesa);
+            SalpicaduraServicio.CambiarPaloCarta(cartaEnMesa, mano);
             mano.UltimoMensajeHabilidadRival =
                 $"¡Remolino! Nahuelito cambió el palo de tu carta a {cartaEnMesa.Palo}.";
             return true;

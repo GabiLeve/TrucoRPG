@@ -21,6 +21,10 @@ public class RivalPasivasHistoriaTests
         //Given
         AzarServicio.TirarProbabilidadOverride = _ => true;
         var mano = PartidaServicio.CrearManoNueva(configuracion: ConfigHistoria(ClaseRival.Nahuelito));
+        mano.Humano.Mano =
+        [
+            new Carta { Numero = 3, Palo = "Copa", ValorTruco = 10 }
+        ];
         var carta = new Carta { Numero = 7, Palo = "Espada", ValorTruco = 10 };
         var paloOriginal = carta.Palo;
 

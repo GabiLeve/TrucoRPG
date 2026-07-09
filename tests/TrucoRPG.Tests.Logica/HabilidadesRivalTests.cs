@@ -123,11 +123,79 @@ public class HabilidadesRivalTests
     {
         var carta = new Carta { Numero = 7, Palo = "Espada", ValorTruco = 10 };
         var paloAntes = carta.Palo;
+        var mano = new ManoTruco
+        {
+            Humano = new Jugador { Mano = [carta] }
+        };
 
-        SalpicaduraServicio.CambiarPaloCarta(carta);
+        SalpicaduraServicio.CambiarPaloCarta(carta, mano);
 
         Assert.NotEqual(paloAntes, carta.Palo);
         Assert.Equal(MazoServicio.ObtenerValorTruco(carta.Numero, carta.Palo), carta.ValorTruco);
+    }
+
+    [Fact]
+    public void SalpicaduraServicio_ReemplazarCartasHumano_NoDuplicaCartasEnJuego()
+    {
+        var tresEspada = new Carta { Numero = 3, Palo = "Espada", ValorTruco = 10 };
+        var tresCopa = new Carta { Numero = 3, Palo = "Copa", ValorTruco = 10 };
+        var sieteOro = new Carta { Numero = 7, Palo = "Oro", ValorTruco = 4 };
+        var mano = new ManoTruco
+        {
+            Humano = new Jugador { Mano = [tresCopa, sieteOro, new Carta { Numero = 4, Palo = "Basto", ValorTruco = 1 }] },
+            Maquina = new Jugador { Mano = [new Carta { Numero = 5, Palo = "Copa", ValorTruco = 2 }] },
+            Bazas =
+            [
+                new Baza { CartaJugador = tresEspada, CartaMaquina = new Carta { Numero = 2, Palo = "Oro", ValorTruco = 9 }, Ganador = IdJugador.Humano }
+            ]
+        };
+
+        for (var intento = 0; intento < 50; intento++)
+        {
+            tresCopa.Palo = "Copa";
+            tresCopa.ValorTruco = 10;
+            sieteOro.Palo = "Oro";
+            sieteOro.ValorTruco = 4;
+
+            SalpicaduraServicio.ReemplazarCartasHumano(mano);
+
+            var cartasEnJuego = mano.Humano.Mano
+                .Select(c => (c.Numero, c.Palo))
+                .Concat(mano.Maquina.Mano.Select(c => (c.Numero, c.Palo)))
+                .Concat(mano.Bazas.SelectMany(b => new[] { b.CartaJugador, b.CartaMaquina })
+                    .Where(c => c != null)
+                    .Select(c => (c!.Numero, c.Palo)))
+                .ToList();
+
+            Assert.Equal(cartasEnJuego.Count, cartasEnJuego.DistinctBy(c => (c.Numero, c.Palo.ToLowerInvariant())).Count());
+            Assert.DoesNotContain(
+                mano.Humano.Mano,
+                c => c.Numero == 3 && c.Palo.Equals("Espada", StringComparison.OrdinalIgnoreCase));
+        }
+    }
+
+    [Fact]
+    public void SalpicaduraServicio_CambiarPaloCarta_NoDuplicaCartaEnMesa()
+    {
+        var tresEspadaMesa = new Carta { Numero = 3, Palo = "Espada", ValorTruco = 10 };
+        var tresCopaMano = new Carta { Numero = 3, Palo = "Copa", ValorTruco = 10 };
+        var mano = new ManoTruco
+        {
+            Humano = new Jugador { Mano = [tresCopaMano] },
+            Bazas = [new Baza { CartaJugador = tresEspadaMesa, Ganador = IdJugador.Humano }]
+        };
+
+        for (var intento = 0; intento < 20; intento++)
+        {
+            tresCopaMano.Palo = "Copa";
+            tresCopaMano.ValorTruco = 10;
+
+            SalpicaduraServicio.CambiarPaloCarta(tresCopaMano, mano);
+
+            Assert.False(
+                tresCopaMano.Numero == 3
+                && tresCopaMano.Palo.Equals("Espada", StringComparison.OrdinalIgnoreCase));
+        }
     }
 
     [Fact]
