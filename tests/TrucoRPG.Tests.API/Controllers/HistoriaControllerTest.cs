@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using TrucoRPG.API.Controllers;
+using TrucoRPG.API.DTO;
 using TrucoRPG.API.Models;
 using TrucoRPG.Dominio.DTOs;
 using TrucoRPG.Dominio.Entities;
@@ -106,7 +107,7 @@ namespace TrucoRPG.Tests.API
             var resultado = await _controller.ObtenerRivales();
 
             var ok = Assert.IsType<OkObjectResult>(resultado);
-            var lista = Assert.IsAssignableFrom<IReadOnlyList<RivalDto>>(ok.Value);
+            var lista = Assert.IsAssignableFrom<IReadOnlyList<Rival>>(ok.Value);
             Assert.Equal(2, lista.Count);
             Assert.Equal(1, lista[0].Nivel);
         }

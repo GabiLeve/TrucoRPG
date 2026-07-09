@@ -18,7 +18,7 @@ namespace TrucoRPG.API.Controllers
             _obtenerMonedasUseCase = obtenerMonedasUseCase;
         }
 
-        [HttpGet("mi-inventario")]
+        [HttpGet("miInventario")]
         [Authorize]
         public async Task<IActionResult> TraerInventario()
         {
