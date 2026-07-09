@@ -79,6 +79,12 @@ public class MandingaServicioTests
     mano.MandingaFase2Desbloqueada = true;
     mano.MandingaFase3Desbloqueada = true;
     mano.MandingaPrimeraManoEngano = 8;
+    mano.Humano.Mano =
+    [
+      new Carta { Numero = 4, Palo = "Oro", ValorTruco = 1 },
+      new Carta { Numero = 5, Palo = "Basto", ValorTruco = 2 },
+      new Carta { Numero = 6, Palo = "Copa", ValorTruco = 3 },
+    ];
     mano.MandingaJugadasHumanoManoAnterior =
     [
       new Carta { Numero = 1, Palo = "Espada", ValorTruco = 14 },
@@ -91,6 +97,65 @@ public class MandingaServicioTests
     Assert.True(mano.MandingaEspejoBloqueando);
     Assert.Equal(1, mano.Maquina.Mano[0].Numero);
     Assert.Equal("Espada", mano.Maquina.Mano[0].Palo);
+  }
+
+  [Fact]
+  public void OnManoIniciada_Espejo_NoDuplicaCartaYaEnManoMaquina()
+  {
+    var mano = CrearManoMandinga(numeroDeMano: 12, puntosHumano: 20);
+    mano.MandingaFase2Desbloqueada = true;
+    mano.MandingaFase3Desbloqueada = true;
+    mano.MandingaPrimeraManoEngano = 8;
+    mano.Humano.Mano =
+    [
+      new Carta { Numero = 4, Palo = "Oro", ValorTruco = 1 },
+      new Carta { Numero = 5, Palo = "Copa", ValorTruco = 2 },
+      new Carta { Numero = 6, Palo = "Basto", ValorTruco = 3 },
+    ];
+    mano.Maquina.Mano[1] = new Carta { Numero = 1, Palo = "Espada", ValorTruco = 14 };
+    mano.MandingaJugadasHumanoManoAnterior =
+    [
+      new Carta { Numero = 1, Palo = "Espada", ValorTruco = 14 },
+      new Carta { Numero = 1, Palo = "Basto", ValorTruco = 14 },
+    ];
+
+    MandingaServicio.OnManoIniciada(mano);
+
+    Assert.True(mano.MandingaEspejoBloqueando);
+    Assert.Equal(1, mano.Maquina.Mano[0].Numero);
+    Assert.Equal("Basto", mano.Maquina.Mano[0].Palo);
+    Assert.Equal(1, mano.Maquina.Mano.Count(c =>
+      c.Numero == 1 && c.Palo.Equals("Espada", StringComparison.OrdinalIgnoreCase)));
+  }
+
+  [Fact]
+  public void OnManoIniciada_Espejo_SiTodasEnJuego_NoActivaEspejo()
+  {
+    var mano = CrearManoMandinga(numeroDeMano: 12, puntosHumano: 20);
+    mano.MandingaFase2Desbloqueada = true;
+    mano.MandingaFase3Desbloqueada = true;
+    mano.MandingaPrimeraManoEngano = 8;
+    mano.Humano.Mano =
+    [
+      new Carta { Numero = 1, Palo = "Espada", ValorTruco = 14 },
+      new Carta { Numero = 7, Palo = "Oro", ValorTruco = 11 },
+      new Carta { Numero = 3, Palo = "Basto", ValorTruco = 10 },
+    ];
+    mano.Maquina.Mano =
+    [
+      new Carta { Numero = 4, Palo = "Copa", ValorTruco = 1 },
+      new Carta { Numero = 1, Palo = "Espada", ValorTruco = 14 },
+      new Carta { Numero = 7, Palo = "Oro", ValorTruco = 11 },
+    ];
+    mano.MandingaJugadasHumanoManoAnterior =
+    [
+      new Carta { Numero = 1, Palo = "Espada", ValorTruco = 14 },
+      new Carta { Numero = 7, Palo = "Oro", ValorTruco = 11 },
+    ];
+
+    MandingaServicio.OnManoIniciada(mano);
+
+    Assert.False(mano.MandingaEspejoBloqueando);
   }
 
   [Fact]

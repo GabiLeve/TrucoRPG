@@ -1,4 +1,5 @@
 using TrucoRPG.Dominio.Entities;
+using TrucoRPG.Dominio.Servicios;
 
 namespace TrucoRPG.Dominio.Habilidades.Heroes
 {
@@ -63,8 +64,10 @@ namespace TrucoRPG.Dominio.Habilidades.Heroes
             if (cartaDescartada == null)
                 return ResultadoActivarHabilidad.Error("La carta no está en tu mano.");
 
+            var ocupadas = CartasEnJuegoServicio.Obtener(mano, cartaDescartada);
             var candidatas = mano.CartasRestantesMazo
                 .Where(c => c.ValorTruco >= cartaDescartada.ValorTruco)
+                .Where(c => !ocupadas.Contains(CartasEnJuegoServicio.Clave(c)))
                 .ToList();
 
             if (candidatas.Count == 0)

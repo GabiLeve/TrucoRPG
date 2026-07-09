@@ -211,11 +211,15 @@ namespace TrucoRPG.Dominio.Servicios
             if (candidatas.Count == 0)
                 return false;
 
-            var copia = ElegirCartaCopiable(candidatas, mano);
+            if (!TryObtenerIndiceCartaMasBajaMaquina(mano, out int idx))
+                return false;
+
+            var cartaAReemplazar = mano.Maquina.Mano[idx];
+            var copia = ElegirCartaCopiable(candidatas, mano, cartaAReemplazar);
             if (copia is null)
                 return false;
 
-            ReemplazarCartaMasBajaMaquina(mano, copia);
+            AplicarCopiaEnIndice(mano.Maquina.Mano, idx, copia);
             return true;
         }
 
@@ -228,26 +232,33 @@ namespace TrucoRPG.Dominio.Servicios
             return jugadas.Where(c => c.ValorTruco == max).ToList();
         }
 
-        private static Carta? ElegirCartaCopiable(List<Carta> candidatas, ManoTruco mano)
+        private static Carta? ElegirCartaCopiable(
+            List<Carta> candidatas,
+            ManoTruco mano,
+            Carta cartaAReemplazar)
         {
+            var ocupadas = CartasEnJuegoServicio.Obtener(mano, cartaAReemplazar);
             var barajadas = candidatas.OrderBy(_ => Random.Shared.Next()).ToList();
+
             foreach (var candidata in barajadas)
             {
-                if (!EstaEnJuego(mano, candidata))
+                if (!ocupadas.Contains(CartasEnJuegoServicio.Clave(candidata)))
                     return ClonarCarta(candidata);
             }
 
-            var primera = barajadas[0];
-            return ClonarCarta(primera);
+            return null;
         }
 
-        private static void ReemplazarCartaMasBajaMaquina(ManoTruco mano, Carta copia)
+        private static bool TryObtenerIndiceCartaMasBajaMaquina(ManoTruco mano, out int idx)
         {
             var manoMaquina = mano.Maquina.Mano;
             if (manoMaquina.Count == 0)
-                return;
+            {
+                idx = -1;
+                return false;
+            }
 
-            int idx = 0;
+            idx = 0;
             int minValor = manoMaquina[0].ValorTruco;
             for (int i = 1; i < manoMaquina.Count; i++)
             {
@@ -258,6 +269,11 @@ namespace TrucoRPG.Dominio.Servicios
                 }
             }
 
+            return true;
+        }
+
+        private static void AplicarCopiaEnIndice(List<Carta> manoMaquina, int idx, Carta copia)
+        {
             manoMaquina[idx].Numero = copia.Numero;
             manoMaquina[idx].Palo = copia.Palo;
             manoMaquina[idx].ValorTruco = copia.ValorTruco;
@@ -273,26 +289,6 @@ namespace TrucoRPG.Dominio.Servicios
             manoHumano.Clear();
             manoHumano.AddRange(mezclada);
         }
-
-        private static bool EstaEnJuego(ManoTruco mano, Carta carta)
-        {
-            if (mano.Humano.Mano.Any(c => EsMismaCarta(c, carta)))
-                return true;
-            if (mano.Maquina.Mano.Any(c => EsMismaCarta(c, carta)))
-                return true;
-            if (mano.CartaHumanoEnMesa is not null && EsMismaCarta(mano.CartaHumanoEnMesa, carta))
-                return true;
-            if (mano.CartaMaquinaEnMesa is not null && EsMismaCarta(mano.CartaMaquinaEnMesa, carta))
-                return true;
-
-            return mano.Bazas.Any(b =>
-                (b.CartaJugador is not null && EsMismaCarta(b.CartaJugador, carta))
-                || (b.CartaMaquina is not null && EsMismaCarta(b.CartaMaquina, carta)));
-        }
-
-        private static bool EsMismaCarta(Carta a, Carta b) =>
-            a.Numero == b.Numero
-            && a.Palo.Equals(b.Palo, StringComparison.OrdinalIgnoreCase);
 
         private static Carta ClonarCarta(Carta c) => new()
         {

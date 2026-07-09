@@ -72,10 +72,14 @@ namespace TrucoRPG.Dominio.Servicios
 
         private static Carta GenerarCartaFalsaVisual(ManoTruco mano, Carta real)
         {
-            var ocupadas = ObtenerCartasOcupadas(mano);
+            var ocupadas = CartasEnJuegoServicio.Obtener(mano, null);
+            var revelada = mano.EstadoHabilidades.Obtener(IdJugador.Humano)?.CartaReveladaRival;
+            if (revelada is not null)
+                ocupadas.Add(CartasEnJuegoServicio.Clave(revelada));
+
             var candidatas = MazoCompleto.Value
-                .Where(c => !EsMismaCarta(c, real))
-                .Where(c => ocupadas.All(o => !EsMismaCarta(c, o)))
+                .Where(c => !ocupadas.Contains(CartasEnJuegoServicio.Clave(c)))
+                .Where(c => !CartasEnJuegoServicio.Clave(c).Equals(CartasEnJuegoServicio.Clave(real)))
                 .ToList();
 
             if (candidatas.Count == 0)
@@ -89,36 +93,6 @@ namespace TrucoRPG.Dominio.Servicios
                 ValorTruco = elegida.ValorTruco
             };
         }
-
-        private static List<Carta> ObtenerCartasOcupadas(ManoTruco mano)
-        {
-            var ocupadas = new List<Carta>();
-            ocupadas.AddRange(mano.Humano.Mano);
-            ocupadas.AddRange(mano.Maquina.Mano);
-
-            if (mano.CartaMaquinaEnMesa is not null)
-                ocupadas.Add(mano.CartaMaquinaEnMesa);
-            if (mano.CartaHumanoEnMesa is not null)
-                ocupadas.Add(mano.CartaHumanoEnMesa);
-
-            foreach (var baza in mano.Bazas)
-            {
-                if (baza.CartaJugador is not null)
-                    ocupadas.Add(baza.CartaJugador);
-                if (baza.CartaMaquina is not null)
-                    ocupadas.Add(baza.CartaMaquina);
-            }
-
-            var revelada = mano.EstadoHabilidades.Obtener(IdJugador.Humano)?.CartaReveladaRival;
-            if (revelada is not null)
-                ocupadas.Add(revelada);
-
-            return ocupadas;
-        }
-
-        private static bool EsMismaCarta(Carta a, Carta b) =>
-            a.Numero == b.Numero
-            && a.Palo.Equals(b.Palo, StringComparison.OrdinalIgnoreCase);
 
         private static bool EsLuzMalaHistoria(ManoTruco mano) =>
             MaquinaServicio.EsModoHistoriaPasoAPaso(mano)
