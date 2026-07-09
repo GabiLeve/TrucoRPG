@@ -172,15 +172,20 @@ namespace TrucoRPG.Dominio.Servicios
                 else if (mano.TantoMaquina > mano.TantoHumano)  mano.GanadorEnvido = "Maquina";
                 else                                             mano.GanadorEnvido = mano.ManoIniciadaPor;
 
-                // La Falta vale lo que le falta al que VA GANANDO la partida para llegar a 30.
-                if (mano.TipoEnvidoCantado == "FaltaEnvido")
-                    pts = EnvidoServicio.CalcularPuntosFalta(Math.Max(mano.PuntosHumano, mano.PuntosMaquina));
-
-                mano.PuntosEnvido   = pts;
                 mano.EnvidoResuelto = true;
-                mano.EstadoEnvido   = $"Quiso. J1 tiene {mano.TantoHumano}, J2 tiene {mano.TantoMaquina}. " +
-                                      $"Gana {Nombre(mano.GanadorEnvido)} ({pts} pt).";
-                JuegoServicio.SumarPuntos(mano, mano.GanadorEnvido, pts);
+                if (mano.TipoEnvidoCantado == "FaltaEnvido")
+                {
+                    EnvidoServicio.AplicarPuntosFaltaEnvido(mano, mano.GanadorEnvido!);
+                    pts = mano.PuntosEnvido;
+                }
+                else
+                {
+                    mano.PuntosEnvido = pts;
+                    JuegoServicio.SumarPuntos(mano, mano.GanadorEnvido, pts);
+                }
+
+                mano.EstadoEnvido = $"Quiso. J1 tiene {mano.TantoHumano}, J2 tiene {mano.TantoMaquina}. " +
+                                    $"Gana {Nombre(mano.GanadorEnvido)} ({pts} pt).";
             }
 
             return true;
@@ -204,12 +209,17 @@ namespace TrucoRPG.Dominio.Servicios
             int pts = estado.PuntosEnvidoEnJuego > 0
                 ? estado.PuntosEnvidoEnJuego
                 : EnvidoServicio.ObtenerPuntosSegunTipo(mano.TipoEnvidoCantado);
-            if (mano.TipoEnvidoCantado == "FaltaEnvido")
-                pts = EnvidoServicio.CalcularPuntosFalta(Math.Max(mano.PuntosHumano, mano.PuntosMaquina));
+            mano.EstadoEnvido = mano.TipoEnvidoCantado == "FaltaEnvido"
+                ? $"Son buenas. {Nombre(mano.CantorEnvido)} gana la falta envido."
+                : $"Son buenas. {Nombre(mano.CantorEnvido)} gana {pts} punto(s) de envido.";
 
-            mano.PuntosEnvido = pts;
-            mano.EstadoEnvido = $"Son buenas. {Nombre(mano.CantorEnvido)} gana {pts} punto(s) de envido.";
-            JuegoServicio.SumarPuntos(mano, mano.CantorEnvido!, pts);
+            if (mano.TipoEnvidoCantado == "FaltaEnvido")
+                EnvidoServicio.AplicarPuntosFaltaEnvido(mano, mano.CantorEnvido!);
+            else
+            {
+                mano.PuntosEnvido = pts;
+                JuegoServicio.SumarPuntos(mano, mano.CantorEnvido!, pts);
+            }
             return true;
         }
 

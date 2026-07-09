@@ -231,8 +231,18 @@ namespace TrucoRPG.Dominio.Servicios
 
             if (mano.TipoEnvidoCantado == "FaltaEnvido")
             {
-                int puntosLider = Math.Max(mano.PuntosEquipoA, mano.PuntosEquipoB);
-                puntosEnJuego = EnvidoServicio.CalcularPuntosFalta(puntosLider);
+                bool ambosEnMalas = mano.PuntosEquipoA < EnvidoServicio.UmbralBuenas
+                                 && mano.PuntosEquipoB < EnvidoServicio.UmbralBuenas;
+                if (ambosEnMalas)
+                {
+                    int puntosGanador = equipoGanador == "EquipoA" ? mano.PuntosEquipoA : mano.PuntosEquipoB;
+                    puntosEnJuego = 30 - puntosGanador;
+                }
+                else
+                {
+                    int puntosLider = Math.Max(mano.PuntosEquipoA, mano.PuntosEquipoB);
+                    puntosEnJuego = EnvidoServicio.CalcularPuntosFalta(puntosLider);
+                }
                 mano.PuntosEnvido = puntosEnJuego;
             }
 

@@ -254,5 +254,55 @@ namespace TrucoRPG.Tests.Logica
             Assert.Equal(5, EnvidoServicio.CalcularPuntosFalta(25));
             Assert.Equal(1, EnvidoServicio.CalcularPuntosFalta(30));
         }
+
+        [Theory]
+        [InlineData(10, 12, true)]
+        [InlineData(14, 14, true)]
+        [InlineData(10, 15, false)]
+        [InlineData(20, 18, false)]
+        public void AmbosEnMalas_DetectaCorrectamente(int humano, int maquina, bool esperado)
+        {
+            Assert.Equal(esperado, EnvidoServicio.AmbosEnMalas(humano, maquina));
+        }
+
+        [Fact]
+        public void AplicarPuntosFaltaEnvido_EnLasMalas_TerminaLaPartidaConElGanadorEn30()
+        {
+            var mano = new ManoTruco
+            {
+                Id = Guid.NewGuid(),
+                PuntosHumano = 10,
+                PuntosMaquina = 12,
+                TipoEnvidoCantado = "FaltaEnvido",
+                GanadorEnvido = "Maquina"
+            };
+
+            EnvidoServicio.AplicarPuntosFaltaEnvido(mano, "Maquina");
+
+            Assert.True(mano.PartidaTerminada);
+            Assert.Equal("Maquina", mano.GanadorPartida);
+            Assert.Equal(30, mano.PuntosMaquina);
+            Assert.Equal(10, mano.PuntosHumano);
+        }
+
+        [Fact]
+        public void AplicarPuntosFaltaEnvido_EnLasBuenas_LiderLlegaA30()
+        {
+            var mano = new ManoTruco
+            {
+                Id = Guid.NewGuid(),
+                PuntosHumano = 12,
+                PuntosMaquina = 28,
+                TipoEnvidoCantado = "FaltaEnvido",
+                GanadorEnvido = "Maquina"
+            };
+
+            EnvidoServicio.AplicarPuntosFaltaEnvido(mano, "Maquina");
+
+            Assert.True(mano.PartidaTerminada);
+            Assert.Equal("Maquina", mano.GanadorPartida);
+            Assert.Equal(30, mano.PuntosMaquina);
+            Assert.Equal(2, mano.PuntosEnvido);
+        }
     }
 }
