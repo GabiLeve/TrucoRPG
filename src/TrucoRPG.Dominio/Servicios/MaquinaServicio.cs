@@ -124,6 +124,7 @@ namespace TrucoRPG.Dominio.Servicios
                     mano, mano.GanadorMano, puntosMano, OrigenPuntos.TrucoMano, mano.CantorTruco);
                 mano.TrucoResuelto = true;
                 MandingaServicio.RegistrarFinMano(mano);
+                HabilidadesRivalOrquestador.ActualizarVista(mano);
             }
             else if (!EsModoHistoriaPasoAPaso(mano))
             {

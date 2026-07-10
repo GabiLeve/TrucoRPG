@@ -85,6 +85,42 @@ public class RivalPasivasHistoriaTests
     }
 
     [Fact]
+    public void Pomberito_ManoSilenciosa_ActualizaVistaRivalConMensajeTrampa()
+    {
+        var mano = PartidaServicio.CrearManoNueva(configuracion: ConfigHistoria(ClaseRival.Pomberito));
+        mano.GanadorMano = IdJugador.Humano;
+        mano.EnvidoCantado = false;
+        mano.TrucoCantado = false;
+        mano.VistaHabilidadesRival = new VistaHabilidadesRival
+        {
+            UltimoMensajeHabilidad = "mensaje anterior"
+        };
+
+        JuegoServicio.SumarPuntos(mano, IdJugador.Humano, 1, OrigenPuntos.TrucoMano);
+
+        Assert.Contains("Trampa del monte", mano.VistaHabilidadesRival!.UltimoMensajeHabilidad);
+    }
+
+    [Fact]
+    public void Pomberito_ManoSilenciosa_SerializaMensajeTrampaEnVistaRival()
+    {
+        var mano = PartidaServicio.CrearManoNueva(configuracion: ConfigHistoria(ClaseRival.Pomberito));
+        mano.GanadorMano = IdJugador.Humano;
+        mano.EnvidoCantado = false;
+        mano.TrucoCantado = false;
+
+        JuegoServicio.SumarPuntos(mano, IdJugador.Humano, 1, OrigenPuntos.TrucoMano);
+
+        var json = System.Text.Json.JsonSerializer.Serialize(mano, new System.Text.Json.JsonSerializerOptions
+        {
+            PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
+        });
+
+        Assert.Contains("trampa del monte", json, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("ultimoMensajeHabilidad", json);
+    }
+
+    [Fact]
     public void Pomberito_ManoConTrucoCantado_NoSumaPuntoExtra()
     {
         //Given
