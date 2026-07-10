@@ -106,7 +106,7 @@ namespace TrucoRPG.Tests.API
             var resultado = await _controller.ObtenerRivales();
 
             var ok = Assert.IsType<OkObjectResult>(resultado);
-            var lista = Assert.IsAssignableFrom<IReadOnlyList<Rival>>(ok.Value);
+            var lista = Assert.IsAssignableFrom<IReadOnlyList<RivalDto>>(ok.Value);
             Assert.Equal(2, lista.Count);
             Assert.Equal(1, lista[0].Nivel);
         }

@@ -93,8 +93,11 @@ namespace TrucoRPG.API.Controllers
         /// <response code="200">Lista de rivales.</response>
         [HttpGet("rivales")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<IActionResult> ObtenerRivales() =>
-            Ok(await _obtenerRivales.EjecutarAsync());
+        public async Task<IActionResult> ObtenerRivales()
+        {
+            var rivales = await _obtenerRivales.EjecutarAsync();
+            return Ok(rivales.Select(RivalDto.FromDomain).ToList());
+        }
 
         /// <summary>Devuelve un rival puntual por su nivel.</summary>
         /// <param name="nivel">Nivel del rival (1, 2, 3, …).</param>
@@ -106,7 +109,7 @@ namespace TrucoRPG.API.Controllers
         public async Task<IActionResult> ObtenerRivalPorNivel(int nivel)
         {
             var rival = await _obtenerRivales.EjecutarPorNivelAsync(nivel);
-            return rival is null ? NotFound() : Ok(rival);
+            return rival is null ? NotFound() : Ok(RivalDto.FromDomain(rival));
         }
 
         /// <summary>Devuelve el progreso del jugador actual (último nivel derrotado y puntos).</summary>
