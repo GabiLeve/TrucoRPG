@@ -101,7 +101,7 @@ namespace TrucoRPG.API.Controllers
 
         /// <summary>Reparte una nueva mano dentro de la partida en curso.</summary>
         /// <param name="request">Opcional: id de la mano anterior para encadenar el puntaje.</param>
-        [HttpPost("nueva-mano")]
+        [HttpPost("nuevaMano")]
         public ActionResult<ManoTruco> NuevaMano([FromBody] NuevaManoRequest? request)
         {
 
@@ -112,7 +112,7 @@ namespace TrucoRPG.API.Controllers
         /// <summary>Crea una partida nueva (modo libre o historia).</summary>
         /// <param name="request">Modo de juego, héroe del humano y, en historia, el nivel del rival.</param>
         /// <remarks>En modo historia valida que el jugador pueda pelear contra ese rival y configura al rival de la máquina.</remarks>
-        [HttpPost("nueva-partida")]
+        [HttpPost("nuevaPartida")]
         public async Task<ActionResult<ManoTruco>> NuevaPartida([FromBody] NuevaPartidaRequest? request)
         {
             var configuracion = request == null
@@ -138,51 +138,51 @@ namespace TrucoRPG.API.Controllers
         }
 
         /// <summary>Confirma el efecto de la habilidad "Salpicadura" y devuelve la mano actualizada.</summary>
-        [HttpPost("confirmar-salpicadura")]
+        [HttpPost("confirmarSalpicadura")]
         public ActionResult<ManoTruco> ConfirmarSalpicadura([FromBody] ConfirmarSalpicaduraRequest request) =>
             Ok(_confirmarSalpicadura.Ejecutar(request.ManoId));
 
         /// <summary>Confirma el efecto de la habilidad "Travesura" y devuelve la mano actualizada.</summary>
-        [HttpPost("confirmar-travesura")]
+        [HttpPost("confirmarTravesura")]
         public ActionResult<ManoTruco> ConfirmarTravesura([FromBody] ConfirmarSalpicaduraRequest request) =>
             Ok(_confirmarTravesura.Ejecutar(request.ManoId));
 
         /// <summary>Confirma el efecto de la habilidad "Rasguño" y devuelve la mano actualizada.</summary>
-        [HttpPost("confirmar-rasguno")]
+        [HttpPost("confirmarRasguno")]
         public ActionResult<ManoTruco> ConfirmarRasguno([FromBody] ConfirmarSalpicaduraRequest request) =>
             Ok(_confirmarRasguno.Ejecutar(request.ManoId));
 
         /// <summary>Confirma el efecto de la habilidad "Aullido" y devuelve la mano actualizada.</summary>
-        [HttpPost("confirmar-aullido")]
+        [HttpPost("confirmarAullido")]
         public ActionResult<ManoTruco> ConfirmarAullido([FromBody] ConfirmarSalpicaduraRequest request) =>
             Ok(_confirmarAullido.Ejecutar(request.ManoId));
 
         /// <summary>Confirma el efecto de la habilidad "Destello" y devuelve la mano actualizada.</summary>
-        [HttpPost("confirmar-destello")]
+        [HttpPost("confirmarDestello")]
         public ActionResult<ManoTruco> ConfirmarDestello([FromBody] ConfirmarSalpicaduraRequest request) =>
             Ok(_confirmarDestello.Ejecutar(request.ManoId));
 
         /// <summary>Confirma el overlay de la pasiva "Espejismo" y habilita el parpadeo visual.</summary>
-        [HttpPost("confirmar-espejismo")]
+        [HttpPost("confirmarEspejismo")]
         public ActionResult<ManoTruco> ConfirmarEspejismo([FromBody] ConfirmarSalpicaduraRequest request) =>
             Ok(_confirmarEspejismo.Ejecutar(request.ManoId));
 
-        [HttpPost("confirmar-mandinga-espejo")]
+        [HttpPost("confirmarMandingaEspejo")]
         public ActionResult<ManoTruco> ConfirmarMandingaEspejo([FromBody] ConfirmarSalpicaduraRequest request) =>
             Ok(_confirmarMandingaEspejo.Ejecutar(request.ManoId));
 
-        [HttpPost("confirmar-mandinga-engano")]
+        [HttpPost("confirmarMandingaEngano")]
         public ActionResult<ManoTruco> ConfirmarMandingaEngano([FromBody] ConfirmarSalpicaduraRequest request) =>
             Ok(_confirmarMandingaEngano.Ejecutar(request.ManoId));
 
-        [HttpPost("confirmar-mandinga-maldicion")]
+        [HttpPost("confirmarMandingaMaldicion")]
         public ActionResult<ManoTruco> ConfirmarMandingaMaldicion([FromBody] ConfirmarSalpicaduraRequest request) =>
             Ok(_confirmarMandingaMaldicion.Ejecutar(request.ManoId));
 
         // ── Configuración ─────────────────────────────────────────────
 
         /// <summary>Ajusta cuánto "miente" la máquina al jugar el envido (nivel de mentira) en esa mano.</summary>
-        [HttpPost("configurar-nivel-mentira-envido")]
+        [HttpPost("configurarNivelMentiraEnvido")]
         public ActionResult<ManoTruco> ConfigurarNivelMentiraEnvido(
             [FromBody] ConfigurarNivelMentiraEnvidoRequest request)
         {
@@ -192,7 +192,7 @@ namespace TrucoRPG.API.Controllers
         }
 
         /// <summary>Ajusta cuánto "miente" la máquina al jugar el truco (nivel de mentira) en esa mano.</summary>
-        [HttpPost("configurar-nivel-mentira-truco")]
+        [HttpPost("configurarNivelMentiraTruco")]
         public ActionResult<ManoTruco> ConfigurarNivelMentiraTruco(
             [FromBody] ConfigurarNivelMentiraTrucoRequest request)
         {
@@ -204,7 +204,7 @@ namespace TrucoRPG.API.Controllers
         // ── Envido ────────────────────────────────────────────────────
 
         /// <summary>El humano canta "Envido".</summary>
-        [HttpPost("cantar-envido")]
+        [HttpPost("cantarEnvido")]
         public ActionResult<ManoTruco> CantarEnvido([FromBody] CantarEnvidoRequest request)
         {
 
@@ -213,7 +213,7 @@ namespace TrucoRPG.API.Controllers
         }
 
         /// <summary>El humano canta un tipo específico de envido (Envido, Real Envido, Falta Envido, etc.).</summary>
-        [HttpPost("cantar-envido-tipo")]
+        [HttpPost("cantarEnvidoTipo")]
         public ActionResult<ManoTruco> CantarEnvidoTipo([FromBody] CantarEnvidoTipoRequest request)
         {
 
@@ -222,7 +222,7 @@ namespace TrucoRPG.API.Controllers
         }
 
         /// <summary>Responde un envido cantado (quiero / no quiero), con opción de escalar a otro canto.</summary>
-        [HttpPost("responder-envido")]
+        [HttpPost("responderEnvido")]
         public ActionResult<ManoTruco> ResponderEnvido([FromBody] ResponderEnvidoRequest request)
         {
 
@@ -234,7 +234,7 @@ namespace TrucoRPG.API.Controllers
         /// "Son buenas" en 1v1: el humano reconoce que la máquina tiene más tantos y pierde el envido.
         /// Solo válido cuando la máquina cantó el envido y el humano ya lo aceptó (quiero).
         /// </summary>
-        [HttpPost("son-buenas")]
+        [HttpPost("sonBuenas")]
         public ActionResult<ManoTruco> SonBuenas([FromBody] CantarEnvidoRequest request)
         {
             return Ok(_responderEnvido.EjecutarSonBuenas(request.ManoId));
@@ -243,7 +243,7 @@ namespace TrucoRPG.API.Controllers
         // ── Truco ─────────────────────────────────────────────────────
 
         /// <summary>El humano canta Truco.</summary>
-        [HttpPost("cantar-truco")]
+        [HttpPost("cantarTruco")]
         public ActionResult<ManoTruco> CantarTruco([FromBody] CantarEnvidoRequest request)
         {
 
@@ -252,7 +252,7 @@ namespace TrucoRPG.API.Controllers
         }
 
         /// <summary>Responde el truco (quiero / no quiero), con opción de escalar (Retruco / Vale Cuatro).</summary>
-        [HttpPost("responder-truco")]
+        [HttpPost("responderTruco")]
         public ActionResult<ManoTruco> ResponderTruco([FromBody] ResponderTrucoRequest request)
         {
 
@@ -261,7 +261,7 @@ namespace TrucoRPG.API.Controllers
         }
 
         /// <summary>Sube la apuesta del truco al siguiente nivel (Truco → Retruco → Vale Cuatro).</summary>
-        [HttpPost("escalar-truco")]
+        [HttpPost("escalarTruco")]
         public ActionResult<ManoTruco> EscalarTruco([FromBody] CantarEnvidoRequest request)
         {
 
@@ -272,7 +272,7 @@ namespace TrucoRPG.API.Controllers
         // ── Juego ─────────────────────────────────────────────────────
 
         /// <summary>El humano se va al mazo y abandona la mano (la máquina se lleva los puntos en juego).</summary>
-        [HttpPost("irse-al-mazo")]
+        [HttpPost("irseAlMazo")]
         public ActionResult<ManoTruco> IrseAlMazo([FromBody] CantarEnvidoRequest request)
         {
 
@@ -281,7 +281,7 @@ namespace TrucoRPG.API.Controllers
         }
 
         /// <summary>Juega una carta (número y palo) sobre la mesa.</summary>
-        [HttpPost("jugar-carta")]
+        [HttpPost("jugarCarta")]
         public ActionResult<ManoTruco> JugarCarta([FromBody] JugarCartaRequest request)
         {
 
@@ -290,7 +290,7 @@ namespace TrucoRPG.API.Controllers
         }
 
         /// <summary>Activa la habilidad del héroe sobre una carta determinada.</summary>
-        [HttpPost("activar-habilidad")]
+        [HttpPost("activarHabilidad")]
         public ActionResult<ManoTruco> ActivarHabilidad([FromBody] ActivarHabilidadRequest request)
         {
 
@@ -300,7 +300,7 @@ namespace TrucoRPG.API.Controllers
         }
 
         /// <summary>Hace avanzar un paso a la máquina y devuelve la mano más el evento resultante.</summary>
-        [HttpPost("avanzar-maquina")]
+        [HttpPost("avanzarMaquina")]
         public ActionResult<Truco1v1PasoResponse> AvanzarMaquina([FromBody] CantarEnvidoRequest request)
         {
             var (mano, evento) = _avanzarMaquinaHistoria.Ejecutar(request.ManoId);
@@ -309,11 +309,11 @@ namespace TrucoRPG.API.Controllers
 
         /// <summary>SOLO PRUEBAS: fuerza la victoria automática en historia. Eliminar antes de producción.</summary>
         // SOLO PRUEBAS — Botón debug de victoria automática en historia. Eliminar antes de producción.
-        [HttpPost("ganar-automatico-debug")]
+        [HttpPost("ganarAutomaticoDebug")]
         public ActionResult<ManoTruco> GanarAutomaticoDebug([FromBody] CantarEnvidoRequest request) =>
             Ok(_ganarAutomaticoDebug.Ejecutar(request.ManoId));
 
-        [HttpPost("sumar-puntos-humano-debug")]
+        [HttpPost("sumarPuntosHumanoDebug")]
         public ActionResult<ManoTruco> SumarPuntosHumanoDebug([FromBody] CantarEnvidoRequest request) =>
             Ok(_sumarPuntosHumanoDebug.Ejecutar(request.ManoId));
     }

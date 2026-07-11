@@ -5,6 +5,23 @@ namespace TrucoRPG.Dominio.Servicios
 {
     public static class EnvidoServicio
     {
+        /// <summary>
+        /// Reglas 1v1: envido antes de la primera baza. Si ya se cantó truco,
+        /// solo se puede cantar envido mientras el truco sigue sin responder
+        /// ("el envido va primero"); una vez respondido, no hay más envido.
+        /// </summary>
+        public static bool PuedeCantarEnvido(ManoTruco mano)
+        {
+            if (mano.EnvidoCantado || mano.EnvidoResuelto) return false;
+            if (mano.Bazas.Count > 0) return false;
+            if (mano.PartidaTerminada || mano.GanadorMano != null) return false;
+
+            if (mano.TrucoCantado && !mano.TrucoPendienteRespuestaHumano)
+                return false;
+
+            return true;
+        }
+
         public static int CalcularTanto(List<Carta> cartas)
         {
             if (!cartas.Any()) return 0;
@@ -49,12 +66,41 @@ namespace TrucoRPG.Dominio.Servicios
         public static int CalcularTantoOriginal(Jugador jugador) =>
             CalcularTanto(jugador.Mano.Concat(jugador.Jugadas).ToList());
 
+        public const int UmbralBuenas = 15;
+
         /// <summary>
-        /// Puntos de la Falta Envido: lo que le falta al equipo/jugador que VA GANANDO
-        /// la partida para llegar a 30 (regla clásica de la falta).
+        /// Las "malas": menos de 15 puntos. Las "buenas": 15 o más.
+        /// </summary>
+        public static bool AmbosEnMalas(int puntosHumano, int puntosMaquina) =>
+            puntosHumano < UmbralBuenas && puntosMaquina < UmbralBuenas;
+
+        /// <summary>
+        /// Puntos de la Falta Envido cuando al menos uno está en las buenas:
+        /// lo que le falta al que va ganando para llegar a 30.
         /// </summary>
         public static int CalcularPuntosFalta(int puntosDelQueVaGanando) =>
             Math.Max(30 - puntosDelQueVaGanando, 1);
+
+        /// <summary>
+        /// Resuelve la falta envido y suma puntos o termina la partida según las reglas.
+        /// </summary>
+        public static void AplicarPuntosFaltaEnvido(ManoTruco mano, string ganadorEnvido)
+        {
+            if (AmbosEnMalas(mano.PuntosHumano, mano.PuntosMaquina))
+            {
+                mano.PuntosEnvido = 30 - PuntosDe(ganadorEnvido, mano);
+                JuegoServicio.TerminarPartidaPorFaltaEnMalas(mano, ganadorEnvido);
+                return;
+            }
+
+            int puntosLider = Math.Max(mano.PuntosHumano, mano.PuntosMaquina);
+            int puntos      = CalcularPuntosFalta(puntosLider);
+            mano.PuntosEnvido = puntos;
+            JuegoServicio.SumarPuntosFaltaEnvido(mano, ganadorEnvido, puntos);
+        }
+
+        private static int PuntosDe(string jugador, ManoTruco mano) =>
+            jugador == IdJugador.Humano ? mano.PuntosHumano : mano.PuntosMaquina;
 
         /// <summary>
         /// Cuánto SUMA cada canto a la cadena del envido cuando se acepta.
@@ -93,23 +139,28 @@ namespace TrucoRPG.Dominio.Servicios
                 mano.GanadorEnvido = HabilidadesOrquestador.ResolverGanadorEmpateEnvido(
                     mano, mano.ManoIniciadaPor);
 
+            mano.EnvidoResuelto = true;
+
             if (mano.TipoEnvidoCantado == "FaltaEnvido")
             {
-                // La falta vale lo que le falta al que VA GANANDO la partida (no al que
-                // ganó el envido): si el que pierde la quiere y la gana, no salta a 30.
-                int puntosLider = Math.Max(mano.PuntosHumano, mano.PuntosMaquina);
-                puntosEnJuego = CalcularPuntosFalta(puntosLider);
+                EnvidoServicio.AplicarPuntosFaltaEnvido(mano, mano.GanadorEnvido!);
+                mano.EstadoEnvido =
+                    $"{prefijoEstado}. Tu tanto: {mano.TantoHumano}. " +
+                    $"La máquina cantó: {mano.TantoCantadoMaquina} (real: {mano.TantoMaquina}). " +
+                    $"Ganador del envido: {mano.GanadorEnvido} ({mano.PuntosEnvido} pto/s)." +
+                    (mano.PartidaTerminada ? " ¡Partida terminada!" : "");
             }
+            else
+            {
+                mano.PuntosEnvido = puntosEnJuego;
+                mano.EstadoEnvido =
+                    $"{prefijoEstado}. Tu tanto: {mano.TantoHumano}. " +
+                    $"La máquina cantó: {mano.TantoCantadoMaquina} (real: {mano.TantoMaquina}). " +
+                    $"Ganador del envido: {mano.GanadorEnvido} ({mano.PuntosEnvido} pto/s).";
 
-            mano.PuntosEnvido   = puntosEnJuego;
-            mano.EnvidoResuelto = true;
-            mano.EstadoEnvido =
-                $"{prefijoEstado}. Tu tanto: {mano.TantoHumano}. " +
-                $"La máquina cantó: {mano.TantoCantadoMaquina} (real: {mano.TantoMaquina}). " +
-                $"Ganador del envido: {mano.GanadorEnvido} ({mano.PuntosEnvido} pto/s).";
-
-            JuegoServicio.SumarPuntos(
-                mano, mano.GanadorEnvido, mano.PuntosEnvido, OrigenPuntos.Envido, mano.CantorEnvido);
+                JuegoServicio.SumarPuntos(
+                    mano, mano.GanadorEnvido, mano.PuntosEnvido, OrigenPuntos.Envido, mano.CantorEnvido);
+            }
         }
 
         public static void LimpiarDatosDeEnvido(ManoTruco mano)

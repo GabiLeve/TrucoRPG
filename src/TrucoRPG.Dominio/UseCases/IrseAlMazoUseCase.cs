@@ -28,6 +28,7 @@ namespace TrucoRPG.Dominio.UseCases
             JuegoServicio.SumarPuntos(
                 mano, IdJugador.Maquina, puntosParaMaquina, OrigenPuntos.TrucoMano, mano.CantorTruco);
             MandingaServicio.RegistrarFinMano(mano);
+            HabilidadesRivalOrquestador.ActualizarVista(mano);
 
             PartidaMemoriaServicio.Actualizar(mano);
             return mano;

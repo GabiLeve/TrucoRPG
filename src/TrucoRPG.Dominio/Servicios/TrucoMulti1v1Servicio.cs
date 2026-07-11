@@ -119,9 +119,8 @@ namespace TrucoRPG.Dominio.Servicios
             if (mano.EnvidoCantado || mano.EnvidoResuelto) return false;
             if (mano.Bazas.Count > 0) return false;
             if (mano.PartidaTerminada || mano.GanadorMano != null) return false;
-            // "El envido va primero" solo vale contra un truco SIN responder:
-            // una vez aceptado el truco, ya no se puede cantar envido (igual que en 1v1 solo).
-            if (mano.TrucoCantado && mano.TrucoResuelto) return false;
+            // "El envido va primero" solo mientras el truco sigue sin responder.
+            if (mano.TrucoCantado && !mano.TrucoPendienteRespuestaHumano) return false;
 
             mano.EnvidoCantado     = true;
             mano.CantorEnvido      = Rol(esJ1);
@@ -173,15 +172,20 @@ namespace TrucoRPG.Dominio.Servicios
                 else if (mano.TantoMaquina > mano.TantoHumano)  mano.GanadorEnvido = "Maquina";
                 else                                             mano.GanadorEnvido = mano.ManoIniciadaPor;
 
-                // La Falta vale lo que le falta al que VA GANANDO la partida para llegar a 30.
-                if (mano.TipoEnvidoCantado == "FaltaEnvido")
-                    pts = EnvidoServicio.CalcularPuntosFalta(Math.Max(mano.PuntosHumano, mano.PuntosMaquina));
-
-                mano.PuntosEnvido   = pts;
                 mano.EnvidoResuelto = true;
-                mano.EstadoEnvido   = $"Quiso. J1 tiene {mano.TantoHumano}, J2 tiene {mano.TantoMaquina}. " +
-                                      $"Gana {Nombre(mano.GanadorEnvido)} ({pts} pt).";
-                JuegoServicio.SumarPuntos(mano, mano.GanadorEnvido, pts);
+                if (mano.TipoEnvidoCantado == "FaltaEnvido")
+                {
+                    EnvidoServicio.AplicarPuntosFaltaEnvido(mano, mano.GanadorEnvido!);
+                    pts = mano.PuntosEnvido;
+                }
+                else
+                {
+                    mano.PuntosEnvido = pts;
+                    JuegoServicio.SumarPuntos(mano, mano.GanadorEnvido, pts);
+                }
+
+                mano.EstadoEnvido = $"Quiso. J1 tiene {mano.TantoHumano}, J2 tiene {mano.TantoMaquina}. " +
+                                    $"Gana {Nombre(mano.GanadorEnvido)} ({pts} pt).";
             }
 
             return true;
@@ -205,12 +209,17 @@ namespace TrucoRPG.Dominio.Servicios
             int pts = estado.PuntosEnvidoEnJuego > 0
                 ? estado.PuntosEnvidoEnJuego
                 : EnvidoServicio.ObtenerPuntosSegunTipo(mano.TipoEnvidoCantado);
-            if (mano.TipoEnvidoCantado == "FaltaEnvido")
-                pts = EnvidoServicio.CalcularPuntosFalta(Math.Max(mano.PuntosHumano, mano.PuntosMaquina));
+            mano.EstadoEnvido = mano.TipoEnvidoCantado == "FaltaEnvido"
+                ? $"Son buenas. {Nombre(mano.CantorEnvido)} gana la falta envido."
+                : $"Son buenas. {Nombre(mano.CantorEnvido)} gana {pts} punto(s) de envido.";
 
-            mano.PuntosEnvido = pts;
-            mano.EstadoEnvido = $"Son buenas. {Nombre(mano.CantorEnvido)} gana {pts} punto(s) de envido.";
-            JuegoServicio.SumarPuntos(mano, mano.CantorEnvido!, pts);
+            if (mano.TipoEnvidoCantado == "FaltaEnvido")
+                EnvidoServicio.AplicarPuntosFaltaEnvido(mano, mano.CantorEnvido!);
+            else
+            {
+                mano.PuntosEnvido = pts;
+                JuegoServicio.SumarPuntos(mano, mano.CantorEnvido!, pts);
+            }
             return true;
         }
 

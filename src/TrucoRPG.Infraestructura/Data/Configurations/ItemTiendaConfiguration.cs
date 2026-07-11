@@ -41,10 +41,11 @@ namespace TrucoRPG.Infraestructura.Data.Configurations
                 new ItemTienda { Id = 3, Nombre = "BOLEADORAS", Descripcion = "Te otorga la habilidad del fanfarron en una partida", Precio = 150, Categoria = "HABILIDADES", Img = "/assets/objetos/objeto.png" },
                 new ItemTienda { Id = 4, Nombre = "BOLEADORAS", Descripcion = "Te otorga la habilidad del mentiroso en una partida", Precio = 150, Categoria = "HABILIDADES", Img = "/assets/objetos/objeto.png" },
 
-                new ItemTienda { Id = 5, Nombre = "Poncho rosa", Descripcion = "Cambia el color de tu Poncho a rosa", Precio = 150, Categoria = "ARMARIO", Img = "/assets/objetos/GotaRosa.png", SpriteKey = "personaje1rosa" },
-                new ItemTienda { Id = 6, Nombre = "Poncho marrón", Descripcion = "Cambia el color de tu Poncho a marrón", Precio = 150, Categoria = "ARMARIO", Img = "/assets/objetos/GotaMarron.png", SpriteKey = "personaje1rosa" },
-                new ItemTienda { Id = 7, Nombre = "Poncho rojo", Descripcion = "Cambia el color de tu Poncho a rojo", Precio = 150, Categoria = "ARMARIO", Img = "/assets/objetos/GotaRoja.png", SpriteKey = "personaje1rosa" },
-                new ItemTienda { Id = 8, Nombre = "Poncho azul", Descripcion = "Cambia el color de tu Poncho a azul", Precio = 150, Categoria = "ARMARIO", Img = "/assets/objetos/GotaAzul.png", SpriteKey = "personaje1rosa" }
+                // SpriteKey es solo el sufijo de color: el front lo compone con el personaje base del usuario (ej. "personaje2" + "azul").
+                new ItemTienda { Id = 5, Nombre = "Poncho rosa", Descripcion = "Cambia el color de tu Poncho a rosa", Precio = 150, Categoria = "ARMARIO", Img = "/assets/objetos/GotaRosa.png", SpriteKey = "rosa" },
+                new ItemTienda { Id = 6, Nombre = "Poncho marrón", Descripcion = "Cambia el color de tu Poncho a marrón", Precio = 150, Categoria = "ARMARIO", Img = "/assets/objetos/GotaMarron.png", SpriteKey = "marron" },
+                new ItemTienda { Id = 7, Nombre = "Poncho rojo", Descripcion = "Cambia el color de tu Poncho a rojo", Precio = 150, Categoria = "ARMARIO", Img = "/assets/objetos/GotaRoja.png", SpriteKey = "rojo" },
+                new ItemTienda { Id = 8, Nombre = "Poncho azul", Descripcion = "Cambia el color de tu Poncho a azul", Precio = 150, Categoria = "ARMARIO", Img = "/assets/objetos/GotaAzul.png", SpriteKey = "azul" }
             );
         }
     }

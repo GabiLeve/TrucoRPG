@@ -7,7 +7,6 @@ using Moq;
 using TrucoRPG.API.Controllers;
 using TrucoRPG.API.Models;
 using TrucoRPG.Dominio.Repositorios;
-using TrucoRPG.Dominio.DTOs;
 using Xunit;
 
 public class AuthControllerTests

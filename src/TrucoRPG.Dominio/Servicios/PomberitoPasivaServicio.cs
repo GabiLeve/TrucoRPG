@@ -18,6 +18,7 @@ namespace TrucoRPG.Dominio.Servicios
 
             mano.UltimoMensajeHabilidadRival =
                 "Trampa del monte: nadie cantó envido ni truco. El Pomberito suma +1 punto extra.";
+            HabilidadesRivalOrquestador.ActualizarVista(mano);
         }
 
         private static bool EsPomberitoHistoria(ManoTruco mano) =>

@@ -45,7 +45,7 @@ namespace TrucoRPG.API.Controllers
         // ─────────────────────────────────────────────────────────
         /// <summary>Crea una nueva partida 2v2 (vos + compañero bot vs. dos rivales bot) y reparte la primera mano.</summary>
         /// <param name="req">Opcional: número de mano y puntos iniciales de cada equipo.</param>
-        [HttpPost("nueva-partida")]
+        [HttpPost("nuevaPartida")]
         public ActionResult<ManoTruco2v2> NuevaPartida([FromBody] Truco2v2NuevaPartidaRequest? req)
         {
             int num   = req?.NumeroDeMano  ?? 1;
@@ -71,7 +71,7 @@ namespace TrucoRPG.API.Controllers
         //  Jugar carta
         // ─────────────────────────────────────────────────────────
         /// <summary>El humano (J1) juega una carta (número y palo) sobre la mesa.</summary>
-        [HttpPost("jugar-carta")]
+        [HttpPost("jugarCarta")]
         public ActionResult<ManoTruco2v2> JugarCarta([FromBody] Truco2v2CartaRequest req)
         {
             var mano = ObtenerMano(req.ManoId);
@@ -89,7 +89,7 @@ namespace TrucoRPG.API.Controllers
         //  Envido — cantar
         // ─────────────────────────────────────────────────────────
         /// <summary>El humano canta el envido (Envido, Real Envido, Falta Envido, etc.).</summary>
-        [HttpPost("cantar-envido")]
+        [HttpPost("cantarEnvido")]
         public ActionResult<ManoTruco2v2> CantarEnvido([FromBody] Truco2v2EnvidoRequest req)
         {
             var mano = ObtenerMano(req.ManoId);
@@ -105,7 +105,7 @@ namespace TrucoRPG.API.Controllers
         //  Envido — responder (quiero / no quiero / escalar)
         // ─────────────────────────────────────────────────────────
         /// <summary>Responde el envido por el equipo del humano (quiero / no quiero), con opción de escalar.</summary>
-        [HttpPost("responder-envido")]
+        [HttpPost("responderEnvido")]
         public ActionResult<ManoTruco2v2> ResponderEnvido([FromBody] Truco2v2ResponderEnvidoRequest req)
         {
             var mano = ObtenerMano(req.ManoId);
@@ -126,7 +126,7 @@ namespace TrucoRPG.API.Controllers
         //  Envido — declarar tanto
         // ─────────────────────────────────────────────────────────
         /// <summary>Declara los tantos del humano durante la fase de declaración del envido.</summary>
-        [HttpPost("declarar-tanto")]
+        [HttpPost("declararTanto")]
         public ActionResult<ManoTruco2v2> DeclararTanto([FromBody] Truco2v2TantoRequest req)
         {
             var mano = ObtenerMano(req.ManoId);
@@ -145,7 +145,7 @@ namespace TrucoRPG.API.Controllers
         //  Envido — son buenas
         // ─────────────────────────────────────────────────────────
         /// <summary>El humano dice "son buenas": reconoce que el rival tiene más tantos y no declara los suyos.</summary>
-        [HttpPost("son-buenas")]
+        [HttpPost("sonBuenas")]
         public ActionResult<ManoTruco2v2> SonBuenas([FromBody] Truco2v2Request req)
         {
             var mano = ObtenerMano(req.ManoId);
@@ -164,7 +164,7 @@ namespace TrucoRPG.API.Controllers
         //  Truco — cantar
         // ─────────────────────────────────────────────────────────
         /// <summary>El humano canta Truco.</summary>
-        [HttpPost("cantar-truco")]
+        [HttpPost("cantarTruco")]
         public ActionResult<ManoTruco2v2> CantarTruco([FromBody] Truco2v2Request req)
         {
             var mano = ObtenerMano(req.ManoId);
@@ -182,7 +182,7 @@ namespace TrucoRPG.API.Controllers
         //  y puede subir la apuesta en su turno.
         // ─────────────────────────────────────────────────────────
         /// <summary>Sube la apuesta del truco (Retruco / Vale Cuatro) cuando tu equipo tiene la palabra.</summary>
-        [HttpPost("escalar-truco")]
+        [HttpPost("escalarTruco")]
         public ActionResult<ManoTruco2v2> EscalarTruco([FromBody] Truco2v2Request req)
         {
             var mano = ObtenerMano(req.ManoId);
@@ -197,7 +197,7 @@ namespace TrucoRPG.API.Controllers
         //  Truco — responder (quiero / no quiero / escalar)
         // ─────────────────────────────────────────────────────────
         /// <summary>Responde el truco por el equipo del humano (quiero / no quiero), con opción de escalar.</summary>
-        [HttpPost("responder-truco")]
+        [HttpPost("responderTruco")]
         public ActionResult<ManoTruco2v2> ResponderTruco([FromBody] Truco2v2ResponderTrucoRequest req)
         {
             var mano = ObtenerMano(req.ManoId);
@@ -213,7 +213,7 @@ namespace TrucoRPG.API.Controllers
         //  Irse al mazo
         // ─────────────────────────────────────────────────────────
         /// <summary>El humano se va al mazo y abandona la mano para su equipo.</summary>
-        [HttpPost("irse-al-mazo")]
+        [HttpPost("irseAlMazo")]
         public ActionResult<ManoTruco2v2> IrseAlMazo([FromBody] Truco2v2Request req)
         {
             var mano = ObtenerMano(req.ManoId);
@@ -228,7 +228,7 @@ namespace TrucoRPG.API.Controllers
         //  Nueva mano
         // ─────────────────────────────────────────────────────────
         /// <summary>Reparte una nueva mano dentro de la partida en curso (arrastra el puntaje). Falla si la mano actual no terminó o la partida ya terminó.</summary>
-        [HttpPost("nueva-mano")]
+        [HttpPost("nuevaMano")]
         public ActionResult<ManoTruco2v2> NuevaMano([FromBody] Truco2v2Request req)
         {
             var anterior = ObtenerMano(req.ManoId);
@@ -256,7 +256,7 @@ namespace TrucoRPG.API.Controllers
         //  Compañero pregunta: ¿canto los tantos?
         // ─────────────────────────────────────────────────────────
         /// <summary>Responde la consulta del compañero bot sobre cantar el envido (acepta o no).</summary>
-        [HttpPost("responder-consulta-envido")]
+        [HttpPost("responderConsultaEnvido")]
         public ActionResult<ManoTruco2v2> ResponderConsultaEnvido([FromBody] Truco2v2ConsultaEnvidoRequest req)
         {
             var mano = ObtenerMano(req.ManoId);
@@ -271,7 +271,7 @@ namespace TrucoRPG.API.Controllers
         //  Compañero pregunta: ¿voy o pongo? (truco)
         // ─────────────────────────────────────────────────────────
         /// <summary>Responde la consulta del compañero bot sobre el truco ("voy" carta baja / "pongo" carta alta).</summary>
-        [HttpPost("responder-consulta-truco")]
+        [HttpPost("responderConsultaTruco")]
         public ActionResult<ManoTruco2v2> ResponderConsultaTruco([FromBody] Truco2v2ConsultaTrucoRequest req)
         {
             var mano = ObtenerMano(req.ManoId);
@@ -289,7 +289,7 @@ namespace TrucoRPG.API.Controllers
         //  Orden del humano a su compañero bot (botón Acciones)
         // ─────────────────────────────────────────────────────────
         /// <summary>El humano ordena a su compañero bot que juegue su carta más alta.</summary>
-        [HttpPost("ordenar-mayor")]
+        [HttpPost("ordenarMayor")]
         public ActionResult<ManoTruco2v2> OrdenarMayor([FromBody] Truco2v2OrdenMayorRequest req)
         {
             var mano = ObtenerMano(req.ManoId);
@@ -303,7 +303,7 @@ namespace TrucoRPG.API.Controllers
         //  Avanzar UNA sola acción de máquina (para delay/diálogos en el front)
         // ─────────────────────────────────────────────────────────
         /// <summary>Avanza UNA sola acción de máquina y devuelve la mano más el evento (para delays/diálogos en el front).</summary>
-        [HttpPost("avanzar-maquina")]
+        [HttpPost("avanzarMaquina")]
         public ActionResult<Truco2v2PasoResponse> AvanzarMaquina([FromBody] Truco2v2Request req)
         {
             var mano = ObtenerMano(req.ManoId);

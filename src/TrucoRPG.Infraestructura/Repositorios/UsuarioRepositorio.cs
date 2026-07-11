@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using TrucoRPG.Dominio.DTOs;
 using TrucoRPG.Dominio.Entities;
 using TrucoRPG.Dominio.Repositorios;
 

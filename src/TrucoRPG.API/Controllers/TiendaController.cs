@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TrucoRPG.Dominio.DTOs;
+using TrucoRPG.API.DTO;
 using TrucoRPG.Dominio.UseCases;
 
 namespace TrucoRPG.API.Controllers
@@ -32,7 +32,8 @@ namespace TrucoRPG.API.Controllers
             try
             {
                 var idUsuario = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-                var datosTienda = await _obtenerTiendaUseCase.EjecutarAsync();
+                var items = await _obtenerTiendaUseCase.EjecutarAsync();
+                var datosTienda = CategoriaTiendaDto.FromItems(items);
 
                 int monedas = 0;
                 if (!string.IsNullOrEmpty(idUsuario))
@@ -67,7 +68,8 @@ namespace TrucoRPG.API.Controllers
                     return Unauthorized(new { mensaje = "Usuario no autorizado." });
                 }
 
-                await _comprarItemUseCase.Ejecutar(idUsuario, dto.ItemTiendaId);
+                var item = dto.ToDomain();
+                await _comprarItemUseCase.Ejecutar(idUsuario, item.Id);
                 return Ok(new { mensaje = "Compra realizada con éxito." });
             }
             catch (Exception ex)

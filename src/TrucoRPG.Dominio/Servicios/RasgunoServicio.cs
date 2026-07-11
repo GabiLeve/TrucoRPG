@@ -12,7 +12,7 @@ namespace TrucoRPG.Dominio.Servicios
 
             var candidatos = Enumerable.Range(0, manoHumano.Count)
                 .Where(i => manoHumano[i].ValorTruco > 1)
-                .Select(i => (Indice: i, Opciones: ObtenerReemplazosValidos(manoHumano, i)))
+                .Select(i => (Indice: i, Opciones: ObtenerReemplazosValidos(mano, i)))
                 .Where(x => x.Opciones.Count > 0)
                 .ToList();
 
@@ -28,31 +28,16 @@ namespace TrucoRPG.Dominio.Servicios
             carta.ValorTruco = reemplazo.ValorTruco;
         }
 
-        private static List<Carta> ObtenerReemplazosValidos(List<Carta> manoHumano, int indiceCarta)
+        private static List<Carta> ObtenerReemplazosValidos(ManoTruco mano, int indiceCarta)
         {
-            var carta = manoHumano[indiceCarta];
+            var carta = mano.Humano.Mano[indiceCarta];
             var valorObjetivo = carta.ValorTruco - 1;
+            var ocupadas = CartasEnJuegoServicio.Obtener(mano, carta);
 
             return MazoCompleto.Value
                 .Where(c => c.ValorTruco == valorObjetivo)
-                .Where(c => !EstaEnMano(manoHumano, c, excluirIndice: indiceCarta))
+                .Where(c => !ocupadas.Contains(CartasEnJuegoServicio.Clave(c)))
                 .ToList();
-        }
-
-        private static bool EstaEnMano(List<Carta> manoHumano, Carta candidata, int excluirIndice)
-        {
-            for (var i = 0; i < manoHumano.Count; i++)
-            {
-                if (i == excluirIndice)
-                    continue;
-
-                var enMano = manoHumano[i];
-                if (enMano.Numero == candidata.Numero
-                    && enMano.Palo.Equals(candidata.Palo, StringComparison.OrdinalIgnoreCase))
-                    return true;
-            }
-
-            return false;
         }
     }
 }

@@ -147,6 +147,44 @@ namespace TrucoRPG.Dominio.Servicios
             }
         }
 
+        /// <summary>
+        /// Falta envido en las malas (ambos &lt; 15): el ganador del envido se lleva la partida.
+        /// </summary>
+        public static void TerminarPartidaPorFaltaEnMalas(ManoTruco mano, string ganadorEnvido)
+        {
+            if (ganadorEnvido == IdJugador.Humano)
+            {
+                mano.PuntosHumano     = 30;
+                mano.GanadorPartida   = IdJugador.Humano;
+            }
+            else if (ganadorEnvido == IdJugador.Maquina)
+            {
+                mano.PuntosMaquina    = 30;
+                mano.GanadorPartida   = IdJugador.Maquina;
+            }
+
+            mano.PartidaTerminada = true;
+        }
+
+        /// <summary>
+        /// Suma puntos de falta envido sin acumularlos en la maldición del Mandinga cuando
+        /// eso cerraría la partida (llegada a 30).
+        /// </summary>
+        public static void SumarPuntosFaltaEnvido(ManoTruco mano, string ganador, int puntos)
+        {
+            if (ganador is not (IdJugador.Humano or IdJugador.Maquina) || puntos <= 0)
+                return;
+
+            int puntosActuales = ganador == IdJugador.Humano ? mano.PuntosHumano : mano.PuntosMaquina;
+            if (puntosActuales + puntos >= 30)
+            {
+                AplicarPuntos(mano, ganador, puntos);
+                return;
+            }
+
+            SumarPuntos(mano, ganador, puntos, OrigenPuntos.Envido, mano.CantorEnvido);
+        }
+
         private static string? ObtenerGanadorBaza(List<Baza> bazas, int index)
         {
             return bazas.Count > index ? bazas[index].Ganador : null;

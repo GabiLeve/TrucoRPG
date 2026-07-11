@@ -156,7 +156,7 @@ namespace TrucoRPG.Tests.Logica
         }
 
         [Fact]
-        public void OnManoIniciada_SiLaCartaEstaEnJuego_IgualLaCopia()
+        public void OnManoIniciada_SiLaCartaEstaEnJuego_NoActivaEspejo()
         {
             var mano = CrearManoMandinga(numeroDeMano: 2, puntosHumano: 20);
             // La única candidata es el ancho de espada, que el humano tiene en la mano
@@ -167,8 +167,7 @@ namespace TrucoRPG.Tests.Logica
 
             MandingaServicio.OnManoIniciada(mano);
 
-            Assert.True(mano.MandingaEspejoBloqueando);
-            Assert.Contains(mano.Maquina.Mano, c => c.Numero == 1 && c.Palo == "Espada");
+            Assert.False(mano.MandingaEspejoBloqueando);
         }
 
         [Fact]

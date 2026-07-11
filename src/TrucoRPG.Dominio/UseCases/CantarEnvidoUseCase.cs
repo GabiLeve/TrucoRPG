@@ -16,8 +16,8 @@ namespace TrucoRPG.Dominio.UseCases
                 throw new InvalidOperationException("La partida ya terminó. El primero en llegar a 30 gana.");
             if (mano.EnvidoCantado || mano.EnvidoResuelto)
                 throw new InvalidOperationException("El envido ya fue cantado.");
-            if (mano.TrucoResuelto)
-                throw new InvalidOperationException("No se puede cantar envido después de que el truco fue aceptado.");
+            if (!EnvidoServicio.PuedeCantarEnvido(mano))
+                throw new InvalidOperationException("No se puede cantar envido en este momento.");
             if (mano.Bazas.Count > 0)
                 throw new InvalidOperationException("El envido solo puede cantarse antes de jugar la primera baza.");
 

@@ -71,7 +71,7 @@ namespace TrucoRPG.API.Controllers
         /// <response code="200">Contraseña actualizada.</response>
         /// <response code="400">La contraseña actual es incorrecta o la nueva no cumple los requisitos.</response>
         /// <response code="401">No autenticado (falta o es inválido el JWT).</response>
-        [HttpPut("change-password")]
+        [HttpPut("changePassword")]
         [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -93,7 +93,7 @@ namespace TrucoRPG.API.Controllers
         /// emails están registrados.
         /// </remarks>
         /// <response code="200">Solicitud procesada.</response>
-        [HttpPost("forgot-password")]
+        [HttpPost("forgotPassword")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> RecuperarPassword([FromBody] ForgotPasswordDto dto)
         {
@@ -113,7 +113,7 @@ namespace TrucoRPG.API.Controllers
         /// <param name="dto">Email, token recibido por mail y la nueva contraseña.</param>
         /// <response code="200">Contraseña restablecida.</response>
         /// <response code="400">Token inválido/expirado o contraseña no válida.</response>
-        [HttpPost("reset-password")]
+        [HttpPost("resetPassword")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> RestablecerPassword([FromBody] ResetPasswordDto dto)

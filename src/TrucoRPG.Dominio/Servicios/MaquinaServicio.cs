@@ -43,11 +43,8 @@ namespace TrucoRPG.Dominio.Servicios
             if (mano.CartaHumanoEnMesa != null)
                 return CompletarBazaConCartaHumanoEnMesa(mano);
 
-            if (!mano.EnvidoCantado && !mano.EnvidoResuelto && mano.Bazas.Count == 0)
-            {
-                if (IntentarCantarEnvidoIniciativa(mano))
-                    return new Truco1v1EventoMaquina("envido", "¡Envido!");
-            }
+            if (IntentarCantarEnvidoIniciativa(mano))
+                return new Truco1v1EventoMaquina("envido", "¡Envido!");
 
             if (mano.TurnoActual != "Maquina") return null;
             if (mano.Maquina.Mano.Count == 0) return null;
@@ -65,7 +62,7 @@ namespace TrucoRPG.Dominio.Servicios
 
         private static bool IntentarCantarEnvidoIniciativa(ManoTruco mano)
         {
-            if (mano.EnvidoCantado || mano.EnvidoResuelto || mano.Bazas.Count > 0)
+            if (!EnvidoServicio.PuedeCantarEnvido(mano))
                 return false;
 
             bool cantaEnvido = IniciativaMaquinaEnvidoServicio.DebeCantarEnvido(
@@ -127,6 +124,7 @@ namespace TrucoRPG.Dominio.Servicios
                     mano, mano.GanadorMano, puntosMano, OrigenPuntos.TrucoMano, mano.CantorTruco);
                 mano.TrucoResuelto = true;
                 MandingaServicio.RegistrarFinMano(mano);
+                HabilidadesRivalOrquestador.ActualizarVista(mano);
             }
             else if (!EsModoHistoriaPasoAPaso(mano))
             {
@@ -147,7 +145,7 @@ namespace TrucoRPG.Dominio.Servicios
 
         public static void ProcesarIniciativa(ManoTruco mano)
         {
-            if (!mano.EnvidoCantado && !mano.EnvidoResuelto && mano.Bazas.Count == 0)
+            if (EnvidoServicio.PuedeCantarEnvido(mano))
             {
                 bool cantaEnvido = IniciativaMaquinaEnvidoServicio.DebeCantarEnvido(
                     mano.Maquina.Mano,

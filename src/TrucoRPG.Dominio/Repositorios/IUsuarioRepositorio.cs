@@ -1,5 +1,4 @@
-﻿using TrucoRPG.Dominio.DTOs;
-using TrucoRPG.Dominio.Entities;
+﻿using TrucoRPG.Dominio.Entities;
 
 namespace TrucoRPG.Dominio.Repositorios
 {

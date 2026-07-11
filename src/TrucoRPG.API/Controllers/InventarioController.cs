@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using TrucoRPG.API.DTO;
 using TrucoRPG.Dominio.UseCases;
 
 namespace TrucoRPG.API.Controllers
@@ -18,7 +19,7 @@ namespace TrucoRPG.API.Controllers
             _obtenerMonedasUseCase = obtenerMonedasUseCase;
         }
 
-        [HttpGet("mi-inventario")]
+        [HttpGet("miInventario")]
         [Authorize]
         public async Task<IActionResult> TraerInventario()
         {
@@ -37,7 +38,7 @@ namespace TrucoRPG.API.Controllers
                 return Ok(new
                 {
                     Monedas = monedas,
-                    Items = inventario
+                    Items = inventario.Select(InventarioItemDto.FromDomain).ToList()
                 });
             }
             catch (Exception ex)

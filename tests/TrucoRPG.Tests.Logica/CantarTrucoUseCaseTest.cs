@@ -167,31 +167,44 @@ namespace TrucoRPG.Tests
             // Given
             var id = Guid.NewGuid();
             var mano = CrearManoBase(id);
-
             mano.NivelMentiraTrucoMaquina = 3;
-
             mano.Maquina.Mano = new List<Carta>
-        {
-            new Carta { Numero = 1, Palo = "Espada", ValorTruco = 100 }
-        };
+            {
+                new Carta { Numero = 1, Palo = "Espada", ValorTruco = 14 }
+            };
 
             PartidaMemoriaServicio.Guardar(mano);
             var servicio = new CantarTrucoUseCase();
 
-            // When
-            var resultado = servicio.Ejecutar(id);
-
-            // Then
-            if (resultado.NivelTruco == 0 || resultado.NivelTruco == 1)
+            // 1ª tirada: acepta truco. 2ª tirada: no escala a retruco.
+            var randomOriginal = DecisionMaquinaServicio.RandomNext;
+            var llamadas = 0;
+            DecisionMaquinaServicio.RandomNext = _ =>
             {
+                llamadas++;
+                return llamadas switch
+                {
+                    1 => 50,
+                    2 => 80,
+                    _ => 0
+                };
+            };
+
+            try
+            {
+                // When
+                var resultado = servicio.Ejecutar(id);
+
+                // Then
                 Assert.True(resultado.TrucoResuelto);
+                Assert.Equal(1, resultado.NivelTruco);
                 Assert.Equal(2, resultado.PuntosTrucoMano);
                 Assert.Contains("La máquina quiso el truco", resultado.EstadoTruco);
+                Assert.False(resultado.TrucoPendienteRespuestaHumano);
             }
-            else
+            finally
             {
-                Assert.Equal(2, resultado.NivelTruco);
-                Assert.Equal(3, resultado.PuntosTrucoMano);
+                DecisionMaquinaServicio.RandomNext = randomOriginal;
             }
         }
     

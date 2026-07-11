@@ -1,8 +1,8 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using TrucoRPG.API.DTO;
 using TrucoRPG.API.Models;
-using TrucoRPG.Dominio.DTOs;
 using TrucoRPG.Dominio.Entities;
 using TrucoRPG.Dominio.Repositorios;
 using TrucoRPG.Dominio.UseCases;
@@ -54,15 +54,18 @@ namespace TrucoRPG.API.Controllers
         }
 
         [HttpPost("crearPersonaje")]
+        [Authorize]
         public async Task<IActionResult> CrearPersonaje([FromBody] PersonajeDto personaje)
         {
                 var usuarioId = _usuarioActual.ObtenerId();
-                await _crearPersonaje.Ejecutar(usuarioId, personaje.SpriteKey, personaje.HeroeId);
+                var nuevoPersonaje = personaje.ToDomain();
+                await _crearPersonaje.Ejecutar(usuarioId, nuevoPersonaje.SpriteKey, nuevoPersonaje.HeroeId);
                 return Ok(new { mensaje = "Personaje guardado correctamente!" });
  
         }
 
         [HttpGet("verificarPersonaje")]
+        [Authorize]
         public async Task<IActionResult> VerificarPersonaje()
         {
             var usuarioId = _usuarioActual.ObtenerId();
@@ -72,6 +75,7 @@ namespace TrucoRPG.API.Controllers
 
 
         [HttpGet("obtenerPersonaje")]
+        [Authorize]
         public async Task<IActionResult> ObtenerPersonaje()
         {
                 var usuarioId = _usuarioActual.ObtenerId();
@@ -89,8 +93,11 @@ namespace TrucoRPG.API.Controllers
         /// <response code="200">Lista de rivales.</response>
         [HttpGet("rivales")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<IActionResult> ObtenerRivales() =>
-            Ok(await _obtenerRivales.EjecutarAsync());
+        public async Task<IActionResult> ObtenerRivales()
+        {
+            var rivales = await _obtenerRivales.EjecutarAsync();
+            return Ok(rivales.Select(RivalDto.FromDomain).ToList());
+        }
 
         /// <summary>Devuelve un rival puntual por su nivel.</summary>
         /// <param name="nivel">Nivel del rival (1, 2, 3, …).</param>
@@ -102,7 +109,7 @@ namespace TrucoRPG.API.Controllers
         public async Task<IActionResult> ObtenerRivalPorNivel(int nivel)
         {
             var rival = await _obtenerRivales.EjecutarPorNivelAsync(nivel);
-            return rival is null ? NotFound() : Ok(rival);
+            return rival is null ? NotFound() : Ok(RivalDto.FromDomain(rival));
         }
 
         /// <summary>Devuelve el progreso del jugador actual (último nivel derrotado y puntos).</summary>
@@ -110,22 +117,25 @@ namespace TrucoRPG.API.Controllers
         [HttpGet("progreso")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> ObtenerProgreso() =>
-            Ok(await _obtenerProgreso.EjecutarAsync(_usuarioActual.ObtenerId()));
+            Ok(ProgresoPartidaDto.FromDomain(await _obtenerProgreso.EjecutarAsync(_usuarioActual.ObtenerId())));
 
         /// <summary>Indica si el jugador actual puede pelear contra el rival de ese nivel.</summary>
         /// <param name="nivel">Nivel del rival a evaluar.</param>
         /// <response code="200">Resultado de la validación (puede pelear y motivo).</response>
-        [HttpGet("rivales/{nivel:int}/puede-pelear")]
+        [HttpGet("rivales/{nivel:int}/puedePelear")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<IActionResult> PuedePelear(int nivel) =>
-            Ok(await _puedePelear.EjecutarAsync(_usuarioActual.ObtenerId(), nivel));
+        public async Task<IActionResult> PuedePelear(int nivel)
+        {
+            var (puede, motivo) = await _puedePelear.EjecutarAsync(_usuarioActual.ObtenerId(), nivel);
+            return Ok(PuedePelearRivalDto.FromResultado(nivel, puede, motivo));
+        }
 
         /// <summary>Registra una victoria del jugador y devuelve su progreso actualizado. Requiere JWT.</summary>
         /// <param name="request">Nivel del rival vencido y la diferencia de puntos.</param>
         /// <response code="200">Progreso actualizado.</response>
         /// <response code="401">No autenticado.</response>
         [Authorize(Roles = "Jugador")]
-        [HttpPost("registrar-victoria")]
+        [HttpPost("registrarVictoria")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> RegistrarVictoria(
@@ -136,7 +146,7 @@ namespace TrucoRPG.API.Controllers
                 request.RivalNivel,
                 request.DiferenciaPuntos);
 
-            return Ok(await _obtenerProgreso.EjecutarAsync(_usuarioActual.ObtenerId()));
+            return Ok(ProgresoPartidaDto.FromDomain(await _obtenerProgreso.EjecutarAsync(_usuarioActual.ObtenerId())));
         }
 
         /// <summary>
@@ -146,16 +156,16 @@ namespace TrucoRPG.API.Controllers
         /// <response code="200">Progreso actualizado (rivales en 0).</response>
         /// <response code="401">No autenticado.</response>
         [Authorize(Roles = "Jugador")]
-        [HttpPost("reiniciar-rivales")]
+        [HttpPost("reiniciarRivales")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> ReiniciarRivales()
         {
             await _reiniciarRivales.EjecutarAsync(_usuarioActual.ObtenerId());
-            return Ok(await _obtenerProgreso.EjecutarAsync(_usuarioActual.ObtenerId()));
+            return Ok(ProgresoPartidaDto.FromDomain(await _obtenerProgreso.EjecutarAsync(_usuarioActual.ObtenerId())));
         }
 
-        [HttpPut("equipar-avatar")]
+        [HttpPut("equiparAvatar")]
         [Authorize]
         public async Task<IActionResult> EquiparAvatar([FromBody] EquiparSpriteDto dto)
         {
@@ -163,7 +173,8 @@ namespace TrucoRPG.API.Controllers
             {
                 var idUsuario = _usuarioActual.ObtenerId();
 
-                await _equiparAvatarUseCase.Ejecutar(idUsuario, dto.SpriteKeyNuevo);
+                var personajeNuevo = dto.ToDomain();
+                await _equiparAvatarUseCase.Ejecutar(idUsuario, personajeNuevo.SpriteKey);
 
                 return Ok(new { mensaje = "¡Ropa actualizada con éxito!" });
             }
